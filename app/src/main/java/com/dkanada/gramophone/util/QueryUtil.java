@@ -1,5 +1,7 @@
 package com.dkanada.gramophone.util;
 
+import android.util.Log;
+
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.interfaces.MediaCallback;
 import com.dkanada.gramophone.model.Album;
