@@ -106,7 +106,18 @@ public class NavigationUtil {
 
     public static void startActivitySharedElements(Activity activity, Intent intent, Pair<View, String> sharedElements) {
         if (sharedElements != null) {
-            activity.startActivity(intent, ActivityOptionsCompat.makeSceneTransitionAnimation(activity, sharedElements).toBundle());
+            View sharedView = sharedElements.first;
+            String sharedName = sharedElements.second;
+            if (sharedView != null && sharedName != null) {
+                activity.startActivity(
+                        intent,
+                        ActivityOptionsCompat
+                                .makeSceneTransitionAnimation(activity, sharedView, sharedName)
+                                .toBundle()
+                );
+            } else {
+                activity.startActivity(intent);
+            }
         } else {
             activity.startActivity(intent);
         }
