@@ -28,6 +28,7 @@ import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.interfaces.PaletteColorHolder;
+import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
@@ -37,6 +38,7 @@ import com.dkanada.gramophone.util.QueryUtil;
 import org.jellyfin.apiclient.model.querying.ItemQuery;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ArtistDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, CabHolder, AppBarLayout.OnOffsetChangedListener {
     public static final String EXTRA_ARTIST = BuildConfig.APPLICATION_ID + ".extra.artist";
@@ -186,7 +188,7 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     private void setUpToolbar() {
         setSupportActionBar(binding.toolbar);
         binding.toolbar.setTitle(null);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
@@ -253,12 +255,21 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     private void setArtist(Artist artist) {
         this.artist = artist;
 
+        for (Album album : artist.albums) {
+            album.songs.clear();
+            for (Song song : artist.songs) {
+                if (song.albumId.equals(album.id)) {
+                    album.songs.add(song);
+                }
+            }
+        }
+
         binding.toolbar.setTitle(artist.name);
         binding.songCountText.setText(MusicUtil.getSongCountString(this, artist.songs.size()));
         binding.albumCountText.setText(MusicUtil.getAlbumCountString(this, artist.albums.size()));
         binding.durationText.setText(MusicUtil.getReadableDurationString(MusicUtil.getTotalDuration(this, artist.songs)));
 
-        if (artist.songs.size() != 0) songAdapter.swapDataSet(artist.songs);
-        if (artist.albums.size() != 0) albumAdapter.swapDataSet(artist.albums);
+        if (!artist.songs.isEmpty()) songAdapter.swapDataSet(artist.songs);
+        if (!artist.albums.isEmpty()) albumAdapter.swapDataSet(artist.albums);
     }
 }

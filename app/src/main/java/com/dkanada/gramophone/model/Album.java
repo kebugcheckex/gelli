@@ -55,6 +55,8 @@ public class Album implements Parcelable {
 
         this.primary = song.primary;
         this.blurHash = song.blurHash;
+
+        this.songs = new ArrayList<>();
     }
 
     public Album() {
@@ -88,6 +90,8 @@ public class Album implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeTypedList(songs);
+
         dest.writeString(id);
         dest.writeString(title);
         dest.writeInt(year);
@@ -100,7 +104,7 @@ public class Album implements Parcelable {
     }
 
     protected Album(Parcel in) {
-        this.songs = new ArrayList<>();
+        this.songs = in.createTypedArrayList(Song.CREATOR);
 
         this.id = in.readString();
         this.title = in.readString();

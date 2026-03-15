@@ -2,6 +2,7 @@ package com.dkanada.gramophone.database;
 
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Index;
 
 import com.dkanada.gramophone.model.Song;
 
@@ -12,12 +13,15 @@ import com.dkanada.gramophone.model.Song;
                 "queue"
         },
         foreignKeys = {
-            @ForeignKey(
-                entity = Song.class,
-                parentColumns = {"id"},
-                childColumns = {"songId"},
-                onDelete = ForeignKey.CASCADE
-            )
+                @ForeignKey(
+                        entity = Song.class,
+                        parentColumns = {"id"},
+                        childColumns = {"songId"},
+                        onDelete = ForeignKey.CASCADE
+                )
+        },
+        indices = {
+                @Index(value = {"songId"})
         }
 )
 public class QueueSong {
