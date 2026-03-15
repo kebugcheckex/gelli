@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Settings;
+import android.view.View;
 
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.util.Pair;
@@ -75,35 +76,35 @@ public class NavigationUtil {
         context.startActivity(intent);
     }
 
-    public static void startArtist(Activity activity, Artist artist, Pair sharedElements) {
+    public static void startArtist(Activity activity, Artist artist, Pair<View, String> sharedElements) {
         final Intent intent = new Intent(activity, ArtistDetailActivity.class);
 
         intent.putExtra(ArtistDetailActivity.EXTRA_ARTIST, artist);
         startActivitySharedElements(activity, intent, sharedElements);
     }
 
-    public static void startAlbum(Activity activity, Album album, Pair sharedElements) {
+    public static void startAlbum(Activity activity, Album album, Pair<View, String> sharedElements) {
         final Intent intent = new Intent(activity, AlbumDetailActivity.class);
 
         intent.putExtra(AlbumDetailActivity.EXTRA_ALBUM, album);
         startActivitySharedElements(activity, intent, sharedElements);
     }
 
-    public static void startGenre(Activity activity, Genre genre, Pair sharedElements) {
+    public static void startGenre(Activity activity, Genre genre, Pair<View, String> sharedElements) {
         final Intent intent = new Intent(activity, GenreDetailActivity.class);
 
         intent.putExtra(GenreDetailActivity.EXTRA_GENRE, genre);
         startActivitySharedElements(activity, intent, sharedElements);
     }
 
-    public static void startPlaylist(Activity activity, Playlist playlist, Pair sharedElements) {
+    public static void startPlaylist(Activity activity, Playlist playlist, Pair<View, String> sharedElements) {
         final Intent intent = new Intent(activity, PlaylistDetailActivity.class);
 
         intent.putExtra(PlaylistDetailActivity.EXTRA_PLAYLIST, playlist);
         startActivitySharedElements(activity, intent, sharedElements);
     }
 
-    public static void startActivitySharedElements(Activity activity, Intent intent, Pair sharedElements) {
+    public static void startActivitySharedElements(Activity activity, Intent intent, Pair<View, String> sharedElements) {
         if (sharedElements != null) {
             activity.startActivity(intent, ActivityOptionsCompat.makeSceneTransitionAnimation(activity, sharedElements).toBundle());
         } else {

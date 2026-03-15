@@ -191,7 +191,10 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
             if (isActive()) {
                 toggleChecked(getBindingAdapterPosition());
             } else {
-                Pair transition = Pair.create(image, activity.getResources().getString(R.string.transition_artist_image));
+                Pair<View, String> transition = Pair.create(
+                        image,
+                        activity.getResources().getString(R.string.transition_artist_image)
+                );
                 NavigationUtil.startArtist(activity, dataSet.get(getBindingAdapterPosition()), transition);
             }
         }
