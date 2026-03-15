@@ -31,9 +31,7 @@ import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
-import com.dkanada.gramophone.util.QueryUtil;
-
-import org.jellyfin.apiclient.model.querying.ItemQuery;
+import com.dkanada.gramophone.util.JellyfinSdkBridge;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +51,7 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         album = getIntent().getParcelableExtra(EXTRA_ALBUM);
-        Log.d("AlbumDetailActivity", "onCreate: " + album.songs.size());
+        Log.d("AlbumDetailActivity", "onCreate: album id = " + (album != null ? album.id : "null"));
 
         super.onCreate(savedInstanceState);
 
@@ -67,14 +65,22 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
 
     @Override
     public void onStateOnline() {
-        if (!album.songs.isEmpty()) return;
-
-        ItemQuery query = new ItemQuery();
-        query.setParentId(album.id);
-        query.setSortBy(new String[]{"ParentIndexNumber", "IndexNumber"});
-
-        QueryUtil.getSongs(query, media -> {
-            album.songs = media;
+        if (album == null) {
+            Log.w("AlbumDetailActivity", "onStateOnline: album is null, skipping fetch");
+            return;
+        }
+        if (album.songs != null && !album.songs.isEmpty()) {
+            Log.d("AlbumDetailActivity", "onStateOnline: songs already populated, skipping fetch");
+            return;
+        }
+        Log.d("AlbumDetailActivity", "onStateOnline: starting fetch for album id = " + album.id);
+        JellyfinSdkBridge.getAlbumSongs(album.id, media -> {
+            Log.d("AlbumDetailActivity", "onStateOnline: fetch finished, songs size = " + (media != null ? media.size() : "null"));
+            if (media != null && !media.isEmpty()) {
+                album.songs = media;
+            } else {
+                Log.w("AlbumDetailActivity", "onStateOnline: empty result, preserving existing songs list");
+            }
             setAlbum(album);
         });
     }
@@ -156,17 +162,9 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
     }
 
     private void setUpSongsAdapter() {
-        Log.d("AlbumDetailActivity", "setUpSongsAdapter: " + album.songs.size());
         adapter = new AlbumSongAdapter(this, album.songs, R.layout.item_list, false, this);
         binding.list.setLayoutManager(new GridLayoutManager(this, 1));
         binding.list.setAdapter(adapter);
-        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                if (adapter.getItemCount() == 0) finish();
-            }
-        });
     }
 
     @Override
@@ -237,6 +235,8 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
         binding.durationText.setText(MusicUtil.getReadableDurationString(MusicUtil.getTotalDuration(this, album.songs)));
         binding.albumYearText.setText(MusicUtil.getYearString(album.year));
 
-        adapter.swapDataSet(album.songs);
+        if (adapter != null) {
+            adapter.swapDataSet(album.songs);
+        }
     }
 }

@@ -23,6 +23,7 @@ import java.util.List;
 
 public class QueryUtil {
     public static BaseItemDto currentLibrary;
+    private static final String TAG = "QueryUtil";
 
     // TODO return BaseItemDto everywhere
     // will simplify the code for the getPlaylists method
@@ -178,6 +179,26 @@ public class QueryUtil {
                 exception.printStackTrace();
             }
         });
+    }
+
+    public static void applyAlbumIdFilter(ItemQuery query, String albumId) {
+        if (albumId == null) {
+            Log.w(TAG, "applyAlbumIdFilter: albumId is null");
+            return;
+        }
+        try {
+            // Newer Jellyfin API supports AlbumIds for audio queries.
+            ItemQuery.class
+                    .getMethod("setAlbumIds", String[].class)
+                    .invoke(query, (Object) new String[]{albumId});
+            return;
+        } catch (NoSuchMethodException e) {
+            Log.w(TAG, "applyAlbumIdFilter: setAlbumIds not available, using ParentId");
+        } catch (Exception e) {
+            Log.w(TAG, "applyAlbumIdFilter: failed to set AlbumIds, using ParentId", e);
+        }
+
+        query.setParentId(albumId);
     }
 
     public static void applyProperties(ItemQuery query) {
