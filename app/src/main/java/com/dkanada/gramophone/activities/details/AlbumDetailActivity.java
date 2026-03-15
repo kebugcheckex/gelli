@@ -2,6 +2,7 @@ package com.dkanada.gramophone.activities.details;
 
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +36,7 @@ import com.dkanada.gramophone.util.QueryUtil;
 import org.jellyfin.apiclient.model.querying.ItemQuery;
 
 import java.util.List;
+import java.util.Objects;
 
 public class AlbumDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, CabHolder, AppBarLayout.OnOffsetChangedListener {
     public static final String EXTRA_ALBUM = BuildConfig.APPLICATION_ID + ".extra.album";
@@ -51,6 +53,7 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         album = getIntent().getParcelableExtra(EXTRA_ALBUM);
+        Log.d("AlbumDetailActivity", "onCreate: " + album.songs.size());
 
         super.onCreate(savedInstanceState);
 
@@ -64,6 +67,8 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
 
     @Override
     public void onStateOnline() {
+        if (!album.songs.isEmpty()) return;
+
         ItemQuery query = new ItemQuery();
         query.setParentId(album.id);
         query.setSortBy(new String[]{"ParentIndexNumber", "IndexNumber"});
@@ -147,10 +152,11 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
     private void setUpToolbar() {
         setSupportActionBar(binding.toolbar);
         binding.toolbar.setTitle(null);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }
 
     private void setUpSongsAdapter() {
+        Log.d("AlbumDetailActivity", "setUpSongsAdapter: " + album.songs.size());
         adapter = new AlbumSongAdapter(this, album.songs, R.layout.item_list, false, this);
         binding.list.setLayoutManager(new GridLayoutManager(this, 1));
         binding.list.setAdapter(adapter);
@@ -231,6 +237,6 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
         binding.durationText.setText(MusicUtil.getReadableDurationString(MusicUtil.getTotalDuration(this, album.songs)));
         binding.albumYearText.setText(MusicUtil.getYearString(album.year));
 
-        if (album.songs.size() != 0) adapter.swapDataSet(album.songs);
+        adapter.swapDataSet(album.songs);
     }
 }
