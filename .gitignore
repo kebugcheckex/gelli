@@ -1,26 +1,22 @@
-# Build
+# Built application files
 *.apk
-
-# Cache
-bin
-gen
-out
-
-# NDK
-*.so
-*.hpp
-*.h
+*.aab
 
 # Gradle
-*.gradle
-*.jar
-gradlew
-gradlew.bat
-build
+.gradle/
+build/
+**/build/
 
-# Configuration
+# Local configuration
 local.properties
 
-# Other
-.idea
-.vs
+# Android Studio/IntelliJ
+*.iml
+.idea/
+
+# Native build outputs
+.externalNativeBuild/
+.cxx/
+
+# Profiling
+captures/
