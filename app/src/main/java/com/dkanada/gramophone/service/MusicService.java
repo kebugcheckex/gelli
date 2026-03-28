@@ -73,6 +73,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.android.exoplayer2.Player.MEDIA_ITEM_TRANSITION_REASON_AUTO;
 import static com.google.android.exoplayer2.Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED;
+import static com.google.android.exoplayer2.Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT;
 import static com.google.android.exoplayer2.Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM;
 
 public class MusicService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -171,6 +172,12 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             if (ready) {
                 progressHandler.sendEmptyMessage(TRACK_STARTED);
             } else if (reason == PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
+                if (pendingQuit) {
+                    pendingQuit = false;
+                    clearSleepTimer();
+                    quit();
+                    return;
+                }
                 progressHandler.sendEmptyMessage(TRACK_ENDED);
             }
         }
@@ -179,7 +186,13 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         public void onTrackChanged(int reason) {
             acquireWakeLock(30000);
 
-            if (reason == MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+            if (reason == MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+                if (pendingQuit) {
+                    pendingQuit = false;
+                    clearSleepTimer();
+                    quit();
+                    return;
+                }
                 progressHandler.sendEmptyMessage(TRACK_CHANGED);
                 queueManager.setNextPosition();
             } else if (reason == MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
@@ -362,10 +375,12 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
                     case ACTION_STOP:
                     case ACTION_QUIT:
                         pendingQuit = false;
+                        clearSleepTimer();
                         quit();
                         break;
                     case ACTION_PENDING_QUIT:
                         pendingQuit = true;
+                        clearSleepTimer();
                         break;
                 }
             }
@@ -440,6 +455,10 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         playingNotification.stop();
 
         stopSelf();
+    }
+
+    private void clearSleepTimer() {
+        PreferenceUtil.getInstance(this).setNextSleepTimerElapsedRealtime(-1);
     }
 
     private void releaseResources() {

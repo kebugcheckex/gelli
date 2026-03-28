@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
@@ -60,7 +61,7 @@ public class SleepTimerDialog extends DialogFragment {
                     final long nextSleepTimerElapsedTime = SystemClock.elapsedRealtime() + minutes * 60 * 1000;
                     PreferenceUtil.getInstance(getActivity()).setNextSleepTimerElapsedRealtime(nextSleepTimerElapsedTime);
                     AlarmManager am = (AlarmManager) requireActivity().getSystemService(Context.ALARM_SERVICE);
-                    am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, nextSleepTimerElapsedTime, pi);
+                    scheduleSleepTimer(am, nextSleepTimerElapsedTime, pi);
 
                     Toast.makeText(getActivity(), requireActivity().getResources().getString(R.string.sleep_timer_set, minutes), Toast.LENGTH_SHORT).show();
                 })
@@ -70,12 +71,14 @@ public class SleepTimerDialog extends DialogFragment {
                         AlarmManager am = (AlarmManager) requireActivity().getSystemService(Context.ALARM_SERVICE);
                         am.cancel(previous);
                         previous.cancel();
+                        PreferenceUtil.getInstance(getActivity()).setNextSleepTimerElapsedRealtime(-1);
                         Toast.makeText(getActivity(), requireActivity().getResources().getString(R.string.sleep_timer_canceled), Toast.LENGTH_SHORT).show();
                     }
 
                     MusicService musicService = MusicPlayerRemote.musicService;
                     if (musicService != null && musicService.pendingQuit) {
                         musicService.pendingQuit = false;
+                        PreferenceUtil.getInstance(getActivity()).setNextSleepTimerElapsedRealtime(-1);
                         Toast.makeText(getActivity(), requireActivity().getResources().getString(R.string.sleep_timer_canceled), Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -136,7 +139,25 @@ public class SleepTimerDialog extends DialogFragment {
     }
 
     private void updateTimeDisplayTime() {
-        binding.timerDisplay.setText(seekArcProgress + " min");
+        binding.timerDisplay.setText(getString(R.string.sleep_timer_display, seekArcProgress));
+    }
+
+    private void scheduleSleepTimer(AlarmManager alarmManager, long triggerAtMillis, PendingIntent pendingIntent) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
+            } else {
+                alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
+            }
+        } catch (SecurityException ignored) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
+            } else {
+                alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pendingIntent);
+            }
+        }
     }
 
     private PendingIntent makeTimerPendingIntent(int flag) {
