@@ -18,6 +18,7 @@
     <string name="action_remove_from_favorites">从收藏中移除</string>
     <string name="action_search">搜索</string>
     <string name="action_download">下载</string>
+    <string name="action_cancel">取消</string>
     <string name="action_play_next">作为下一首播放</string>
     <string name="action_play">播放</string>
     <string name="action_play_pause">播放/暂停</string>
@@ -128,6 +129,7 @@
     <string name="pref_title_image_cache_size">图片缓存大小</string>
     <string name="pref_title_media_cache_size">媒体缓存大小</string>
 
+    <string name="pref_title_gain_adjustment">增益调节</string>
     <string name="pref_summary_primary_color">主题主色调，默认为靛蓝色。</string>
     <string name="pref_summary_accent_color">主题强调色，默认为粉色。</string>
     <string name="pref_summary_show_album_art">使用当前播放曲目的专辑封面作为锁屏壁纸。</string>
@@ -141,6 +143,7 @@
     <string name="pref_summary_categories">配置媒体库类别可见性和顺序。</string>
     <string name="pref_summary_direct_play_codecs">关闭直接播放的编码将强制转码。</string>
 
+    <string name="pref_summary_gain_adjustment">调节音乐播放器输出的增益</string>
     <string name="delete_action">删除</string>
     <string name="remove_action">移除</string>
     <string name="rename_action">重命名</string>
@@ -221,6 +224,7 @@
     <string name="cancel_current_timer">取消当前定时器</string>
     <string name="sleep_timer_canceled">定时器已取消。</string>
     <string name="sleep_timer_set">音乐将在 %d 分钟后停止播放。</string>
+    <string name="sleep_timer_display">%1$d 分钟</string>
     <string name="error_unreachable_server">无法访问服务器</string>
     <string name="error_login_credentials">登录认证失败。</string>
     <string name="error_empty_server">请填入服务器地址。</string>
