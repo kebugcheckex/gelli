@@ -66,27 +66,27 @@ android {
 
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.10'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
-    implementation 'org.jellyfin.sdk:jellyfin-core:1.8.6'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
+    implementation 'org.jellyfin.sdk:jellyfin-core:1.8.8'
 
     implementation 'com.github.jellyfin.jellyfin-apiclient-java:android:0.7.3' // TODO deprecated, need to replace with the Kotlin library
     implementation 'com.github.woltapp:blurhash:f41a23cc50'
     implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.android.material:material:1.13.0'
 
     implementation 'androidx.core:core-ktx:1.18.0'
-    implementation 'androidx.media:media:1.6.0'
+    implementation 'androidx.media:media:1.7.1'
     implementation 'androidx.fragment:fragment-ktx:1.5.2'
     implementation 'androidx.legacy:legacy-support-v13:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.5.0'
-    implementation 'androidx.recyclerview:recyclerview:1.2.1'
-    implementation 'androidx.gridlayout:gridlayout:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.4.0'
+    implementation 'androidx.gridlayout:gridlayout:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.palette:palette-ktx:1.0.0'
-    implementation 'androidx.annotation:annotation:1.4.0'
+    implementation 'androidx.annotation:annotation:1.10.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
-    implementation 'androidx.preference:preference-ktx:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
 
     implementation 'com.github.kabouzeid:RecyclerView-FastScroll:1.0.16-kmod'
     implementation 'com.github.kabouzeid:SeekArc:1.2-kmod'
@@ -110,8 +110,8 @@ dependencies {
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 
-    annotationProcessor 'androidx.room:room-compiler:2.4.3'
-    implementation 'androidx.room:room-runtime:2.4.3'
+    annotationProcessor 'androidx.room:room-compiler:2.8.4'
+    implementation 'androidx.room:room-runtime:2.8.4'
 
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     implementation 'com.github.bumptech.glide:annotations:4.12.0'
