@@ -1,8 +1,10 @@
+## Note
+
+This repo was forked from the original project, which is now a public archive (https://github.com/dkanada/gelli). I will continue make improvements and updates to this app.
+
 ## Gelli
 
 This is a native music player for Android devices that connects to Jellyfin media servers. The code is based on a relatively recent version of Phonograph and was made for personal use, but contributions are welcome! Please open an issue to discuss larger changes before submitting a pull request. I am open to an improved icon if any graphic designers have a good suggestion.
-
-[<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="90">](https://f-droid.org/packages/com.dkanada.gramophone)
 
 ## Features
 

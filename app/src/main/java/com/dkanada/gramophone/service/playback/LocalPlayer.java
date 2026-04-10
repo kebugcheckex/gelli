@@ -2,6 +2,8 @@ package com.dkanada.gramophone.service.playback;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -102,7 +104,6 @@ public class LocalPlayer implements Playback {
             .build();
 
         exoPlayer.addListener(eventListener);
-        exoPlayer.setThrowsWhenUsingWrongThread(false);
         exoPlayer.prepare();
 
         long cacheSize = PreferenceUtil.getInstance(context).getMediaCacheSize();
@@ -118,24 +119,25 @@ public class LocalPlayer implements Playback {
         executorService.submit(() -> {
             List<MediaItem> mediaItems = createMediaItems(queue);
 
-            // TODO: Call this on main thread
-            if (resetCurrentSong) {
-                exoPlayer.setMediaItems(mediaItems, position, progress);
-                return;
-            }
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (resetCurrentSong) {
+                    exoPlayer.setMediaItems(mediaItems, position, progress);
+                    return;
+                }
 
-            int currentPosition = exoPlayer.getCurrentMediaItemIndex();
-            exoPlayer.removeMediaItems(0, currentPosition);
+                int currentPosition = exoPlayer.getCurrentMediaItemIndex();
+                exoPlayer.removeMediaItems(0, currentPosition);
 
-            if (exoPlayer.getMediaItemCount() > 1) {
-                exoPlayer.removeMediaItems(1, exoPlayer.getMediaItemCount());
-            }
+                if (exoPlayer.getMediaItemCount() > 1) {
+                    exoPlayer.removeMediaItems(1, exoPlayer.getMediaItemCount());
+                }
 
-            if (position + 1 < mediaItems.size()) {
-                exoPlayer.addMediaItems(1, mediaItems.subList(position + 1, mediaItems.size()));
-            }
+                if (position + 1 < mediaItems.size()) {
+                    exoPlayer.addMediaItems(1, mediaItems.subList(position + 1, mediaItems.size()));
+                }
 
-            exoPlayer.addMediaItems(0, mediaItems.subList(0, position));
+                exoPlayer.addMediaItems(0, mediaItems.subList(0, position));
+            });
         });
     }
 
