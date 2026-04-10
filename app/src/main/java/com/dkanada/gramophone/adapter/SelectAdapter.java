@@ -28,6 +28,12 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
         this.users = users;
     }
 
+    public void updateUsers(List<User> newUsers) {
+        users.clear();
+        users.addAll(newUsers);
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

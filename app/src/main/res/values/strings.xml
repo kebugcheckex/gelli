@@ -196,6 +196,7 @@
     <string name="ignore">Ignore</string>
     <string name="sponsor">Sponsor</string>
     <string name="logout">Logout</string>
+    <string name="switch_account">Switch Account</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="server">Server</string>

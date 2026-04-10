@@ -17,13 +17,15 @@ public class User {
 
     public String server;
     public String token;
+    public String jellyfinUserId;
 
     public User() {
         this.id = UUID.randomUUID().toString();
     }
 
     public User(AuthenticationResult result, String server) {
-        this.id = result.getUser().getId();
+        this.jellyfinUserId = result.getUser().getId();
+        this.id = server + jellyfinUserId;
         this.name = result.getUser().getName();
 
         this.server = server;

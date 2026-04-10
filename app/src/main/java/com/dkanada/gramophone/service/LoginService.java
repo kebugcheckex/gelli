@@ -50,7 +50,7 @@ public class LoginService extends Service {
         }
 
         App.getApiClient().ChangeServerLocation(user.server);
-        App.getApiClient().SetAuthenticationInfo(user.token, user.id);
+        App.getApiClient().SetAuthenticationInfo(user.token, user.jellyfinUserId);
         App.getApiClient().GetSystemInfoAsync(new Response<SystemInfo>() {
             @Override
             public void onResponse(SystemInfo result) {

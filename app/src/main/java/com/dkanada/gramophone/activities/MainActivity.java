@@ -140,6 +140,9 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
                 case R.id.nav_about:
                     new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, AboutActivity.class)), 200);
                     break;
+                case R.id.nav_switch_account:
+                    new Handler().postDelayed(() -> NavigationUtil.startSelect(MainActivity.this), 200);
+                    break;
                 case R.id.nav_logout:
                     onLogout = true;
                     ConfirmLogoutDialog.create().show(getSupportFragmentManager(), ConfirmLogoutDialog.TAG);

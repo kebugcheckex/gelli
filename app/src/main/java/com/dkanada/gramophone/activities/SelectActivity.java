@@ -17,29 +17,34 @@ import com.dkanada.gramophone.util.PreferenceUtil;
 import java.util.List;
 
 public class SelectActivity extends AbsBaseActivity {
+    private ActivitySelectBinding binding;
+    private SelectAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Context context = this;
-        ActivitySelectBinding binding = ActivitySelectBinding.inflate(getLayoutInflater());
+        binding = ActivitySelectBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        List<User> users = App.getDatabase().userDao().getUsers();
-        SelectAdapter adapter = new SelectAdapter(this, users);
+        adapter = new SelectAdapter(this, new java.util.ArrayList<>());
 
         binding.recyclerView.setAdapter(adapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        binding.add.setOnClickListener(v -> {
-            startActivity(new Intent(context, LoginActivity.class));
-        });
+        binding.add.setOnClickListener(v -> startActivity(new Intent(this, LoginActivity.class)));
 
         int primaryColor = PreferenceUtil.getInstance(this).getPrimaryColor();
 
         binding.add.setBackgroundColor(primaryColor);
         binding.toolbar.setBackgroundColor(primaryColor);
         setSupportActionBar(binding.toolbar);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        adapter.updateUsers(App.getDatabase().userDao().getUsers());
     }
 
     @Override

@@ -15,7 +15,7 @@ import com.dkanada.gramophone.model.User;
                 QueueSong.class,
                 User.class
         },
-        version = 7,
+        version = 8,
         exportSchema = false
 )
 public abstract class JellyDatabase extends RoomDatabase {
@@ -74,6 +74,22 @@ public abstract class JellyDatabase extends RoomDatabase {
                 + "queue INTEGER NOT NULL, songId TEXT,"
                 + "PRIMARY KEY ('index', queue),"
                 + "FOREIGN KEY (songId) REFERENCES songs(id) ON DELETE CASCADE)");
+        }
+    };
+
+    // Adds jellyfinUserId column and changes id PK to server+jellyfinUserId composite
+    // so accounts with the same username on different servers don't collide.
+    public static final Migration Migration8 = new Migration(7, 8) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE users RENAME TO users_old");
+            database.execSQL("CREATE TABLE users (id TEXT NOT NULL PRIMARY KEY,"
+                    + "name TEXT, server TEXT, token TEXT, jellyfinUserId TEXT)");
+            database.execSQL("INSERT INTO users SELECT"
+                    + " (COALESCE(server, '') || id) AS id,"
+                    + " name, server, token, id AS jellyfinUserId"
+                    + " FROM users_old");
+            database.execSQL("DROP TABLE users_old");
         }
     };
 
