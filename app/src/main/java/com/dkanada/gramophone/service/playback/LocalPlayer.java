@@ -33,8 +33,11 @@ import com.google.android.exoplayer2.util.MimeTypes;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class LocalPlayer implements Playback {
@@ -43,6 +46,7 @@ public class LocalPlayer implements Playback {
     private final Context context;
     private final ExoPlayer exoPlayer;
     private final SimpleCache simpleCache;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private PlaybackListener listener;
 
@@ -114,12 +118,48 @@ public class LocalPlayer implements Playback {
         simpleCache = new SimpleCache(cacheDirectory, recentlyUsedCache, databaseProvider);
     }
 
+    // Run a runnable on the main thread. If already on main, run synchronously.
+    private void postToMain(Runnable r) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            r.run();
+        } else {
+            mainHandler.post(r);
+        }
+    }
+
+    // Run a callable on the main thread and return its value, blocking if necessary.
+    private <T> T getOnMain(Callable<T> c, T fallback) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            try {
+                return c.call();
+            } catch (Exception e) {
+                return fallback;
+            }
+        }
+        AtomicReference<T> ref = new AtomicReference<>(fallback);
+        CountDownLatch latch = new CountDownLatch(1);
+        mainHandler.post(() -> {
+            try {
+                ref.set(c.call());
+            } catch (Exception ignored) {
+            } finally {
+                latch.countDown();
+            }
+        });
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return ref.get();
+    }
+
     @Override
     public void setQueue(List<Song> queue, int position, int progress, boolean resetCurrentSong) {
         executorService.submit(() -> {
             List<MediaItem> mediaItems = createMediaItems(queue);
 
-            new Handler(Looper.getMainLooper()).post(() -> {
+            mainHandler.post(() -> {
                 if (resetCurrentSong) {
                     exoPlayer.setMediaItems(mediaItems, position, progress);
                     return;
@@ -179,9 +219,11 @@ public class LocalPlayer implements Playback {
 
     @Override
     public void playSongAt(int position) {
-        if (exoPlayer.getMediaItemCount() > 0) {
-            exoPlayer.seekTo(Math.max(0, position) % exoPlayer.getMediaItemCount(), 0);
-        }
+        postToMain(() -> {
+            if (exoPlayer.getMediaItemCount() > 0) {
+                exoPlayer.seekTo(Math.max(0, position) % exoPlayer.getMediaItemCount(), 0);
+            }
+        });
     }
 
     private DataSource.Factory buildDataSourceFactory() {
@@ -202,78 +244,81 @@ public class LocalPlayer implements Playback {
 
     @Override
     public boolean isReady() {
-        return exoPlayer.getPlayWhenReady();
+        return getOnMain(exoPlayer::getPlayWhenReady, false);
     }
 
     @Override
     public boolean isPlaying() {
-        return exoPlayer.getPlayWhenReady() && exoPlayer.getPlaybackSuppressionReason() == Player.PLAYBACK_SUPPRESSION_REASON_NONE;
+        return getOnMain(() -> exoPlayer.getPlayWhenReady() && exoPlayer.getPlaybackSuppressionReason() == Player.PLAYBACK_SUPPRESSION_REASON_NONE, false);
     }
 
     @Override
     @SuppressWarnings("ConstantConditions")
     public boolean isLoading() {
-        MediaItem current = exoPlayer.getCurrentMediaItem();
-        if (current != null && current.localConfiguration.uri.toString().contains("file://")) {
-            return false;
-        }
-
-        return exoPlayer.getPlaybackState() == Player.STATE_BUFFERING;
+        return getOnMain(() -> {
+            MediaItem current = exoPlayer.getCurrentMediaItem();
+            if (current != null && current.localConfiguration.uri.toString().contains("file://")) {
+                return false;
+            }
+            return exoPlayer.getPlaybackState() == Player.STATE_BUFFERING;
+        }, false);
     }
 
     @Override
     public void start() {
-        exoPlayer.setPlayWhenReady(true);
+        postToMain(() -> exoPlayer.setPlayWhenReady(true));
     }
 
     @Override
     public void pause() {
-        exoPlayer.setPlayWhenReady(false);
+        postToMain(() -> exoPlayer.setPlayWhenReady(false));
     }
 
     @Override
     public void stop() {
-        simpleCache.release();
-        exoPlayer.release();
+        postToMain(() -> {
+            simpleCache.release();
+            exoPlayer.release();
+        });
     }
 
     @Override
     public void previous() {
-        exoPlayer.seekToPreviousMediaItem();
+        postToMain(exoPlayer::seekToPreviousMediaItem);
     }
 
     @Override
     public void next() {
-        exoPlayer.seekToNextMediaItem();
+        postToMain(exoPlayer::seekToNextMediaItem);
     }
 
     @Override
     public void setRepeatMode(@Player.RepeatMode int repeatMode) {
-        exoPlayer.setRepeatMode(repeatMode);
+        postToMain(() -> exoPlayer.setRepeatMode(repeatMode));
     }
 
     @Override
     public int getProgress() {
-        return (int) exoPlayer.getCurrentPosition();
+        return getOnMain(() -> (int) exoPlayer.getCurrentPosition(), 0);
     }
 
     @Override
     public int getDuration() {
-        return (int) exoPlayer.getDuration();
+        return getOnMain(() -> (int) exoPlayer.getDuration(), 0);
     }
 
     @Override
     public void setProgress(int progress) {
-        exoPlayer.seekTo(progress);
+        postToMain(() -> exoPlayer.seekTo(progress));
     }
 
     @Override
     public void setVolume(int volume) {
-        exoPlayer.setVolume(volume / 100f);
+        postToMain(() -> exoPlayer.setVolume(volume / 100f));
     }
 
     @Override
     public int getVolume() {
-        return (int) (exoPlayer.getVolume() * 100);
+        return getOnMain(() -> (int) (exoPlayer.getVolume() * 100), 100);
     }
 }
