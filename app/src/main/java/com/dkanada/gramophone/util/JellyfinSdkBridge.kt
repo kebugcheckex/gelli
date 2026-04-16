@@ -119,7 +119,7 @@ object JellyfinSdkBridge {
             song.size = source.size ?: 0L
             song.container = source.container
             song.bitRate = source.bitrate ?: 0
-            song.supportsTranscoding = source.supportsTranscoding ?: false
+            song.supportsTranscoding = source.supportsTranscoding
 
             val stream = source.mediaStreams?.firstOrNull()
             if (stream != null) {
