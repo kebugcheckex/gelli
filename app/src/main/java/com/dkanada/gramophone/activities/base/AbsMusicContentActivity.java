@@ -39,7 +39,7 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
         filter.addAction(LoginService.STATE_ONLINE);
         filter.addAction(LoginService.STATE_OFFLINE);
 
-        registerReceiver(receiver, filter);
+        registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
         if (App.getApiClient() == null) {
             startService(new Intent(this, LoginService.class));

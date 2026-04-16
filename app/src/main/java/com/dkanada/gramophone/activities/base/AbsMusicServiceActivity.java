@@ -83,7 +83,7 @@ public abstract class AbsMusicServiceActivity extends AbsBaseActivity implements
             filter.addAction(MusicService.META_CHANGED);
             filter.addAction(MusicService.QUEUE_CHANGED);
 
-            registerReceiver(musicStateReceiver, filter);
+            registerReceiver(musicStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
             receiverRegistered = true;
         }
