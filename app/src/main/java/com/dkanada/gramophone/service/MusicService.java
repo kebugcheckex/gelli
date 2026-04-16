@@ -266,8 +266,8 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         throttledSeekHandler = new ThrottledSeekHandler(new Handler());
         uiThreadHandler = new Handler();
 
-        registerReceiver(widgetIntentReceiver, new IntentFilter(INTENT_EXTRA_WIDGET_UPDATE));
-        registerReceiver(becomingNoisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+        registerReceiver(widgetIntentReceiver, new IntentFilter(INTENT_EXTRA_WIDGET_UPDATE), Context.RECEIVER_NOT_EXPORTED);
+        registerReceiver(becomingNoisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), Context.RECEIVER_NOT_EXPORTED);
 
         PreferenceUtil.getInstance(this).registerOnSharedPreferenceChangedListener(this);
 

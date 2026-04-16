@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
         android:name=".App"
@@ -69,7 +70,9 @@
 
         <service android:name=".service.DownloadService" />
         <service android:name=".service.LoginService" />
-        <service android:name=".service.MusicService" />
+        <service
+            android:name=".service.MusicService"
+            android:foregroundServiceType="mediaPlayback" />
 
         <receiver
             android:name=".service.receivers.MediaButtonIntentReceiver"
