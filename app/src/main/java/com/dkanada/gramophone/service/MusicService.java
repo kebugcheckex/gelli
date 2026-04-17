@@ -126,6 +126,8 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     private MediaSessionCompat mediaSession;
     private PowerManager.WakeLock wakeLock;
 
+    private FloatingPlayerController floatingPlayerController;
+
     private Handler uiThreadHandler;
     private ThrottledSeekHandler throttledSeekHandler;
     private QueueHandler queueHandler;
@@ -276,6 +278,9 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         restoreState();
 
         mediaSession.setActive(true);
+
+        floatingPlayerController = new FloatingPlayerController(this);
+        App.setForegroundChangeListener(this::updateFloatingPlayer);
     }
 
     private void initMediaSession() {
@@ -400,6 +405,9 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         releaseResources();
         PreferenceUtil.getInstance(this).unregisterOnSharedPreferenceChangedListener(this);
         wakeLock.release();
+
+        App.setForegroundChangeListener(null);
+        if (floatingPlayerController != null) floatingPlayerController.hide();
     }
 
     @Override
@@ -450,7 +458,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         queuesRestored = true;
     }
 
-    private void quit() {
+    void quit() {
         pause();
         playingNotification.stop();
 
@@ -658,6 +666,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
 
                 updateNotification();
                 updateMediaSessionState();
+                updateFloatingPlayer();
                 break;
             case META_CHANGED:
                 updateNotification();
@@ -665,10 +674,27 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
                 updateMediaSessionState();
                 PreferenceUtil.getInstance(this).setPosition(queueManager.getPosition());
                 PreferenceUtil.getInstance(this).setProgress(getSongProgressMillis());
+                updateFloatingPlayer();
                 break;
             case QUEUE_CHANGED:
                 updateMediaSessionMetadata();
                 break;
+        }
+    }
+
+    private void updateFloatingPlayer() {
+        if (floatingPlayerController == null) return;
+
+        Song song = queueManager.getCurrentSong();
+        boolean shouldShow = PreferenceUtil.getInstance(this).getFloatingPlayerEnabled()
+            && FloatingPlayerController.canShow(this)
+            && !App.isForeground()
+            && song != null;
+
+        if (shouldShow) {
+            floatingPlayerController.show(song, isPlaying());
+        } else {
+            floatingPlayerController.hide();
         }
     }
 
@@ -702,6 +728,9 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
                 break;
             case PreferenceUtil.GAIN_OFFSET:
                 playback.setVolume(PreferenceUtil.getInstance(this).getGainOffset());
+                break;
+            case PreferenceUtil.FLOATING_PLAYER_ENABLED:
+                updateFloatingPlayer();
                 break;
         }
     }

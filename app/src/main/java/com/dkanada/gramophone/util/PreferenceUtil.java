@@ -83,6 +83,10 @@ public final class PreferenceUtil {
     public static final String REMEMBER_QUEUE = "remember_queue";
     public static final String GAIN_OFFSET = "gain_offset";
 
+    public static final String FLOATING_PLAYER_ENABLED = "floating_player_enabled";
+    public static final String FLOATING_PLAYER_X = "floating_player_x";
+    public static final String FLOATING_PLAYER_Y = "floating_player_y";
+
     public static final String LOCATION_DOWNLOAD = "location_download";
     public static final String LOCATION_CACHE = "location_cache";
     public static final String IMAGE_CACHE_SIZE = "image_cache_size";
@@ -417,6 +421,26 @@ public final class PreferenceUtil {
 
     public void setAlbumArtistColoredFooters(final boolean value) {
         mPreferences.edit().putBoolean(ALBUM_ARTIST_COLORED_FOOTERS, value).apply();
+    }
+
+    public final boolean getFloatingPlayerEnabled() {
+        return mPreferences.getBoolean(FLOATING_PLAYER_ENABLED, false);
+    }
+
+    public void setFloatingPlayerEnabled(boolean value) {
+        mPreferences.edit().putBoolean(FLOATING_PLAYER_ENABLED, value).apply();
+    }
+
+    public int getFloatingPlayerX() {
+        return mPreferences.getInt(FLOATING_PLAYER_X, -1);
+    }
+
+    public int getFloatingPlayerY() {
+        return mPreferences.getInt(FLOATING_PLAYER_Y, -1);
+    }
+
+    public void setFloatingPlayerPosition(int x, int y) {
+        mPreferences.edit().putInt(FLOATING_PLAYER_X, x).putInt(FLOATING_PLAYER_Y, y).apply();
     }
 
     public final String getLocationDownload() {

@@ -17,6 +17,7 @@ This is a native music player for Android devices that connects to Jellyfin medi
 * Favorites and playlists
 * Playback history reporting
 * Filter content by library
+* Floating player overlay that shows playback controls on top of other apps (opt-in; Android 8+)
 
 ## Issues
 

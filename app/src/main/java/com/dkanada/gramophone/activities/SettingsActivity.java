@@ -1,9 +1,13 @@
 package com.dkanada.gramophone.activities;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -79,6 +83,8 @@ public class SettingsActivity extends AbsBaseActivity {
             final Preference downloadLocationPreference = findPreference(PreferenceUtil.LOCATION_DOWNLOAD);
             final Preference showAlbumCoverPreference = findPreference(PreferenceUtil.SHOW_ALBUM_COVER);
             final Preference blurAlbumCoverPreference = findPreference(PreferenceUtil.BLUR_ALBUM_COVER);
+            final TwoStatePreference floatingPlayerToggle = findPreference(PreferenceUtil.FLOATING_PLAYER_ENABLED);
+            final Preference floatingPlayerPermission = findPreference("floating_player_permission");
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
                 classicNotification.setEnabled(false);
@@ -107,6 +113,28 @@ public class SettingsActivity extends AbsBaseActivity {
                 coloredNotification.setEnabled(false);
             }
 
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                floatingPlayerToggle.setEnabled(false);
+                floatingPlayerPermission.setEnabled(false);
+            } else {
+                floatingPlayerToggle.setOnPreferenceChangeListener((pref, newValue) -> {
+                    boolean requested = Boolean.TRUE.equals(newValue);
+                    if (requested && !Settings.canDrawOverlays(requireContext())) {
+                        launchOverlayPermission();
+                        Toast.makeText(requireContext(),
+                            R.string.pref_summary_floating_player_permission,
+                            Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                    return true;
+                });
+
+                floatingPlayerPermission.setOnPreferenceClickListener(pref -> {
+                    launchOverlayPermission();
+                    return true;
+                });
+            }
+
             categoryPreference.setOnPreferenceClickListener(preference -> {
                 CategoryPreferenceDialog.create().show(getParentFragmentManager(), CategoryPreferenceDialog.TAG);
                 return false;
@@ -122,6 +150,20 @@ public class SettingsActivity extends AbsBaseActivity {
 
             onSharedPreferenceChanged(preferences, PreferenceUtil.NOW_PLAYING_SCREEN);
             onSharedPreferenceChanged(preferences, PreferenceUtil.CLASSIC_NOTIFICATION);
+        }
+
+        private void launchOverlayPermission() {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return;
+            Intent intent = new Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + requireContext().getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            try {
+                startActivity(intent);
+            } catch (android.content.ActivityNotFoundException e) {
+                startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            }
         }
 
         @Override

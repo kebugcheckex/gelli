@@ -1,11 +1,15 @@
 package com.dkanada.gramophone;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.Settings;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Room;
 
 import com.dkanada.gramophone.database.JellyDatabase;
@@ -28,6 +32,10 @@ public class App extends Application {
     private static JellyDatabase database;
     private static ApiClient apiClient;
 
+    private static int startedActivities;
+    @Nullable
+    private static Runnable foregroundChangeListener;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -48,6 +56,37 @@ public class App extends Application {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             new DynamicShortcutManager(this).initDynamicShortcuts();
         }
+
+        registerActivityLifecycleCallbacks(new ForegroundTracker());
+    }
+
+    public static boolean isForeground() {
+        return startedActivities > 0;
+    }
+
+    public static void setForegroundChangeListener(@Nullable Runnable listener) {
+        foregroundChangeListener = listener;
+    }
+
+    private static void notifyForegroundChanged() {
+        Runnable listener = foregroundChangeListener;
+        if (listener != null) listener.run();
+    }
+
+    private static final class ForegroundTracker implements ActivityLifecycleCallbacks {
+        @Override public void onActivityCreated(@NonNull Activity a, @Nullable Bundle b) {}
+        @Override public void onActivityStarted(@NonNull Activity a) {
+            startedActivities++;
+            if (startedActivities == 1) notifyForegroundChanged();
+        }
+        @Override public void onActivityResumed(@NonNull Activity a) {}
+        @Override public void onActivityPaused(@NonNull Activity a) {}
+        @Override public void onActivityStopped(@NonNull Activity a) {
+            if (startedActivities > 0) startedActivities--;
+            if (startedActivities == 0) notifyForegroundChanged();
+        }
+        @Override public void onActivitySaveInstanceState(@NonNull Activity a, @NonNull Bundle b) {}
+        @Override public void onActivityDestroyed(@NonNull Activity a) {}
     }
 
     public static JellyDatabase createDatabase(Context context) {

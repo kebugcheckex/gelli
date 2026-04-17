@@ -37,4 +37,21 @@
 
     </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
 
+    <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_overlay">
+
+        <SwitchPreference
+            app:iconSpaceReserved="false"
+            android:defaultValue="false"
+            android:key="floating_player_enabled"
+            android:summary="@string/pref_summary_floating_player"
+            android:title="@string/pref_title_floating_player" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            android:key="floating_player_permission"
+            android:summary="@string/pref_summary_floating_player_permission"
+            android:title="@string/pref_title_floating_player_permission" />
+
+    </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

@@ -27,6 +27,8 @@ Gelli is an Android music player app (Java + Kotlin, minSdk 23) that streams fro
 - `App.getApiClient()` — the Jellyfin `ApiClient` (deprecated Java library)
 - `App.getDatabase()` — the Room `JellyDatabase`
 
+It also tracks app-wide foreground state via `ActivityLifecycleCallbacks` and exposes `App.isForeground()` / `App.setForegroundChangeListener(Runnable)` — used by `MusicService` to show/hide the floating player overlay when the app is backgrounded.
+
 ### Jellyfin API — Two Clients in Parallel
 
 The app uses **two Jellyfin client libraries simultaneously** during an ongoing migration:
@@ -53,6 +55,7 @@ Fragment / Activity
 - **`LocalPlayer`** — thin wrapper around ExoPlayer 2 that implements the `Playback` interface.
 - **`MusicPlayerRemote`** (helper) — static helper that binds to `MusicService` and exposes player controls to UI code.
 - **`helper/EventListener`** — handles Jellyfin API lifecycle events (auth expiry, etc.).
+- **`FloatingPlayerController`** — opt-in system-overlay (`TYPE_APPLICATION_OVERLAY`) with cover, title, play/pause, next, and close. Owned by `MusicService`, driven by `STATE_CHANGED` / `META_CHANGED` broadcasts and `App.isForeground()`. Requires `SYSTEM_ALERT_WINDOW`; settings UI launches `ACTION_MANAGE_OVERLAY_PERMISSION` to request it. Android 8+ only.
 
 ### Database
 
