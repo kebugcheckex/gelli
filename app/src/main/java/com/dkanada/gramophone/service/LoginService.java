@@ -28,10 +28,17 @@ public class LoginService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        sendBroadcast(new Intent(STATE_POLLING));
+        sendStateBroadcast(STATE_POLLING);
         authenticate();
 
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    // setPackage required so RECEIVER_NOT_EXPORTED receivers (targetSdk 34+) match the implicit intent.
+    private void sendStateBroadcast(String action) {
+        Intent intent = new Intent(action);
+        intent.setPackage(getPackageName());
+        sendBroadcast(intent);
     }
 
     @Nullable
@@ -61,12 +68,12 @@ public class LoginService extends Service {
                 App.getApiClient().ensureWebSocket();
                 App.getApiClient().ReportCapabilities(clientCapabilities, new EmptyResponse());
 
-                sendBroadcast(new Intent(STATE_ONLINE));
+                sendStateBroadcast(STATE_ONLINE);
             }
 
             @Override
             public void onError(Exception exception) {
-                sendBroadcast(new Intent(STATE_OFFLINE));
+                sendStateBroadcast(STATE_OFFLINE);
             }
         });
     }

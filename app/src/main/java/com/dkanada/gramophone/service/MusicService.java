@@ -639,7 +639,10 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     }
 
     private void sendChangeInternal(final String what) {
-        sendBroadcast(new Intent(what));
+        // setPackage required so RECEIVER_NOT_EXPORTED receivers (targetSdk 34+) match the implicit intent.
+        Intent intent = new Intent(what);
+        intent.setPackage(getPackageName());
+        sendBroadcast(intent);
 
         appWidgetAlbum.notifyChange(this, what, null);
         appWidgetClassic.notifyChange(this, what, null);
