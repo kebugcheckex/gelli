@@ -27,6 +27,7 @@
 
             <ViewStub
                 android:id="@+id/cab_stub"
+                android:saveEnabled="false"
                 android:layout_width="match_parent"
                 android:layout_height="?android:attr/actionBarSize" />
 

@@ -432,7 +432,7 @@ public class CardPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
         public void updateCurrentSong(Song song) {
             currentSong = song;
             currentSongViewHolder.title.setText(song.title);
-            currentSongViewHolder.text.setText(MusicUtil.getSongInfoString(song));
+            currentSongViewHolder.text.setText(MusicUtil.buildInfoString(song.artistName, song.albumName));
         }
 
         @Override
@@ -466,7 +466,7 @@ public class CardPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
         @Override
         public void updateCurrentSong(Song song) {
             binding.playerToolbar.setTitle(song.title);
-            binding.playerToolbar.setSubtitle(MusicUtil.getSongInfoString(song));
+            binding.playerToolbar.setSubtitle(MusicUtil.buildInfoString(song.artistName, song.albumName));
         }
 
         @Override
