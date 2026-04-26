@@ -113,11 +113,6 @@ public class MusicUtil {
     }
 
     @NonNull
-    public static String getSongInfoString(@NonNull final Song song) {
-        return song.albumName;
-    }
-
-    @NonNull
     public static String getGenreInfoString(@NonNull final Context context, @NonNull final Genre genre) {
         int songCount = genre.songCount;
         return MusicUtil.getSongCountString(context, songCount);

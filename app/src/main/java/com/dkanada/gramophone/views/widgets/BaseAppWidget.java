@@ -163,6 +163,6 @@ public abstract class BaseAppWidget extends AppWidgetProvider {
     }
 
     protected String getSongArtistAndAlbum(final Song song) {
-        return MusicUtil.getSongInfoString(song);
+        return MusicUtil.buildInfoString(song.artistName, song.albumName);
     }
 }

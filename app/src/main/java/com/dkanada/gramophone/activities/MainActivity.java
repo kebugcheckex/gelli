@@ -40,7 +40,6 @@ import java.util.List;
 
 public class MainActivity extends AbsMusicContentActivity implements CabHolder {
     private ActivityMainDrawerLayoutBinding binding;
-    private ActivityMainContentBinding contentBinding;
     private NavigationDrawerHeaderBinding navigationBinding;
     private boolean onLogout;
 
@@ -60,9 +59,6 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
         state = savedInstanceState;
 
         setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-            binding.navigationView.setFitsSystemWindows(false);
-        }
     }
 
     @Override
@@ -116,7 +112,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
     @Override
     protected View createContentView() {
         binding = ActivityMainDrawerLayoutBinding.inflate(getLayoutInflater());
-        contentBinding = ActivityMainContentBinding.inflate(getLayoutInflater());
+        ActivityMainContentBinding contentBinding = ActivityMainContentBinding.inflate(getLayoutInflater());
 
         ViewGroup drawerContent = binding.drawerContentContainer;
         drawerContent.addView(wrapSlidingMusicPanel(contentBinding.getRoot()));
@@ -196,7 +192,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
             }
 
             navigationBinding.title.setText(song.title);
-            navigationBinding.text.setText(MusicUtil.getSongInfoString(song));
+            navigationBinding.text.setText(MusicUtil.buildInfoString(song.artistName, song.albumName));
 
             CustomGlideRequest.Builder
                 .from(this, song.primary, song.blurHash)

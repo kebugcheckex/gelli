@@ -166,7 +166,7 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
     }
 
     protected String getSongText(Song song) {
-        return MusicUtil.getSongInfoString(song);
+        return MusicUtil.buildInfoString(song.artistName, song.albumName);
     }
 
     @Override
