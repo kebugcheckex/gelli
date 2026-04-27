@@ -2,31 +2,27 @@ package com.dkanada.gramophone.mapper
 
 import com.dkanada.gramophone.model.Song
 import org.jellyfin.sdk.model.api.BaseItemDto
-import org.jellyfin.sdk.model.api.ImageType
 
 object SdkSongMapper {
     @JvmStatic
     fun fromItem(item: BaseItemDto): Song {
         val song = Song()
-        song.id = uuidToId(item.id)
+        song.id = SdkMapperUtil.uuidToId(item.id)
         song.title = item.name ?: ""
         song.trackNumber = item.indexNumber ?: 0
         song.discNumber = item.parentIndexNumber ?: 0
         song.year = item.productionYear ?: 0
         song.duration = (item.runTimeTicks ?: 0L) / 10000
 
-        song.albumId = uuidToId(item.albumId)
+        song.albumId = SdkMapperUtil.uuidToId(item.albumId)
         song.albumName = item.album
 
         val artistItem = item.artistItems?.firstOrNull() ?: item.albumArtists?.firstOrNull()
-        song.artistId = uuidToId(artistItem?.id)
+        song.artistId = SdkMapperUtil.uuidToId(artistItem?.id)
         song.artistName = artistItem?.name
 
         song.primary = if (item.albumPrimaryImageTag != null && song.albumId != null) song.albumId else null
-        song.blurHash = item.imageBlurHashes
-            ?.get(ImageType.PRIMARY)
-            ?.values
-            ?.firstOrNull()
+        song.blurHash = SdkMapperUtil.firstPrimaryBlurHash(item)
 
         song.favorite = item.userData?.isFavorite == true
 
@@ -48,9 +44,5 @@ object SdkSongMapper {
         }
 
         return song
-    }
-
-    private fun uuidToId(value: java.util.UUID?): String {
-        return value?.toString()?.replace("-", "") ?: ""
     }
 }
