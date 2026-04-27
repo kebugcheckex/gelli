@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.artist.ArtistAdapter;
+import com.dkanada.gramophone.mapper.LegacyMediaMapper;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.model.Artist;
@@ -67,7 +68,7 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
             public void onResponse(ItemsResult result) {
                 if (index == 0) getAdapter().getDataSet().clear();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    getAdapter().getDataSet().add(new Artist(itemDto));
+                    getAdapter().getDataSet().add(LegacyMediaMapper.toArtist(itemDto));
                 }
 
                 size = result.getTotalRecordCount();

@@ -2,9 +2,8 @@ package com.dkanada.gramophone.model;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
-
-import org.jellyfin.apiclient.model.users.AuthenticationResult;
 
 import java.util.UUID;
 
@@ -23,12 +22,12 @@ public class User {
         this.id = UUID.randomUUID().toString();
     }
 
-    public User(AuthenticationResult result, String server) {
-        this.jellyfinUserId = result.getUser().getId();
-        this.id = server + jellyfinUserId;
-        this.name = result.getUser().getName();
-
+    @Ignore
+    public User(String server, String token, String jellyfinUserId, String name) {
         this.server = server;
-        this.token = result.getAccessToken();
+        this.token = token;
+        this.jellyfinUserId = jellyfinUserId;
+        this.name = name;
+        this.id = server + jellyfinUserId;
     }
 }

@@ -5,10 +5,6 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
-import org.jellyfin.apiclient.model.dto.BaseItemDto;
-import org.jellyfin.apiclient.model.dto.GenreDto;
-import org.jellyfin.apiclient.model.entities.ImageType;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,24 +19,14 @@ public class Artist implements Parcelable {
     public String primary;
     public String blurHash;
 
-    public Artist(BaseItemDto itemDto) {
-        this.id = itemDto.getId();
-        this.name = itemDto.getName();
-
-        this.primary = itemDto.getImageTags().containsKey(ImageType.Primary) ? id : null;
-        if (itemDto.getImageBlurHashes() != null && itemDto.getImageBlurHashes().get(ImageType.Primary) != null) {
-            this.blurHash = (String) itemDto.getImageBlurHashes().get(ImageType.Primary).values().toArray()[0];
-        }
-
+    public Artist(String id, String name, String primary, String blurHash) {
+        this.id = id;
+        this.name = name;
+        this.primary = primary;
+        this.blurHash = blurHash;
         this.genres = new ArrayList<>();
         this.albums = new ArrayList<>();
         this.songs = new ArrayList<>();
-
-        if (itemDto.getGenreItems() != null) {
-            for (GenreDto genre : itemDto.getGenreItems()) {
-                genres.add(new Genre(genre));
-            }
-        }
     }
 
     public Artist(Album album) {
@@ -56,6 +42,7 @@ public class Artist implements Parcelable {
     }
 
     public Artist() {
+        this.genres = new ArrayList<>();
         this.albums = new ArrayList<>();
         this.songs = new ArrayList<>();
     }

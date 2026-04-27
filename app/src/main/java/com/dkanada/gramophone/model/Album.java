@@ -5,9 +5,6 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
-import org.jellyfin.apiclient.model.dto.BaseItemDto;
-import org.jellyfin.apiclient.model.entities.ImageType;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,24 +21,14 @@ public class Album implements Parcelable {
     public String primary;
     public String blurHash;
 
-    public Album(BaseItemDto itemDto) {
-        this.id = itemDto.getId();
-        this.title = itemDto.getName();
-        this.year = itemDto.getProductionYear() != null ? itemDto.getProductionYear() : 0;
-
-        if (itemDto.getAlbumArtists().size() != 0) {
-            this.artistId = itemDto.getAlbumArtists().get(0).getId();
-            this.artistName = itemDto.getAlbumArtists().get(0).getName();
-        } else if (itemDto.getArtistItems().size() != 0) {
-            this.artistId = itemDto.getArtistItems().get(0).getId();
-            this.artistName = itemDto.getArtistItems().get(0).getName();
-        }
-
-        this.primary = itemDto.getImageTags().containsKey(ImageType.Primary) ? id : null;
-        if (itemDto.getImageBlurHashes() != null && itemDto.getImageBlurHashes().get(ImageType.Primary) != null) {
-            this.blurHash = (String) itemDto.getImageBlurHashes().get(ImageType.Primary).values().toArray()[0];
-        }
-
+    public Album(String id, String title, int year, String artistId, String artistName, String primary, String blurHash) {
+        this.id = id;
+        this.title = title;
+        this.year = year;
+        this.artistId = artistId;
+        this.artistName = artistName;
+        this.primary = primary;
+        this.blurHash = blurHash;
         this.songs = new ArrayList<>();
     }
 
