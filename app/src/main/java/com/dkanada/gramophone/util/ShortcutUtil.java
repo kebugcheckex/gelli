@@ -1,6 +1,7 @@
 package com.dkanada.gramophone.util;
 
 import com.dkanada.gramophone.App;
+import com.dkanada.gramophone.mapper.LegacySortMapper;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.interfaces.MediaCallback;
@@ -22,7 +23,7 @@ public class ShortcutUtil {
         ItemQuery query = new ItemQuery();
 
         query.setSortBy(new String[]{SortMethod.COUNT.getApi()});
-        query.setSortOrder(SortOrder.DESCENDING.getApi());
+        query.setSortOrder(LegacySortMapper.toApi(SortOrder.DESCENDING));
 
         getSongs(query, callback);
     }
@@ -31,7 +32,7 @@ public class ShortcutUtil {
         ItemQuery query = new ItemQuery();
 
         query.setSortBy(new String[]{SortMethod.ADDED.getApi()});
-        query.setSortOrder(SortOrder.DESCENDING.getApi());
+        query.setSortOrder(LegacySortMapper.toApi(SortOrder.DESCENDING));
 
         getSongs(query, callback);
     }
@@ -40,7 +41,7 @@ public class ShortcutUtil {
         ItemQuery query = new ItemQuery();
 
         query.setSortBy(new String[]{SortMethod.RANDOM.getApi()});
-        query.setSortOrder(SortOrder.DESCENDING.getApi());
+        query.setSortOrder(LegacySortMapper.toApi(SortOrder.DESCENDING));
 
         if (onlyFavorites) {
             query.setFilters(new ItemFilter[]{ItemFilter.IsFavorite});
