@@ -10,6 +10,8 @@ import androidx.room.Room;
 
 import com.dkanada.gramophone.database.JellyDatabase;
 import com.dkanada.gramophone.helper.EventListener;
+import com.dkanada.gramophone.model.User;
+import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.views.shortcuts.DynamicShortcutManager;
 import com.melegy.redscreenofdeath.RedScreenOfDeath;
@@ -39,10 +41,15 @@ public class App extends Application {
         app = this;
         database = createDatabase(this);
         apiClient = createApiClient(this);
+        JellyfinSdkSession.initialize(this);
 
         if (database.userDao().getUsers().size() == 0) {
             PreferenceUtil.getInstance(this).setServer(null);
             PreferenceUtil.getInstance(this).setUser(null);
+            JellyfinSdkSession.clearSession();
+        } else {
+            User selectedUser = database.userDao().getUser(PreferenceUtil.getInstance(this).getUser());
+            JellyfinSdkSession.updateSessionFromUser(selectedUser);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

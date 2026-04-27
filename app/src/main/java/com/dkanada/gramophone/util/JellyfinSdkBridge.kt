@@ -3,17 +3,11 @@ package com.dkanada.gramophone.util
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.dkanada.gramophone.App
-import com.dkanada.gramophone.BuildConfig
-import com.dkanada.gramophone.R
 import com.dkanada.gramophone.interfaces.MediaCallback
 import com.dkanada.gramophone.model.Song
 import kotlinx.coroutines.runBlocking
-import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.exception.ApiClientException
-import org.jellyfin.sdk.model.ClientInfo
-import org.jellyfin.sdk.model.DeviceInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
@@ -27,18 +21,10 @@ object JellyfinSdkBridge {
 
     @JvmStatic
     fun getAlbumSongs(albumId: String, callback: MediaCallback<Song>) {
-        val apiClient = App.getApiClient()
-        if (apiClient == null) {
-            Log.w(TAG, "getAlbumSongs: ApiClient is null")
-            callback.onLoadMedia(emptyList())
-            return
-        }
-
-        val baseUrl = apiClient.getApiUrl()
-        val accessToken = apiClient.getAccessToken()
-        val userId = apiClient.getCurrentUserId()
-        if (baseUrl.isNullOrBlank() || accessToken.isNullOrBlank() || userId.isNullOrBlank()) {
-            Log.w(TAG, "getAlbumSongs: missing baseUrl/accessToken/userId")
+        val api = JellyfinSdkSession.createApiOrNull()
+        val userId = JellyfinSdkSession.getCurrentUserId()
+        if (api == null || userId.isNullOrBlank()) {
+            Log.w(TAG, "getAlbumSongs: missing SDK session state")
             callback.onLoadMedia(emptyList())
             return
         }
@@ -46,23 +32,6 @@ object JellyfinSdkBridge {
         Thread {
             val result = try {
                 runBlocking {
-                    val context = App.getInstance()
-                    val jellyfin = createJellyfin {
-                        clientInfo = ClientInfo(
-                            name = context.getString(R.string.app_name),
-                            version = BuildConfig.VERSION_NAME
-                        )
-                        deviceInfo = DeviceInfo(
-                            id = apiClient.getDeviceId(),
-                            name = android.os.Build.MODEL
-                        )
-                        this.context = context
-                    }
-                    val api = jellyfin.createApi(
-                        baseUrl = baseUrl,
-                        accessToken = accessToken
-                    )
-
                     val request = GetItemsRequest(
                         userId = toUuidOrNull(userId),
                         albumIds = listOfNotNull(toUuidOrNull(albumId)),

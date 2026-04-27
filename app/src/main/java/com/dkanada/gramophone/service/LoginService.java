@@ -12,6 +12,7 @@ import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.BuildConfig;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.User;
+import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.dkanada.gramophone.util.PreferenceUtil;
 
 import org.jellyfin.apiclient.interaction.EmptyResponse;
@@ -52,10 +53,12 @@ public class LoginService extends Service {
         Context context = this;
 
         if (user == null) {
+            JellyfinSdkSession.clearSession();
             Toast.makeText(this, context.getResources().getString(R.string.error_unexpected), Toast.LENGTH_SHORT).show();
             return;
         }
 
+        JellyfinSdkSession.updateSession(user.server, user.token, user.jellyfinUserId);
         App.getApiClient().ChangeServerLocation(user.server);
         App.getApiClient().SetAuthenticationInfo(user.token, user.jellyfinUserId);
         App.getApiClient().GetSystemInfoAsync(new Response<SystemInfo>() {
