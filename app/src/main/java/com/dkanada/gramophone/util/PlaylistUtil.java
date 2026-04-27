@@ -2,6 +2,7 @@ package com.dkanada.gramophone.util;
 
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.interfaces.MediaCallback;
+import com.dkanada.gramophone.mapper.LegacySongMapper;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.model.PlaylistSong;
 import com.dkanada.gramophone.model.Song;
@@ -26,7 +27,7 @@ public class PlaylistUtil {
             public void onResponse(ItemsResult result) {
                 List<PlaylistSong> songs = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    songs.add(new PlaylistSong(itemDto, query.getId()));
+                    songs.add(LegacySongMapper.fromPlaylistItem(itemDto, query.getId()));
                 }
 
                 callback.onLoadMedia(songs);

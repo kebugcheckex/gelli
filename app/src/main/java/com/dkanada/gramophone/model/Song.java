@@ -8,11 +8,6 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import org.jellyfin.apiclient.model.dto.BaseItemDto;
-import org.jellyfin.apiclient.model.dto.MediaSourceInfo;
-import org.jellyfin.apiclient.model.entities.ImageType;
-import org.jellyfin.apiclient.model.entities.MediaStream;
-
 import java.util.UUID;
 
 @Entity(tableName = "songs")
@@ -56,52 +51,38 @@ public class Song implements Parcelable {
         this.id = UUID.randomUUID().toString();
     }
 
-    public Song(BaseItemDto itemDto) {
-        this.id = itemDto.getId();
-        this.title = itemDto.getName();
-        this.trackNumber = itemDto.getIndexNumber() != null ? itemDto.getIndexNumber() : 0;
-        this.discNumber = itemDto.getParentIndexNumber() != null ? itemDto.getParentIndexNumber() : 0;
-        this.year = itemDto.getProductionYear() != null ? itemDto.getProductionYear() : 0;
-        this.duration = itemDto.getRunTimeTicks() != null ? itemDto.getRunTimeTicks() / 10000 : 0;
+    public Song(Song source) {
+        this.id = source.id;
+        this.title = source.title;
+        this.trackNumber = source.trackNumber;
+        this.discNumber = source.discNumber;
+        this.year = source.year;
+        this.duration = source.duration;
 
-        this.albumId = itemDto.getAlbumId();
-        this.albumName = itemDto.getAlbum();
+        this.albumId = source.albumId;
+        this.albumName = source.albumName;
 
-        if (itemDto.getArtistItems().size() != 0) {
-            this.artistId = itemDto.getArtistItems().get(0).getId();
-            this.artistName = itemDto.getArtistItems().get(0).getName();
-        } else if (itemDto.getAlbumArtists().size() != 0) {
-            this.artistId = itemDto.getAlbumArtists().get(0).getId();
-            this.artistName = itemDto.getAlbumArtists().get(0).getName();
-        }
+        this.artistId = source.artistId;
+        this.artistName = source.artistName;
 
-        this.primary = itemDto.getAlbumPrimaryImageTag() != null ? albumId : null;
-        if (itemDto.getImageBlurHashes() != null && itemDto.getImageBlurHashes().get(ImageType.Primary) != null) {
-            this.blurHash = (String) itemDto.getImageBlurHashes().get(ImageType.Primary).values().toArray()[0];
-        }
+        this.primary = source.primary;
+        this.blurHash = source.blurHash;
+        this.favorite = source.favorite;
 
-        this.favorite = itemDto.getUserData() != null && itemDto.getUserData().getIsFavorite();
+        this.path = source.path;
+        this.size = source.size;
 
-        if (itemDto.getMediaSources() != null && itemDto.getMediaSources().get(0) != null) {
-            MediaSourceInfo source = itemDto.getMediaSources().get(0);
+        this.container = source.container;
+        this.codec = source.codec;
 
-            this.path = source.getPath();
-            this.size = source.getSize() != null ? source.getSize() : 0;
+        this.supportsTranscoding = source.supportsTranscoding;
 
-            this.container = source.getContainer();
-            this.bitRate = source.getBitrate() != null ? source.getBitrate() : 0;
+        this.sampleRate = source.sampleRate;
+        this.bitRate = source.bitRate;
+        this.bitDepth = source.bitDepth;
+        this.channels = source.channels;
 
-            this.supportsTranscoding = source.getSupportsTranscoding();
-
-            if (source.getMediaStreams() != null && source.getMediaStreams().size() != 0) {
-                MediaStream stream = source.getMediaStreams().get(0);
-
-                this.codec = stream.getCodec();
-                this.sampleRate = stream.getSampleRate() != null ? stream.getSampleRate() : 0;
-                this.bitDepth = stream.getBitDepth() != null ? stream.getBitDepth() : 0;
-                this.channels = stream.getChannels() != null ? stream.getChannels() : 0;
-            }
-        }
+        this.cache = source.cache;
     }
 
     @Override

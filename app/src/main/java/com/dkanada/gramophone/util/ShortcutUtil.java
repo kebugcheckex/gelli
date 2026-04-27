@@ -4,6 +4,7 @@ import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.interfaces.MediaCallback;
+import com.dkanada.gramophone.mapper.LegacySongMapper;
 import com.dkanada.gramophone.model.Song;
 
 import org.jellyfin.apiclient.interaction.Response;
@@ -61,7 +62,7 @@ public class ShortcutUtil {
             public void onResponse(ItemsResult result) {
                 List<Song> songs = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    songs.add(new Song(itemDto));
+                    songs.add(LegacySongMapper.fromItem(itemDto));
                 }
 
                 callback.onLoadMedia(songs);

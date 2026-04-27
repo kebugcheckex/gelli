@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.interfaces.MediaCallback;
+import com.dkanada.gramophone.mapper.LegacySongMapper;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Genre;
@@ -105,7 +106,7 @@ public class QueryUtil {
                     } else if (itemDto.getBaseItemType() == BaseItemType.MusicAlbum) {
                         items.add(new Album(itemDto));
                     } else {
-                        items.add(new Song(itemDto));
+                        items.add(LegacySongMapper.fromItem(itemDto));
                     }
                 }
 
@@ -170,7 +171,7 @@ public class QueryUtil {
             public void onResponse(ItemsResult result) {
                 List<Song> songs = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    songs.add(new Song(itemDto));
+                    songs.add(LegacySongMapper.fromItem(itemDto));
                 }
 
                 callback.onLoadMedia(songs);

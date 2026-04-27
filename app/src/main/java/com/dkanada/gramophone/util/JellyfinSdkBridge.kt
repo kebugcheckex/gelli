@@ -4,13 +4,12 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.dkanada.gramophone.interfaces.MediaCallback
+import com.dkanada.gramophone.mapper.SdkSongMapper
 import com.dkanada.gramophone.model.Song
 import kotlinx.coroutines.runBlocking
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.exception.ApiClientException
-import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
@@ -42,7 +41,7 @@ object JellyfinSdkBridge {
                     )
 
                     val itemsResult by api.itemsApi.getItems(request)
-                    itemsResult.items.map { it.toSong() }
+                    itemsResult.items.map { SdkSongMapper.fromItem(it) }
                 }
             } catch (err: ApiClientException) {
                 Log.w(TAG, "getAlbumSongs: API error: ${err.message}", err)
@@ -56,50 +55,6 @@ object JellyfinSdkBridge {
                 callback.onLoadMedia(result)
             }
         }.start()
-    }
-
-    private fun BaseItemDto.toSong(): Song {
-        val song = Song()
-        song.id = uuidToId(id)
-        song.title = name ?: ""
-        song.trackNumber = indexNumber ?: 0
-        song.discNumber = parentIndexNumber ?: 0
-        song.year = productionYear ?: 0
-        song.duration = (runTimeTicks ?: 0L) / 10000
-
-        song.albumId = uuidToId(albumId)
-        song.albumName = album
-
-        val artistItem = artistItems?.firstOrNull() ?: albumArtists?.firstOrNull()
-        song.artistId = uuidToId(artistItem?.id)
-        song.artistName = artistItem?.name
-
-        song.primary = if (albumPrimaryImageTag != null && song.albumId != null) song.albumId else null
-        song.blurHash = imageBlurHashes
-            ?.get(ImageType.PRIMARY)
-            ?.values
-            ?.firstOrNull()
-
-        song.favorite = userData?.isFavorite == true
-
-        val source = mediaSources?.firstOrNull()
-        if (source != null) {
-            song.path = source.path
-            song.size = source.size ?: 0L
-            song.container = source.container
-            song.bitRate = source.bitrate ?: 0
-            song.supportsTranscoding = source.supportsTranscoding
-
-            val stream = source.mediaStreams?.firstOrNull()
-            if (stream != null) {
-                song.codec = stream.codec
-                song.sampleRate = stream.sampleRate ?: 0
-                song.bitDepth = stream.bitDepth ?: 0
-                song.channels = stream.channels ?: 0
-            }
-        }
-
-        return song
     }
 
     private fun toUuidOrNull(raw: String?): UUID? {
@@ -127,9 +82,5 @@ object JellyfinSdkBridge {
             append('-')
             append(value, 20, 32)
         }
-    }
-
-    private fun uuidToId(value: UUID?): String {
-        return value?.toString()?.replace("-", "") ?: ""
     }
 }
