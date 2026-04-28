@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.interfaces.MediaCallback;
+import com.dkanada.gramophone.mapper.LegacyMediaMapper;
+import com.dkanada.gramophone.mapper.LegacySongMapper;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Genre;
@@ -55,7 +57,7 @@ public class QueryUtil {
             public void onResponse(ItemsResult result) {
                 List<Playlist> playlists = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    playlists.add(new Playlist(itemDto));
+                    playlists.add(LegacyMediaMapper.toPlaylist(itemDto));
                 }
 
                 callback.onLoadMedia(playlists);
@@ -76,7 +78,7 @@ public class QueryUtil {
             public void onResponse(ItemsResult result) {
                 List<Genre> genres = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    genres.add(new Genre(itemDto));
+                    genres.add(LegacyMediaMapper.toGenre(itemDto));
                 }
 
                 callback.onLoadMedia(genres);
@@ -101,11 +103,11 @@ public class QueryUtil {
                 List<Object> items = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
                     if (itemDto.getBaseItemType() == BaseItemType.MusicArtist) {
-                        items.add(new Artist(itemDto));
+                        items.add(LegacyMediaMapper.toArtist(itemDto));
                     } else if (itemDto.getBaseItemType() == BaseItemType.MusicAlbum) {
-                        items.add(new Album(itemDto));
+                        items.add(LegacyMediaMapper.toAlbum(itemDto));
                     } else {
-                        items.add(new Song(itemDto));
+                        items.add(LegacySongMapper.fromItem(itemDto));
                     }
                 }
 
@@ -127,7 +129,7 @@ public class QueryUtil {
             public void onResponse(ItemsResult result) {
                 List<Album> albums = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    albums.add(new Album(itemDto));
+                    albums.add(LegacyMediaMapper.toAlbum(itemDto));
                 }
 
                 callback.onLoadMedia(albums);
@@ -148,7 +150,7 @@ public class QueryUtil {
             public void onResponse(ItemsResult result) {
                 List<Artist> artists = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    artists.add(new Artist(itemDto));
+                    artists.add(LegacyMediaMapper.toArtist(itemDto));
                 }
 
                 callback.onLoadMedia(artists);
@@ -170,7 +172,7 @@ public class QueryUtil {
             public void onResponse(ItemsResult result) {
                 List<Song> songs = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    songs.add(new Song(itemDto));
+                    songs.add(LegacySongMapper.fromItem(itemDto));
                 }
 
                 callback.onLoadMedia(songs);

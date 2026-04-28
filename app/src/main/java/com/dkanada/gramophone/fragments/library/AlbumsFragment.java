@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.album.AlbumAdapter;
+import com.dkanada.gramophone.mapper.LegacyMediaMapper;
+import com.dkanada.gramophone.mapper.LegacySortMapper;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
@@ -50,7 +52,7 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
         query.setParentId(QueryUtil.currentLibrary.getId());
 
         query.setSortBy(new String[]{PreferenceUtil.getInstance(App.getInstance()).getAlbumSortMethod().getApi()});
-        query.setSortOrder(PreferenceUtil.getInstance(App.getInstance()).getAlbumSortOrder().getApi());
+        query.setSortOrder(LegacySortMapper.toApi(PreferenceUtil.getInstance(App.getInstance()).getAlbumSortOrder()));
         return query;
     }
 
@@ -63,7 +65,7 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
             public void onResponse(ItemsResult result) {
                 if (index == 0) getAdapter().getDataSet().clear();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    getAdapter().getDataSet().add(new Album(itemDto));
+                    getAdapter().getDataSet().add(LegacyMediaMapper.toAlbum(itemDto));
                 }
 
                 size = result.getTotalRecordCount();

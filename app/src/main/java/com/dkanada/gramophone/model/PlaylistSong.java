@@ -2,17 +2,14 @@ package com.dkanada.gramophone.model;
 
 import android.os.Parcel;
 
-import org.jellyfin.apiclient.model.dto.BaseItemDto;
-
 public class PlaylistSong extends Song {
     public final String playlistId;
     public final String indexId;
 
-    public PlaylistSong(BaseItemDto itemDto, String playlist) {
-        super(itemDto);
-
-        this.playlistId = playlist;
-        this.indexId = itemDto.getPlaylistItemId();
+    public PlaylistSong(Song song, String playlistId, String indexId) {
+        super(song);
+        this.playlistId = playlistId;
+        this.indexId = indexId;
     }
 
     @Override

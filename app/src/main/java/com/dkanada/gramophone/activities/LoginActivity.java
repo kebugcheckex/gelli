@@ -11,7 +11,9 @@ import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.databinding.ActivityLoginBinding;
 import com.dkanada.gramophone.activities.base.AbsBaseActivity;
+import com.dkanada.gramophone.mapper.LegacyUserMapper;
 import com.dkanada.gramophone.model.User;
+import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.dkanada.gramophone.util.PreferenceUtil;
 
 import org.jellyfin.apiclient.interaction.Response;
@@ -110,11 +112,12 @@ public class LoginActivity extends AbsBaseActivity implements View.OnClickListen
             @Override
             public void onResponse(SystemInfo result) {
                 if (result.getVersion().charAt(0) == '1') {
-                    User user = new User(authenticationResult, server);
+                    User user = LegacyUserMapper.toUser(authenticationResult, server);
 
                     App.getDatabase().userDao().insertUser(user);
                     PreferenceUtil.getInstance(LoginActivity.this).setServer(user.server);
                     PreferenceUtil.getInstance(LoginActivity.this).setUser(user.id);
+                    JellyfinSdkSession.updateSession(user.server, user.token, user.jellyfinUserId);
 
                     Intent intent = new Intent(LoginActivity.this, SplashActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);

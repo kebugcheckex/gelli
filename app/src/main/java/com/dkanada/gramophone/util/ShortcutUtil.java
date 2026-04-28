@@ -1,9 +1,11 @@
 package com.dkanada.gramophone.util;
 
 import com.dkanada.gramophone.App;
+import com.dkanada.gramophone.mapper.LegacySortMapper;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.interfaces.MediaCallback;
+import com.dkanada.gramophone.mapper.LegacySongMapper;
 import com.dkanada.gramophone.model.Song;
 
 import org.jellyfin.apiclient.interaction.Response;
@@ -21,7 +23,7 @@ public class ShortcutUtil {
         ItemQuery query = new ItemQuery();
 
         query.setSortBy(new String[]{SortMethod.COUNT.getApi()});
-        query.setSortOrder(SortOrder.DESCENDING.getApi());
+        query.setSortOrder(LegacySortMapper.toApi(SortOrder.DESCENDING));
 
         getSongs(query, callback);
     }
@@ -30,7 +32,7 @@ public class ShortcutUtil {
         ItemQuery query = new ItemQuery();
 
         query.setSortBy(new String[]{SortMethod.ADDED.getApi()});
-        query.setSortOrder(SortOrder.DESCENDING.getApi());
+        query.setSortOrder(LegacySortMapper.toApi(SortOrder.DESCENDING));
 
         getSongs(query, callback);
     }
@@ -39,7 +41,7 @@ public class ShortcutUtil {
         ItemQuery query = new ItemQuery();
 
         query.setSortBy(new String[]{SortMethod.RANDOM.getApi()});
-        query.setSortOrder(SortOrder.DESCENDING.getApi());
+        query.setSortOrder(LegacySortMapper.toApi(SortOrder.DESCENDING));
 
         if (onlyFavorites) {
             query.setFilters(new ItemFilter[]{ItemFilter.IsFavorite});
@@ -61,7 +63,7 @@ public class ShortcutUtil {
             public void onResponse(ItemsResult result) {
                 List<Song> songs = new ArrayList<>();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    songs.add(new Song(itemDto));
+                    songs.add(LegacySongMapper.fromItem(itemDto));
                 }
 
                 callback.onLoadMedia(songs);

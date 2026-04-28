@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.GenreAdapter;
+import com.dkanada.gramophone.mapper.LegacyMediaMapper;
 import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
@@ -56,7 +57,7 @@ public class GenresFragment extends AbsLibraryPagerRecyclerViewFragment<GenreAda
             public void onResponse(ItemsResult result) {
                 if (index == 0) getAdapter().getDataSet().clear();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    getAdapter().getDataSet().add(new Genre(itemDto));
+                    getAdapter().getDataSet().add(LegacyMediaMapper.toGenre(itemDto));
                 }
 
                 size = result.getTotalRecordCount();

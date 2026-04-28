@@ -7,6 +7,8 @@ import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.song.ShuffleButtonSongAdapter;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
+import com.dkanada.gramophone.mapper.LegacySongMapper;
+import com.dkanada.gramophone.mapper.LegacySortMapper;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
@@ -72,7 +74,7 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
         query.setParentId(QueryUtil.currentLibrary.getId());
 
         query.setSortBy(new String[]{PreferenceUtil.getInstance(App.getInstance()).getSongSortMethod().getApi()});
-        query.setSortOrder(PreferenceUtil.getInstance(App.getInstance()).getSongSortOrder().getApi());
+        query.setSortOrder(LegacySortMapper.toApi(PreferenceUtil.getInstance(App.getInstance()).getSongSortOrder()));
         return query;
     }
 
@@ -86,7 +88,7 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
             public void onResponse(ItemsResult result) {
                 if (index == 0) getAdapter().getDataSet().clear();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    getAdapter().getDataSet().add(new Song(itemDto));
+                    getAdapter().getDataSet().add(LegacySongMapper.fromItem(itemDto));
                 }
 
                 size = result.getTotalRecordCount();

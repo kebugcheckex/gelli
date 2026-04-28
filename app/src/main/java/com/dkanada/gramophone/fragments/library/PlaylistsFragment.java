@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.PlaylistAdapter;
+import com.dkanada.gramophone.mapper.LegacyMediaMapper;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
@@ -57,7 +58,7 @@ public class PlaylistsFragment extends AbsLibraryPagerRecyclerViewFragment<Playl
             public void onResponse(ItemsResult result) {
                 if (index == 0) getAdapter().getDataSet().clear();
                 for (BaseItemDto itemDto : result.getItems()) {
-                    getAdapter().getDataSet().add(new Playlist(itemDto));
+                    getAdapter().getDataSet().add(LegacyMediaMapper.toPlaylist(itemDto));
                 }
 
                 size = result.getTotalRecordCount();
