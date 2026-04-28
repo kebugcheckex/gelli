@@ -1,5 +1,7 @@
 package com.dkanada.gramophone.fragments.library;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -9,7 +11,6 @@ import com.dkanada.gramophone.adapter.PlaylistAdapter;
 import com.dkanada.gramophone.mapper.LegacyMediaMapper;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.util.PreferenceUtil;
-import com.dkanada.gramophone.util.QueryUtil;
 
 import org.jellyfin.apiclient.interaction.Response;
 import org.jellyfin.apiclient.model.dto.BaseItemDto;
@@ -20,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlaylistsFragment extends AbsLibraryPagerRecyclerViewFragment<PlaylistAdapter, LinearLayoutManager, ItemQuery> {
+    private static final String TAG = "PlaylistsFragment";
+
     @NonNull
     @Override
     protected LinearLayoutManager createLayoutManager() {
@@ -43,7 +46,6 @@ public class PlaylistsFragment extends AbsLibraryPagerRecyclerViewFragment<Playl
         query.setRecursive(true);
         query.setLimit(PreferenceUtil.getInstance(App.getInstance()).getPageSize());
         query.setStartIndex(getAdapter().getItemCount());
-        query.setParentId(QueryUtil.currentLibrary.getId());
 
         return query;
     }
@@ -68,7 +70,7 @@ public class PlaylistsFragment extends AbsLibraryPagerRecyclerViewFragment<Playl
 
             @Override
             public void onError(Exception exception) {
-                exception.printStackTrace();
+                Log.e(TAG, "loadItems: playlist query failed", exception);
             }
         });
     }
