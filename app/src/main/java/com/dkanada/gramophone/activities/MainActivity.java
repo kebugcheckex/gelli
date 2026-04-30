@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.afollestad.materialcab.attached.AttachedCab;
@@ -49,6 +50,8 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
 
     @Nullable
     private Bundle state;
+    @Nullable
+    private Fragment pendingFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +107,27 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
     }
 
     private void setCurrentFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment, null).commit();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (isFinishing() || isDestroyed()) return;
+
+        if (fragmentManager.isStateSaved()) {
+            pendingFragment = fragment;
+            return;
+        }
+
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, null).commit();
+        pendingFragment = null;
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+
+        if (pendingFragment != null) {
+            Fragment fragment = pendingFragment;
+            pendingFragment = null;
+            setCurrentFragment(fragment);
+        }
     }
 
     @Override
