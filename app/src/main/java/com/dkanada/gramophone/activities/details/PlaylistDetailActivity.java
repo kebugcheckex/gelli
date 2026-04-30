@@ -33,8 +33,6 @@ import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.PlaylistUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 
-import org.jellyfin.apiclient.model.playlists.PlaylistItemQuery;
-
 import java.util.ArrayList;
 
 public class PlaylistDetailActivity extends AbsMusicContentActivity implements CabHolder {
@@ -62,10 +60,7 @@ public class PlaylistDetailActivity extends AbsMusicContentActivity implements C
 
     @Override
     public void onStateOnline() {
-        PlaylistItemQuery query = new PlaylistItemQuery();
-        query.setId(playlist.id);
-
-        PlaylistUtil.getPlaylist(query, media -> {
+        PlaylistUtil.getPlaylist(playlist.id, media -> {
             adapter.getDataSet().addAll(media);
             adapter.notifyDataSetChanged();
         });

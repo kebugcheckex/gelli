@@ -27,8 +27,6 @@ import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.List;
 
 public class AlbumAdapter extends AbsMultiSelectAdapter<AlbumAdapter.ViewHolder, Album> implements FastScrollRecyclerView.SectionedAdapter {
@@ -171,10 +169,7 @@ public class AlbumAdapter extends AbsMultiSelectAdapter<AlbumAdapter.ViewHolder,
     @Override
     protected void onMultipleItemAction(@NonNull MenuItem menuItem, @NonNull List<Album> selection) {
         for (Album album : selection) {
-            ItemQuery songs = new ItemQuery();
-            songs.setParentId(album.id);
-
-            QueryUtil.getSongs(songs, (media) -> {
+            QueryUtil.getSongsByParent(album.id, media -> {
                 SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
             });
         }

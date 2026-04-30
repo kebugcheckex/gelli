@@ -12,6 +12,8 @@ import com.dkanada.gramophone.model.Artist
 import com.dkanada.gramophone.model.Genre
 import com.dkanada.gramophone.model.Playlist
 import com.dkanada.gramophone.model.Song
+import com.dkanada.gramophone.model.SortMethod
+import com.dkanada.gramophone.model.SortOrder as AppSortOrder
 import kotlinx.coroutines.runBlocking
 import org.jellyfin.apiclient.model.querying.ArtistsQuery
 import org.jellyfin.apiclient.model.querying.ItemFilter
@@ -118,6 +120,13 @@ object QueryUtil {
     }
 
     @JvmStatic
+    fun searchItems(searchTerm: String, callback: MediaCallback<Any>) {
+        val query = ItemQuery()
+        query.searchTerm = searchTerm
+        getItems(query, callback)
+    }
+
+    @JvmStatic
     fun getAlbums(query: ItemQuery, callback: MediaCallback<Album>) {
         fetchItems(
             request = itemQueryToRequest(query).copy(includeItemTypes = listOf(BaseItemKind.MUSIC_ALBUM)),
@@ -148,6 +157,63 @@ object QueryUtil {
             mapper = SdkSongMapper::fromItem,
             callback = callback
         )
+    }
+
+    @JvmStatic
+    fun getSongsByParent(parentId: String, callback: MediaCallback<Song>) {
+        val query = ItemQuery()
+        query.parentId = parentId
+        getSongs(query, callback)
+    }
+
+    @JvmStatic
+    fun getSongsByArtistIds(artistIds: List<String>, callback: MediaCallback<Song>) {
+        val query = ItemQuery()
+        query.artistIds = artistIds.toTypedArray()
+        getSongs(query, callback)
+    }
+
+    @JvmStatic
+    fun getSongsByGenreId(genreId: String, callback: MediaCallback<Song>) {
+        val query = ItemQuery()
+        query.genreIds = arrayOf(genreId)
+        getSongs(query, callback)
+    }
+
+    @JvmStatic
+    fun getAlbumsByArtistId(artistId: String, callback: MediaCallback<Album>) {
+        val query = ItemQuery()
+        query.artistIds = arrayOf(artistId)
+        getAlbums(query, callback)
+    }
+
+    @JvmStatic
+    fun getSongsByArtistId(artistId: String, callback: MediaCallback<Song>) {
+        val query = ItemQuery()
+        query.artistIds = arrayOf(artistId)
+        getSongs(query, callback)
+    }
+
+    @JvmStatic
+    fun getSongsBySort(
+        sortMethod: SortMethod,
+        sortOrder: AppSortOrder,
+        limit: Int,
+        onlyFavorites: Boolean,
+        callback: MediaCallback<Song>
+    ) {
+        val query = ItemQuery()
+        query.sortBy = arrayOf(sortMethod.api)
+        query.sortOrder = if (sortOrder == AppSortOrder.ASCENDING) {
+            org.jellyfin.apiclient.model.entities.SortOrder.Ascending
+        } else {
+            org.jellyfin.apiclient.model.entities.SortOrder.Descending
+        }
+        query.limit = limit
+        if (onlyFavorites) {
+            query.filters = arrayOf(ItemFilter.IsFavorite)
+        }
+        getSongs(query, callback)
     }
 
     @JvmStatic

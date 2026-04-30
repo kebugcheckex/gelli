@@ -35,8 +35,6 @@ import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -72,18 +70,12 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
 
     @Override
     public void onStateOnline() {
-        ItemQuery albums = new ItemQuery();
-        albums.setArtistIds(new String[]{artist.id});
-
-        QueryUtil.getAlbums(albums, media -> {
+        QueryUtil.getAlbumsByArtistId(artist.id, media -> {
             artist.albums = media;
             setArtist(artist);
         });
 
-        ItemQuery songs = new ItemQuery();
-        songs.setArtistIds(new String[]{artist.id});
-
-        QueryUtil.getSongs(songs, media -> {
+        QueryUtil.getSongsByArtistId(artist.id, media -> {
             artist.songs = media;
             setArtist(artist);
         });

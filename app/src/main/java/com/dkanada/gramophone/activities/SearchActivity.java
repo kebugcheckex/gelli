@@ -24,8 +24,6 @@ import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.Util;
 
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -132,9 +130,6 @@ public class SearchActivity extends AbsMusicContentActivity implements SearchVie
     private void search(@NonNull String query) {
         this.query = query;
 
-        ItemQuery itemQuery = new ItemQuery();
-        itemQuery.setSearchTerm(query);
-
         MediaCallback<Object> callback = media -> {
             List<Artist> artists = new ArrayList<>();
             List<Album> albums = new ArrayList<>();
@@ -162,7 +157,7 @@ public class SearchActivity extends AbsMusicContentActivity implements SearchVie
             adapter.swapDataSet(sortedData);
         };
 
-        QueryUtil.getItems(itemQuery, callback);
+        QueryUtil.searchItems(query, callback);
     }
 
     @Override

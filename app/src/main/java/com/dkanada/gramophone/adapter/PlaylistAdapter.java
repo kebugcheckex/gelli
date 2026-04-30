@@ -25,8 +25,6 @@ import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.List;
 
 public class PlaylistAdapter extends AbsMultiSelectAdapter<PlaylistAdapter.ViewHolder, Playlist> {
@@ -128,10 +126,7 @@ public class PlaylistAdapter extends AbsMultiSelectAdapter<PlaylistAdapter.ViewH
             DeletePlaylistDialog.create(selection).show(activity.getSupportFragmentManager(), DeletePlaylistDialog.TAG);
         } else {
             for (Playlist playlist : selection) {
-                ItemQuery songs = new ItemQuery();
-                songs.setParentId(playlist.id);
-
-                QueryUtil.getSongs(songs, (media) -> {
+                QueryUtil.getSongsByParent(playlist.id, media -> {
                     SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
                 });
             }
@@ -166,10 +161,7 @@ public class PlaylistAdapter extends AbsMultiSelectAdapter<PlaylistAdapter.ViewH
                 return true;
             }
 
-            ItemQuery songs = new ItemQuery();
-            songs.setParentId(playlist.id);
-
-            QueryUtil.getSongs(songs, (media) -> {
+            QueryUtil.getSongsByParent(playlist.id, media -> {
                 SongsMenuHelper.handleMenuClick(activity, media, item.getItemId());
             });
 
