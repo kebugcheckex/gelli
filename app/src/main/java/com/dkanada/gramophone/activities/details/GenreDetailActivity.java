@@ -24,8 +24,6 @@ import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.ArrayList;
 
 public class GenreDetailActivity extends AbsMusicContentActivity implements CabHolder {
@@ -50,10 +48,7 @@ public class GenreDetailActivity extends AbsMusicContentActivity implements CabH
 
     @Override
     public void onStateOnline() {
-        ItemQuery query = new ItemQuery();
-        query.setGenreIds(new String[]{genre.id});
-
-        QueryUtil.getSongs(query, media -> {
+        QueryUtil.getSongsByGenreId(genre.id, media -> {
             adapter.getDataSet().addAll(media);
             adapter.notifyDataSetChanged();
         });

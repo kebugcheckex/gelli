@@ -26,8 +26,6 @@ import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -163,10 +161,7 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
             ids.add(artist.id);
         }
 
-        ItemQuery songs = new ItemQuery();
-        songs.setArtistIds(ids.toArray(new String[0]));
-
-        QueryUtil.getSongs(songs, (media) -> {
+        QueryUtil.getSongsByArtistIds(ids, media -> {
             SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
         });
     }

@@ -34,8 +34,6 @@ import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import org.jellyfin.apiclient.model.dto.BaseItemDto;
-
 import java.util.List;
 
 public class MainActivity extends AbsMusicContentActivity implements CabHolder {
@@ -47,7 +45,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
     private AttachedCab cab;
 
     @Nullable
-    private List<BaseItemDto> libraries;
+    private List<QueryUtil.Library> libraries;
 
     @Nullable
     private Bundle state;
@@ -68,7 +66,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
             libraries = media;
             menu.clear();
 
-            for (BaseItemDto itemDto : libraries) {
+            for (QueryUtil.Library itemDto : libraries) {
                 if (menu.size() == 0) {
                     QueryUtil.currentLibrary = itemDto;
                 }
@@ -148,7 +146,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
             // only run the following code when a new library has been selected
             if (menuItem.getItemId() == QueryUtil.currentLibrary.getId().hashCode()) return true;
 
-            for (BaseItemDto itemDto : libraries) {
+            for (QueryUtil.Library itemDto : libraries) {
                 if (menuItem.getItemId() == itemDto.getId().hashCode()) {
                     QueryUtil.currentLibrary = itemDto;
                     setCurrentFragment(LibraryFragment.newInstance());
