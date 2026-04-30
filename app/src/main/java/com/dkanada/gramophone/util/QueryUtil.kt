@@ -73,15 +73,25 @@ object QueryUtil {
 
     @JvmStatic
     fun getPlaylists(query: ItemQuery, callback: MediaCallback<Playlist>) {
-        val request = itemQueryToRequest(query)
         fetchItems(
-            request = request.copy(
-                includeItemTypes = listOf(BaseItemKind.PLAYLIST),
-                recursive = true
-            ),
+            request = playlistsRequest(query),
             onErrorTag = "getPlaylists",
             mapper = SdkMediaMapper::toPlaylist,
             callback = callback
+        )
+    }
+
+    internal fun playlistsRequest(
+        query: ItemQuery,
+        userId: String? = JellyfinSdkSession.getCurrentUserId(),
+        pageSize: Int = defaultPageSize(),
+        library: Library? = currentLibrary
+    ): GetItemsRequest {
+        // Playlists live outside any music library, so don't scope by parentId.
+        return itemQueryToRequest(query, userId, pageSize, library).copy(
+            includeItemTypes = listOf(BaseItemKind.PLAYLIST),
+            parentId = null,
+            recursive = true
         )
     }
 
@@ -135,15 +145,10 @@ object QueryUtil {
     fun getAlbums(query: ItemQuery, callback: MediaCallback<Album>) {
         query.includeItemTypes = arrayOf("MusicAlbum")
         applyProperties(query)
-        Log.d(
-            TAG,
-            "getAlbums (legacy) request: parentId=${query.parentId}, userId=${query.userId}, includeItemTypes=${query.includeItemTypes?.toList()}, start=${query.startIndex}, limit=${query.limit}, sortBy=${query.sortBy?.toList()}, sortOrder=${query.sortOrder}, recursive=${query.recursive}"
-        )
 
         App.getApiClient().GetItemsAsync(query, object : Response<ItemsResult>() {
             override fun onResponse(result: ItemsResult) {
                 val albums = result.items.map(LegacyMediaMapper::toAlbum)
-                Log.d(TAG, "getAlbums (legacy): response count=${albums.size}, total=${result.totalRecordCount}")
                 callback.onLoadMedia(albums)
             }
 
@@ -168,10 +173,6 @@ object QueryUtil {
             val mapped = try {
                 runBlocking {
                     val result by api.artistsApi.getAlbumArtists(request)
-                    Log.d(
-                        TAG,
-                        "getArtists: response count=${result.items.size}, total=${result.totalRecordCount}, request=${albumArtistsRequestSummary(request)}"
-                    )
                     result.items.map(SdkMediaMapper::toArtist)
                 }
             } catch (err: ApiClientException) {
@@ -265,40 +266,72 @@ object QueryUtil {
 
     @JvmStatic
     fun applyProperties(query: ItemQuery) {
-        query.userId = JellyfinSdkSession.getCurrentUserId()
+        applyProperties(query, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
+    }
+
+    internal fun applyProperties(
+        query: ItemQuery,
+        userId: String?,
+        pageSize: Int,
+        library: Library?
+    ) {
+        query.userId = userId
         query.recursive = true
 
         val artistIds = query.artistIds ?: emptyArray()
         if (query.parentId == null && artistIds.isEmpty()) {
-            query.limit = PreferenceUtil.getInstance(App.getInstance()).getPageSize()
+            query.limit = pageSize
         }
 
-        if (currentLibrary == null || query.parentId != null) return
-        if (artistIds.isEmpty()) query.parentId = currentLibrary?.id
+        if (library == null || query.parentId != null) return
+        if (artistIds.isEmpty()) query.parentId = library.id
     }
 
     @JvmStatic
     fun applyProperties(query: ItemsByNameQuery) {
-        query.userId = JellyfinSdkSession.getCurrentUserId()
+        applyProperties(query, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
+    }
+
+    internal fun applyProperties(
+        query: ItemsByNameQuery,
+        userId: String?,
+        pageSize: Int,
+        library: Library?
+    ) {
+        query.userId = userId
         query.recursive = true
 
         if (query.parentId == null) {
-            query.limit = PreferenceUtil.getInstance(App.getInstance()).getPageSize()
+            query.limit = pageSize
         }
 
-        if (currentLibrary == null || query.parentId != null) return
-        query.parentId = currentLibrary?.id
+        if (library == null || query.parentId != null) return
+        query.parentId = library.id
     }
 
     private fun itemQueryToRequest(query: ItemQuery): GetItemsRequest {
-        applyProperties(query)
+        return itemQueryToRequest(
+            query,
+            JellyfinSdkSession.getCurrentUserId(),
+            defaultPageSize(),
+            currentLibrary
+        )
+    }
+
+    internal fun itemQueryToRequest(
+        query: ItemQuery,
+        userId: String?,
+        pageSize: Int,
+        library: Library?
+    ): GetItemsRequest {
+        applyProperties(query, userId, pageSize, library)
         val parentUuid = toUuidOrNull(query.parentId)
         if (!query.parentId.isNullOrBlank() && parentUuid == null) {
             Log.w(TAG, "itemQueryToRequest: invalid parentId='${query.parentId}'")
         }
 
         return GetItemsRequest(
-            userId = currentUserUuidOrNull(),
+            userId = toUuidOrNull(userId),
             parentId = parentUuid,
             searchTerm = query.searchTerm,
             artistIds = (query.artistIds ?: emptyArray()).mapNotNull(::toUuidOrNull),
@@ -310,6 +343,10 @@ object QueryUtil {
             sortOrder = mapSortOrder(query.sortOrder),
             isFavorite = if (query.filters?.contains(ItemFilter.IsFavorite) == true) true else null
         )
+    }
+
+    private fun defaultPageSize(): Int {
+        return PreferenceUtil.getInstance(App.getInstance()).getPageSize()
     }
 
     private fun artistsQueryToRequest(query: ArtistsQuery): GetAlbumArtistsRequest {
@@ -342,7 +379,7 @@ object QueryUtil {
         )
     }
 
-    private fun mapSortBy(sort: String?): ItemSortBy? {
+    internal fun mapSortBy(sort: String?): ItemSortBy? {
         return when (sort) {
             "SortName" -> ItemSortBy.SORT_NAME
             "Album" -> ItemSortBy.ALBUM
@@ -355,7 +392,7 @@ object QueryUtil {
         }
     }
 
-    private fun mapSortOrder(order: org.jellyfin.apiclient.model.entities.SortOrder?): List<SortOrder> {
+    internal fun mapSortOrder(order: org.jellyfin.apiclient.model.entities.SortOrder?): List<SortOrder> {
         return when (order) {
             org.jellyfin.apiclient.model.entities.SortOrder.Ascending -> listOf(SortOrder.ASCENDING)
             org.jellyfin.apiclient.model.entities.SortOrder.Descending -> listOf(SortOrder.DESCENDING)
@@ -367,11 +404,11 @@ object QueryUtil {
         return toUuidOrNull(JellyfinSdkSession.getCurrentUserId())
     }
 
-    private fun uuidToId(value: UUID?): String {
+    internal fun uuidToId(value: UUID?): String {
         return value?.toString()?.replace("-", "") ?: ""
     }
 
-    private fun toUuidOrNull(raw: String?): UUID? {
+    internal fun toUuidOrNull(raw: String?): UUID? {
         if (raw.isNullOrBlank()) return null
 
         val normalized = if (raw.contains("-")) raw else raw.toUuidStringOrNull()
@@ -418,10 +455,6 @@ object QueryUtil {
             val mapped = try {
                 runBlocking {
                     val result by api.itemsApi.getItems(request)
-                    Log.d(
-                        TAG,
-                        "$onErrorTag: response count=${result.items.size}, total=${result.totalRecordCount}, request=${requestSummary(request)}"
-                    )
                     result.items.map(mapper)
                 }
             } catch (err: ApiClientException) {
@@ -438,11 +471,4 @@ object QueryUtil {
         }.start()
     }
 
-    private fun requestSummary(request: GetItemsRequest): String {
-        return "parentId=${request.parentId}, userId=${request.userId}, includeItemTypes=${request.includeItemTypes}, start=${request.startIndex}, limit=${request.limit}, sortBy=${request.sortBy}, sortOrder=${request.sortOrder}, recursive=${request.recursive}"
-    }
-
-    private fun albumArtistsRequestSummary(request: GetAlbumArtistsRequest): String {
-        return "parentId=${request.parentId}, userId=${request.userId}, start=${request.startIndex}, limit=${request.limit}, sortBy=${request.sortBy}, sortOrder=${request.sortOrder}, fields=${request.fields}"
-    }
 }
