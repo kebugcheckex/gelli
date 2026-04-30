@@ -7,7 +7,6 @@ import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.song.ShuffleButtonSongAdapter;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
-import com.dkanada.gramophone.mapper.LegacySongMapper;
 import com.dkanada.gramophone.mapper.LegacySortMapper;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.model.SortMethod;
@@ -15,11 +14,8 @@ import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 
-import org.jellyfin.apiclient.interaction.Response;
-import org.jellyfin.apiclient.model.dto.BaseItemDto;
 import org.jellyfin.apiclient.model.querying.ItemFields;
 import org.jellyfin.apiclient.model.querying.ItemQuery;
-import org.jellyfin.apiclient.model.querying.ItemsResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,23 +79,16 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
         ItemQuery query = getQuery();
         query.setStartIndex(index);
 
-        App.getApiClient().GetItemsAsync(query, new Response<ItemsResult>() {
-            @Override
-            public void onResponse(ItemsResult result) {
-                if (index == 0) getAdapter().getDataSet().clear();
-                for (BaseItemDto itemDto : result.getItems()) {
-                    getAdapter().getDataSet().add(LegacySongMapper.fromItem(itemDto));
-                }
-
-                size = result.getTotalRecordCount();
-                getAdapter().notifyDataSetChanged();
-                loading = false;
+        QueryUtil.getSongs(query, media -> {
+            if (index == 0) getAdapter().getDataSet().clear();
+            getAdapter().getDataSet().addAll(media);
+            if (media.size() < PreferenceUtil.getInstance(App.getInstance()).getPageSize()) {
+                size = getAdapter().getDataSet().size();
+            } else {
+                size = getAdapter().getDataSet().size() + 1;
             }
-
-            @Override
-            public void onError(Exception exception) {
-                exception.printStackTrace();
-            }
+            getAdapter().notifyDataSetChanged();
+            loading = false;
         });
     }
 

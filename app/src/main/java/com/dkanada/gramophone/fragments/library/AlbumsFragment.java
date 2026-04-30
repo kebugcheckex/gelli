@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.album.AlbumAdapter;
-import com.dkanada.gramophone.mapper.LegacyMediaMapper;
 import com.dkanada.gramophone.mapper.LegacySortMapper;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.SortMethod;
@@ -14,10 +13,7 @@ import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 
-import org.jellyfin.apiclient.interaction.Response;
-import org.jellyfin.apiclient.model.dto.BaseItemDto;
 import org.jellyfin.apiclient.model.querying.ItemQuery;
-import org.jellyfin.apiclient.model.querying.ItemsResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,23 +56,16 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
         ItemQuery query = getQuery();
         query.setStartIndex(index);
 
-        App.getApiClient().GetItemsAsync(query, new Response<ItemsResult>() {
-            @Override
-            public void onResponse(ItemsResult result) {
-                if (index == 0) getAdapter().getDataSet().clear();
-                for (BaseItemDto itemDto : result.getItems()) {
-                    getAdapter().getDataSet().add(LegacyMediaMapper.toAlbum(itemDto));
-                }
-
-                size = result.getTotalRecordCount();
-                getAdapter().notifyDataSetChanged();
-                loading = false;
+        QueryUtil.getAlbums(query, media -> {
+            if (index == 0) getAdapter().getDataSet().clear();
+            getAdapter().getDataSet().addAll(media);
+            if (media.size() < PreferenceUtil.getInstance(App.getInstance()).getPageSize()) {
+                size = getAdapter().getDataSet().size();
+            } else {
+                size = getAdapter().getDataSet().size() + 1;
             }
-
-            @Override
-            public void onError(Exception exception) {
-                exception.printStackTrace();
-            }
+            getAdapter().notifyDataSetChanged();
+            loading = false;
         });
     }
 
