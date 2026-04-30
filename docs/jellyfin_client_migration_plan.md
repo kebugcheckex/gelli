@@ -64,6 +64,30 @@ This document captures the current status of the migration from `jellyfin-apicli
 - The current bridge pattern recreates SDK client state from the legacy client. That is useful during transition, but it cannot be the end state because it still depends on `ApiClient`.
 - The model layer is still coupled to legacy DTO classes, which means query migration alone will not remove the Java dependency.
 
+## Regression Testing Strategy
+
+Phase 3 shipped with three behavioral regressions that the legacy Java code did not have (fragment transaction state-loss, sort/order parity gaps, and playlist queries inheriting `currentLibrary` as `parentId`). All three were in pure translation logic that runs without an emulator or a live server. The lesson: **every future phase must land alongside JVM unit tests for the translation/mapping shims it introduces or modifies.**
+
+Conventions for this codebase:
+
+- Tests live in `app/src/test/kotlin/...` and run via `./gradlew :app:testDebugUnitTest` (no emulator required, sub-second once compiled).
+- The existing instrumented `PlaylistBackendIntegrationTest` is valuable but requires backend credentials and is not a substitute for fast regression coverage on pure logic.
+- The first JVM test class — `QueryUtilTest` — establishes the pattern: take Android/global dependencies as injected parameters in an `internal` overload, keep the public no-arg overload as a thin delegate, and exercise the overload directly. New shims should follow the same shape rather than reaching for Robolectric.
+
+What every phase MUST add unit tests for, before being declared complete:
+
+- Request builders — for each migrated query, assert the resulting SDK request matches the legacy behavior on `parentId` scoping, sort/order, paging, recursive flag, and filters (favorites, artist/genre/album scope).
+- Model mappers — for `SdkMediaMapper`, `SdkSongMapper`, and any new mapper, assert ID format (dashless), blurhash selection, favorite state, artist fallback (`artistItems` → `albumArtists`), and media-source field copying against fixed `BaseItemDto` fixtures.
+- ID/UUID helpers — round-trip dashed and dashless forms; reject malformed input.
+- Any new pure helper introduced by a shim (URL builders, request DTOs, response normalizers).
+
+What MUST NOT be the only line of defense:
+
+- Manual testing against a live server. It catches gross failures but misses parity gaps that only show up under specific filter combinations or library configurations.
+- Successful compilation. The Kotlin compiler will not catch a missing `parentId = null` override, an inverted ascending/descending mapping, or a dropped media-source field.
+
+When a regression IS found in production code, the fix PR must add a unit test that fails before the fix and passes after. This converts every reported bug into permanent coverage and is the cheapest way to ratchet regression risk down across the remaining phases.
+
 ## Recommended Migration Phases
 
 ### Phase 1: Introduce a Real SDK Session Layer
@@ -171,6 +195,7 @@ Work:
   - reorder items
   - delete playlist
 - Update detail screens that still construct legacy playlist/query types directly.
+- For each migrated function, add JVM unit tests for the request builder and any model mapping introduced — follow the `QueryUtilTest` pattern (inject globals as parameters, keep the public overload as a thin delegate, assert parity with the legacy behavior).
 
 Priority files:
 
@@ -264,6 +289,14 @@ Exit criteria:
 
 ## Validation Checklist Per Phase
 
+Required automated checks (must be green before a phase is declared complete):
+
+- `./gradlew :app:testDebugUnitTest` passes, including new tests for any shim introduced by the phase (request builder, mapper, URL helper, etc.).
+- For every public migrated function, at least one unit test asserts behavioral parity with the legacy path on the dimensions called out in the Regression Testing Strategy section (parentId, sort/order, paging, filters; ID format, blurhash, favorite, artist fallback).
+- Any bug found and fixed during the phase is locked in by a test that fails on the broken code and passes on the fix.
+
+Required manual smoke checks against a real Jellyfin server (after automated checks pass):
+
 - Login works against a real Jellyfin server.
 - Library selection still scopes content correctly.
 - Albums, artists, songs, genres, playlists, and search all load expected data.
@@ -285,4 +318,4 @@ Exit criteria:
 
 The migration is now past the “early/scaffolding-only” stage. Query and browse reads have been moved substantially onto SDK-backed paths, and direct legacy query DTO construction has been reduced in major UI flows.
 
-The remaining high-impact work is now concentrated in non-read legacy surfaces: playlist internals/mutations, auth/session restore, playback reporting, websocket events, and image URL generation. The next correct step is to finish those blockers so the Java client dependency can be removed cleanly.
+The remaining high-impact work is now concentrated in non-read legacy surfaces: playlist internals/mutations, auth/session restore, playback reporting, websocket events, and image URL generation. The next correct step is to finish those blockers — each landing with JVM unit tests for the translation logic it introduces — so the Java client dependency can be removed cleanly without regressing what already works.
