@@ -14,6 +14,8 @@ import com.dkanada.gramophone.service.LoginService;
 import com.dkanada.gramophone.util.NavigationUtil;
 
 public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity implements StateListener {
+    private boolean onlineStateDelivered;
+
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, @NonNull Intent intent) {
@@ -21,9 +23,10 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
 
             switch(intent.getAction()) {
                 case LoginService.STATE_ONLINE:
-                    onStateOnline();
+                    dispatchOnlineOnce();
                     break;
                 case LoginService.STATE_OFFLINE:
+                    onlineStateDelivered = false;
                     NavigationUtil.startLogin(context);
                     break;
             }
@@ -44,7 +47,7 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
         if (App.getApiClient() == null) {
             startService(new Intent(this, LoginService.class));
         } else {
-            onStateOnline();
+            dispatchOnlineOnce();
         }
     }
 
@@ -70,5 +73,11 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
 
     @Override
     public void onStateOffline() {
+    }
+
+    private void dispatchOnlineOnce() {
+        if (onlineStateDelivered) return;
+        onlineStateDelivered = true;
+        onStateOnline();
     }
 }
