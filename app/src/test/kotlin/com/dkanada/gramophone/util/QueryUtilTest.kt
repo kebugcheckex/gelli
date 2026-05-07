@@ -3,6 +3,7 @@ package com.dkanada.gramophone.util
 import com.dkanada.gramophone.model.SortMethod
 import com.dkanada.gramophone.model.SortOrder as AppSortOrder
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
 import org.junit.Assert.assertEquals
@@ -287,6 +288,43 @@ class QueryUtilTest {
         assertNull(QueryUtil.mapSortBy(null))
         assertNull(QueryUtil.mapSortBy(""))
         assertNull(QueryUtil.mapSortBy("NotARealSort"))
+    }
+
+    // --- albumSongsRequest: album scoping, sort, fields ---
+
+    @Test
+    fun albumSongsRequest_scopesToAlbumId() {
+        val albumId = "aabbccddeeff00112233445566778899"
+        val request = QueryUtil.albumSongsRequest(albumId, userId)
+
+        assertEquals(listOf(UUID.fromString("aabbccdd-eeff-0011-2233-445566778899")), request.albumIds)
+        assertNull("album songs must not scope by parentId", request.parentId)
+        assertEquals(listOf(BaseItemKind.AUDIO), request.includeItemTypes)
+        assertEquals(true, request.recursive)
+    }
+
+    @Test
+    fun albumSongsRequest_includesMediaSources() {
+        val request = QueryUtil.albumSongsRequest("aabbccddeeff00112233445566778899", userId)
+
+        assertTrue(request.fields?.contains(ItemFields.MEDIA_SOURCES) == true)
+    }
+
+    @Test
+    fun albumSongsRequest_sortsByDiscThenTrack() {
+        val request = QueryUtil.albumSongsRequest("aabbccddeeff00112233445566778899", userId)
+
+        assertEquals(
+            listOf(ItemSortBy.PARENT_INDEX_NUMBER, ItemSortBy.INDEX_NUMBER),
+            request.sortBy
+        )
+    }
+
+    @Test
+    fun albumSongsRequest_convertsUserId() {
+        val request = QueryUtil.albumSongsRequest("aabbccddeeff00112233445566778899", userId)
+
+        assertEquals(UUID.fromString("22222222-2222-2222-2222-222222222222"), request.userId)
     }
 
     // --- UUID round-trip ---

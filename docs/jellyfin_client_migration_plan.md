@@ -9,27 +9,27 @@ This document captures the current status of the migration from `jellyfin-apicli
 ### What is already migrated
 
 - The Kotlin SDK is already added in [app/build.gradle](/mnt/data/source/gelli/app/build.gradle:53) as `org.jellyfin.sdk:jellyfin-core:1.8.8`.
-- A Kotlin bridge exists in [JellyfinSdkBridge.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/JellyfinSdkBridge.kt:25) to let Java code call SDK-backed requests.
 - An SDK session abstraction is in place in [JellyfinSdkSession.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/JellyfinSdkSession.kt:16), and is initialized/populated from app startup and login restore paths.
-- Model mapping scaffolding is in place (`SdkSongMapper`, `SdkMediaMapper`, `SdkUserMapper`) and app models are no longer constructed directly from legacy DTO constructors.
-- Read/query migration is complete:
-  - [QueryUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/QueryUtil.kt:32) replaced `QueryUtil.java` and executes all reads through the Kotlin SDK. No legacy query DTO types (`ItemQuery`, `ArtistsQuery`, `ItemsByNameQuery`, `ItemFilter`) remain in its public or internal API.
+- Model mapping is in place (`SdkSongMapper`, `SdkMediaMapper`, `SdkUserMapper`) and app models are no longer constructed directly from legacy DTO constructors. `SdkSongMapper` now also maps `PlaylistSong` via `fromPlaylistItem`.
+- Read/query migration and all detail/shortcut/playlist flows are complete:
+  - [QueryUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/QueryUtil.kt:32) replaced `QueryUtil.java` and executes all reads through the Kotlin SDK, including album song fetches (previously in `JellyfinSdkBridge`, now deleted). No legacy query DTO types remain in its public or internal API.
   - Library browse fragments (`Albums`, `Artists`, `Songs`, `Favorites`, `Genres`, `Playlists`) call SDK-backed `QueryUtil` methods with app-owned parameters; they no longer import or construct legacy query DTOs. `LegacySortMapper` has been deleted.
   - The fragment base class (`AbsLibraryPagerRecyclerViewFragment`) no longer carries a legacy query DTO generic type parameter.
   - [MainActivity.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/activities/MainActivity.java:48) now tracks `currentLibrary` as an app-owned `QueryUtil.Library` model instead of legacy `BaseItemDto`.
-  - `SearchActivity`, `ArtistDetailActivity`, `GenreDetailActivity`, `PlaylistDetailActivity`, `AlbumAdapter`, `ArtistAdapter`, `PlaylistAdapter`, and `ShortcutUtil` now use app-owned `QueryUtil`/`PlaylistUtil` helper methods instead of constructing legacy query DTOs directly.
+  - `SearchActivity`, `ArtistDetailActivity`, `GenreDetailActivity`, `AlbumDetailActivity`, `AlbumAdapter`, `ArtistAdapter`, `PlaylistAdapter`, and `ShortcutUtil` use app-owned `QueryUtil` methods with no legacy DTO imports.
+  - [PlaylistUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/PlaylistUtil.kt) replaced `PlaylistUtil.java`; all seven playlist operations (fetch, create, delete, add items, remove items, move item, rename) now use `playlistsApi` and `libraryApi` from the Kotlin SDK. `PlaylistDetailActivity` calls these directly.
 
 ### What is still on the legacy Java client
 
 - The app still depends on `com.github.jellyfin.jellyfin-apiclient-java:android:0.7.3` in [app/build.gradle](/mnt/data/source/gelli/app/build.gradle:55).
 - `settings.gradle` still contains local dependency substitution support for the Java client in [settings.gradle](/mnt/data/source/gelli/settings.gradle:5).
 - `App` still exposes a global legacy `ApiClient` singleton in [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:29) and [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66).
-- Legacy API client usage still exists in auth/session/bootstrap flows, playlist mutation utilities, playback reporting, websocket event handling, and image URL generation.
+- Legacy API client usage still exists in auth/session/bootstrap flows, playback reporting, websocket event handling, and image URL generation.
 
 ### Main legacy dependency clusters
 
-1. Query and browse layer
-   - Complete. [QueryUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/QueryUtil.kt:32) is fully SDK-backed with no legacy query DTO types in any method signature. All six library browse fragments import only app-owned types.
+1. Query, browse, detail, shortcut, and playlist layer
+   - Complete. No production source file imports `org.jellyfin.apiclient.*` for any of these flows.
 
 2. App/session bootstrap
    - [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66) constructs the legacy `ApiClient`.
@@ -41,14 +41,9 @@ This document captures the current status of the migration from `jellyfin-apicli
    - [EventListener.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/helper/EventListener.java:18) extends the Java client's event listener for remote session commands and library/session events.
 
 4. Model mapping and DTO coupling
-   - Primary app media models now map through dedicated mapper utilities instead of DTO-bound constructors.
-   - Remaining coupling is mostly in utility/service layers that still pass legacy DTO/request types for non-read workflows.
+   - All app media models now map through dedicated mapper utilities. The only remaining legacy mapper is `LegacySongMapper.java`, which is dead code in production (kept because the backend integration test still imports it directly).
 
-5. Playlist and shortcut utilities
-   - [ShortcutUtil.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/ShortcutUtil.java:8) now uses SDK-backed `QueryUtil` methods.
-   - [PlaylistUtil.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/PlaylistUtil.java:20) still uses legacy playlist request/response types for fetch and mutation flows; this is now one of the main user-facing remaining blockers.
-
-6. Image URL generation
+5. Image URL generation
    - [CustomGlideRequest.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/glide/CustomGlideRequest.java:98) still calls `App.getApiClient().GetImageUrl(...)`.
 
 ## Migration Constraints
@@ -214,9 +209,10 @@ Exit criteria:
 
 Status update:
 
-- In progress.
-- Detail/shortcut read-side calls have largely moved to SDK-backed helpers.
-- Remaining work is concentrated in playlist mutation/fetch internals (`PlaylistUtil`). No residual legacy request/response DTO usage exists in the browse layer; the only outstanding legacy imports in `PlaylistUtil` are the playlist-specific mutation/fetch types.
+- Complete.
+- `JellyfinSdkBridge.kt` deleted; `getAlbumSongs` folded into `QueryUtil.kt` with an internal `albumSongsRequest` builder and 4 new JVM unit tests.
+- `PlaylistUtil.java` replaced by `PlaylistUtil.kt`; all 7 playlist operations (get, create, delete, add, remove, move, rename) now use the Kotlin SDK (`playlistsApi`, `libraryApi`). `LegacySongMapper.fromPlaylistItem` replaced by `SdkSongMapper.fromPlaylistItem`.
+- No production source file imports `org.jellyfin.apiclient.*` for any browse, detail, shortcut, or playlist flow.
 
 ### Phase 5: Migrate Authentication and Session Restore
 

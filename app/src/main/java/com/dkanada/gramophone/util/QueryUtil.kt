@@ -241,6 +241,16 @@ object QueryUtil {
     }
 
     @JvmStatic
+    fun getAlbumSongs(albumId: String, callback: MediaCallback<Song>) {
+        fetchItems(
+            request = albumSongsRequest(albumId, JellyfinSdkSession.getCurrentUserId()),
+            onErrorTag = "getAlbumSongs",
+            mapper = SdkSongMapper::fromItem,
+            callback = callback
+        )
+    }
+
+    @JvmStatic
     fun getSongsBySort(sortMethod: SortMethod, sortOrder: AppSortOrder, limit: Int, onlyFavorites: Boolean, callback: MediaCallback<Song>) {
         fetchItems(
             request = GetItemsRequest(
@@ -330,6 +340,15 @@ object QueryUtil {
         recursive = true,
         limit = pageSize,
         startIndex = startIndex
+    )
+
+    internal fun albumSongsRequest(albumId: String, userId: String?): GetItemsRequest = GetItemsRequest(
+        userId = toUuidOrNull(userId),
+        albumIds = listOfNotNull(toUuidOrNull(albumId)),
+        includeItemTypes = listOf(BaseItemKind.AUDIO),
+        fields = listOf(ItemFields.MEDIA_SOURCES),
+        sortBy = listOf(ItemSortBy.PARENT_INDEX_NUMBER, ItemSortBy.INDEX_NUMBER),
+        recursive = true
     )
 
     internal fun playlistsRequest(
