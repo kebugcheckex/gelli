@@ -19,12 +19,11 @@ import com.google.android.material.appbar.AppBarLayout.OnOffsetChangedListener;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.util.ViewUtil;
 
-public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView.Adapter, L extends RecyclerView.LayoutManager, Q> extends AbsLibraryPagerFragment implements OnOffsetChangedListener {
+public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView.Adapter, L extends RecyclerView.LayoutManager> extends AbsLibraryPagerFragment implements OnOffsetChangedListener {
     private FragmentMainActivityRecyclerViewBinding binding;
 
     private A adapter;
     private L layoutManager;
-    private Q query;
 
     public int size;
     public boolean loading;
@@ -45,8 +44,6 @@ public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView
 
         initAdapter();
         initLayoutManager();
-        initQuery();
-
         initRecyclerView();
         loadItems(0);
     }
@@ -66,10 +63,6 @@ public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView
         layoutManager = createLayoutManager();
     }
 
-    private void initQuery() {
-        query = createQuery();
-    }
-
     private void initRecyclerView() {
         ViewUtil.setUpFastScrollRecyclerViewColor(getActivity(), binding.recyclerView, PreferenceUtil.getInstance(requireActivity()).getAccentColor());
 
@@ -79,8 +72,6 @@ public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView
 
     protected void invalidateAdapter() {
         initAdapter();
-        initQuery();
-
         binding.recyclerView.setAdapter(adapter);
         loadItems(0);
     }
@@ -102,10 +93,6 @@ public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView
         return layoutManager;
     }
 
-    protected Q getQuery() {
-        return query;
-    }
-
     @StringRes
     protected int getEmptyMessage() {
         return R.string.empty;
@@ -116,9 +103,6 @@ public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView
 
     @NonNull
     protected abstract L createLayoutManager();
-
-    @NonNull
-    protected abstract Q createQuery();
 
     protected abstract void loadItems(int index);
 
@@ -138,9 +122,7 @@ public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView
         int page = PreferenceUtil.getInstance(App.getInstance()).getPageSize();
         int total = getAdapter().getItemCount();
         if (last > total - page / 2 && total < size) {
-            query = createQuery();
             loading = true;
-
             loadItems(getAdapter().getItemCount());
         }
     }

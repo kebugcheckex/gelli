@@ -7,20 +7,16 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.artist.ArtistAdapter;
-import com.dkanada.gramophone.mapper.LegacySortMapper;
+import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
-import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
-
-import org.jellyfin.apiclient.model.querying.ArtistsQuery;
-import org.jellyfin.apiclient.model.querying.ItemFields;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<ArtistAdapter, GridLayoutManager, ArtistsQuery> {
+public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<ArtistAdapter, GridLayoutManager> {
     @NonNull
     @Override
     protected GridLayoutManager createLayoutManager() {
@@ -37,30 +33,9 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
         return new ArtistAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, loadUsePalette(), getLibraryFragment().getMainActivity());
     }
 
-    @NonNull
-    @Override
-    protected ArtistsQuery createQuery() {
-        ArtistsQuery query = new ArtistsQuery();
-
-        query.setFields(new ItemFields[]{ItemFields.Genres});
-        query.setUserId(App.getApiClient().getCurrentUserId());
-        query.setRecursive(true);
-        query.setLimit(PreferenceUtil.getInstance(App.getInstance()).getPageSize());
-        query.setStartIndex(getAdapter().getItemCount());
-        query.setParentId(QueryUtil.currentLibrary.getId());
-
-        query.setSortBy(new String[]{PreferenceUtil.getInstance(App.getInstance()).getArtistSortMethod().getApi()});
-        query.setSortOrder(LegacySortMapper.toApi(PreferenceUtil.getInstance(App.getInstance()).getArtistSortOrder()));
-
-        return query;
-    }
-
     @Override
     protected void loadItems(int index) {
-        ArtistsQuery query = getQuery();
-        query.setStartIndex(index);
-
-        QueryUtil.getArtists(query, media -> {
+        QueryUtil.getArtists(getSortMethod(), getSortOrder(), index, media -> {
             if (index == 0) getAdapter().getDataSet().clear();
             getAdapter().getDataSet().addAll(media);
             if (media.size() < PreferenceUtil.getInstance(App.getInstance()).getPageSize()) {

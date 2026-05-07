@@ -10,12 +10,10 @@ import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaylistsFragment extends AbsLibraryPagerRecyclerViewFragment<PlaylistAdapter, LinearLayoutManager, ItemQuery> {
+public class PlaylistsFragment extends AbsLibraryPagerRecyclerViewFragment<PlaylistAdapter, LinearLayoutManager> {
     @NonNull
     @Override
     protected LinearLayoutManager createLayoutManager() {
@@ -29,26 +27,9 @@ public class PlaylistsFragment extends AbsLibraryPagerRecyclerViewFragment<Playl
         return new PlaylistAdapter(getLibraryFragment().getMainActivity(), dataSet, R.layout.item_list_single_row, getLibraryFragment().getMainActivity());
     }
 
-    @NonNull
-    @Override
-    protected ItemQuery createQuery() {
-        ItemQuery query = new ItemQuery();
-
-        query.setIncludeItemTypes(new String[]{"Playlist"});
-        query.setUserId(App.getApiClient().getCurrentUserId());
-        query.setRecursive(true);
-        query.setLimit(PreferenceUtil.getInstance(App.getInstance()).getPageSize());
-        query.setStartIndex(getAdapter().getItemCount());
-
-        return query;
-    }
-
     @Override
     protected void loadItems(int index) {
-        ItemQuery query = getQuery();
-        query.setStartIndex(index);
-
-        QueryUtil.getPlaylists(query, media -> {
+        QueryUtil.getPlaylists(index, media -> {
             if (index == 0) getAdapter().getDataSet().clear();
             getAdapter().getDataSet().addAll(media);
             if (media.size() < PreferenceUtil.getInstance(App.getInstance()).getPageSize()) {

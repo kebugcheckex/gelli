@@ -12,9 +12,10 @@ This document captures the current status of the migration from `jellyfin-apicli
 - A Kotlin bridge exists in [JellyfinSdkBridge.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/JellyfinSdkBridge.kt:25) to let Java code call SDK-backed requests.
 - An SDK session abstraction is in place in [JellyfinSdkSession.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/JellyfinSdkSession.kt:16), and is initialized/populated from app startup and login restore paths.
 - Model mapping scaffolding is in place (`SdkSongMapper`, `SdkMediaMapper`, `SdkUserMapper`) and app models are no longer constructed directly from legacy DTO constructors.
-- Read/query migration is now substantially underway:
-  - [QueryUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/QueryUtil.kt:32) replaced `QueryUtil.java` and executes reads through the Kotlin SDK.
-  - Library browse fragments (`Albums`, `Artists`, `Songs`, `Genres`, `Playlists`) now load data through SDK-backed `QueryUtil` methods.
+- Read/query migration is complete:
+  - [QueryUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/QueryUtil.kt:32) replaced `QueryUtil.java` and executes all reads through the Kotlin SDK. No legacy query DTO types (`ItemQuery`, `ArtistsQuery`, `ItemsByNameQuery`, `ItemFilter`) remain in its public or internal API.
+  - Library browse fragments (`Albums`, `Artists`, `Songs`, `Favorites`, `Genres`, `Playlists`) call SDK-backed `QueryUtil` methods with app-owned parameters; they no longer import or construct legacy query DTOs. `LegacySortMapper` has been deleted.
+  - The fragment base class (`AbsLibraryPagerRecyclerViewFragment`) no longer carries a legacy query DTO generic type parameter.
   - [MainActivity.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/activities/MainActivity.java:48) now tracks `currentLibrary` as an app-owned `QueryUtil.Library` model instead of legacy `BaseItemDto`.
   - `SearchActivity`, `ArtistDetailActivity`, `GenreDetailActivity`, `PlaylistDetailActivity`, `AlbumAdapter`, `ArtistAdapter`, `PlaylistAdapter`, and `ShortcutUtil` now use app-owned `QueryUtil`/`PlaylistUtil` helper methods instead of constructing legacy query DTOs directly.
 
@@ -24,13 +25,11 @@ This document captures the current status of the migration from `jellyfin-apicli
 - `settings.gradle` still contains local dependency substitution support for the Java client in [settings.gradle](/mnt/data/source/gelli/settings.gradle:5).
 - `App` still exposes a global legacy `ApiClient` singleton in [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:29) and [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66).
 - Legacy API client usage still exists in auth/session/bootstrap flows, playlist mutation utilities, playback reporting, websocket event handling, and image URL generation.
-- Legacy query DTO types still exist in internal method signatures in some migration-shim utilities (`QueryUtil`/`PlaylistUtil`), even where direct UI construction has been removed.
 
 ### Main legacy dependency clusters
 
 1. Query and browse layer
-   - This area is now mostly SDK-backed via [QueryUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/QueryUtil.kt:32).
-   - Remaining gap: remove legacy query DTO types from internal utility method signatures and conversion helpers so the query layer is fully app-owned end-to-end.
+   - Complete. [QueryUtil.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/QueryUtil.kt:32) is fully SDK-backed with no legacy query DTO types in any method signature. All six library browse fragments import only app-owned types.
 
 2. App/session bootstrap
    - [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66) constructs the legacy `ApiClient`.
@@ -174,9 +173,11 @@ Exit criteria:
 
 Status update:
 
-- Mostly complete.
-- `QueryUtil` is SDK-backed and core browse/search flows are migrated.
-- Remaining cleanup is to remove legacy query DTO types from internal helper signatures and DTO-to-SDK translation shims.
+- Complete.
+- `QueryUtil` is fully SDK-backed with no legacy query DTO types anywhere in its public or internal API.
+- All six library browse fragments (`Albums`, `Artists`, `Songs`, `Favorites`, `Genres`, `Playlists`) use app-owned parameters; `LegacySortMapper` deleted; legacy `Q` generic removed from fragment base class.
+- Internal request builders (`albumsRequest`, `artistsRequest`, `songsRequest`, `genresRequest`, `playlistsRequest`) are injectable for unit testing; `QueryUtilTest` updated with coverage for sort/order mapping, library scoping, favorites flag, startIndex paging, and UUID helpers.
+- A latent bug was also fixed: `getSongsBySort` now correctly honours its explicit `limit` parameter instead of having it silently overwritten by the page-size default.
 
 ### Phase 4: Migrate Detail, Shortcut, and Playlist Workflows
 
@@ -215,7 +216,7 @@ Status update:
 
 - In progress.
 - Detail/shortcut read-side calls have largely moved to SDK-backed helpers.
-- Remaining work is concentrated in playlist mutation/fetch internals (`PlaylistUtil`) and any residual legacy request/response DTO usage.
+- Remaining work is concentrated in playlist mutation/fetch internals (`PlaylistUtil`). No residual legacy request/response DTO usage exists in the browse layer; the only outstanding legacy imports in `PlaylistUtil` are the playlist-specific mutation/fetch types.
 
 ### Phase 5: Migrate Authentication and Session Restore
 
