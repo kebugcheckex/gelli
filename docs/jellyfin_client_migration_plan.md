@@ -24,7 +24,19 @@ This document captures the current status of the migration from `jellyfin-apicli
 - The app still depends on `com.github.jellyfin.jellyfin-apiclient-java:android:0.7.3` in [app/build.gradle](/mnt/data/source/gelli/app/build.gradle:55).
 - `settings.gradle` still contains local dependency substitution support for the Java client in [settings.gradle](/mnt/data/source/gelli/settings.gradle:5).
 - `App` still exposes a global legacy `ApiClient` singleton in [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:29) and [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66).
-- Legacy API client usage still exists in websocket event handling. Login authentication, session restore, playback reporting, and image URL generation have all been migrated to the SDK. `MusicService` retains only `App.getApiClient().ensureWebSocket()` in `ProgressHandler.onNext()`, which is the same WebSocket bootstrap shim used in `LoginService.kt`, scheduled for removal in Phase 6C when `EventListener` is migrated.
+
+Verified call sites that still touch the legacy `ApiClient` (as of the Phase 6B commit `6b758a42`):
+
+| File | Sites | Purpose |
+|---|---|---|
+| [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66) | constructs `ApiClient` | global singleton |
+| [EventListener.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/helper/EventListener.java:19) | extends `ApiEventListener` | remote `PlaystateCommand` dispatch (PlayPause / Pause / Unpause / NextTrack / PreviousTrack / Seek / Stop) — the rest of the callbacks are `Log.i(...)` only |
+| [MusicUtil.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/MusicUtil.java:35) | 4 sites | `getTranscodeUri` (stream URL — uses `getApiUrl/getCurrentUserId/getDeviceId/getAccessToken`), `getDownloadUri` (download URL — `getApiUrl/getAccessToken`), `toggleFavorite` (`UpdateFavoriteStatusAsync`) |
+| [AbsMusicContentActivity.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/activities/base/AbsMusicContentActivity.java:47) | 2 sites | `App.getApiClient() == null` null checks gating service start |
+| [LoginService.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/service/LoginService.kt:67) | 1 site | `legacyWebSocketBootstrap` helper — Phase 6 shim |
+| [MusicService.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/service/MusicService.java:767) | 1 site | `ensureWebSocket()` in `ProgressHandler.onNext` — Phase 6 shim |
+| [JellyfinSdkSession.kt](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/util/JellyfinSdkSession.kt:62) | dead method | `updateSessionFromApiClient(ApiClient?)` — no remaining callers, can be deleted alongside `App.getApiClient()` |
+| [LegacySongMapper.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/mapper/LegacySongMapper.java:6), [LegacyMediaMapper.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/mapper/LegacyMediaMapper.java:8) | imports | dead in production; kept solely because the instrumented `PlaylistBackendIntegrationTest` still imports them |
 
 ### Main legacy dependency clusters
 
@@ -280,7 +292,26 @@ Status update:
   - `App.getApiClient().ensureWebSocket()` in `onNext()` is retained as the Phase 6C shim — identical to the shim in `LoginService.kt`.
   - 14 new JVM unit tests in `PlaybackReporterTest` pin all fields set by `buildStartInfo` and `buildProgressInfo` (itemId UUID parsing, canSeek, isPaused, volumeLevel, positionTicks conversion, playSessionId pass-through, playMethod, repeatMode, playbackOrder).
 
-- Phase 6C (remote session events — `EventListener.java` and WebSocket bootstrap shim in `LoginService.kt` / `MusicService.java`) is still pending.
+- Phase 6C is **paused pending scoping decision** (see "Open scoping questions for Phase 6C" below). Audit performed at the end of Phase 6B surfaced legacy `ApiClient` callers in `MusicUtil.java` (stream URL, download URL, favorite toggle) and `AbsMusicContentActivity.java` (null checks gating service start) that were not previously called out in this plan. These prevent the legacy `ApiClient` field on `App.java` from being deleted even after `EventListener` is migrated.
+
+#### Open scoping questions for Phase 6C
+
+1. **Bundle or split the remaining work?** Three credible scopings:
+   - (a) Phase 6C = only `EventListener` + the two WebSocket shims (`LoginService.legacyWebSocketBootstrap`, `MusicService.ensureWebSocket`). Defer `MusicUtil` and `AbsMusicContentActivity` to a new Phase 6D, then drop the `App.java` `ApiClient` field in Phase 7. Smallest, most reviewable PRs.
+   - (b) One bundled Phase 6C that finishes everything the legacy `ApiClient` does: `EventListener` + `MusicUtil` + `AbsMusicContentActivity` + drop `App.getApiClient()` and the legacy import block from `App.java`. One bigger PR; reaches Phase 7 in one step but mixes WebSocket parity work with URL/favorite work that has nothing to do with sockets.
+   - (c) Do `MusicUtil` + `AbsMusicContentActivity` first as the new Phase 6C (mechanical migration; no SDK parity risk), leaving `EventListener` for a later phase. Buys time to confirm the SDK's `SocketApi` / `SubscriptionExtensions` (`org.jellyfin.sdk.api.sockets.*` exists in 1.8.8) has parity with the legacy callbacks before committing to it.
+
+2. **`MusicUtil.toggleFavorite` parity.** The legacy code calls `UpdateFavoriteStatusAsync(itemId, userId, favorite, Response<UserItemDataDto>)`. The SDK equivalent on `userLibraryApi` returns a `UserItemDataDto` synchronously from a `suspend` function. Decide whether to mirror the existing callback shape or move to `Thread { runBlocking { ... } }` like `PlaylistUtil` already does — the latter is more consistent with the rest of the migration.
+
+3. **Streaming URL construction.** `MusicUtil.getTranscodeUri` builds an `/Audio/{id}/universal?...` URL by hand using `apiClient.getApiUrl/getCurrentUserId/getDeviceId/getAccessToken`. Two options:
+   - Build the URL the same way, replacing each accessor with a `JellyfinSdkSession.getXxx()` call (e.g. `getBaseUrl()` already exists; would need to add `getAccessToken()` / `getDeviceId()`).
+   - Use the SDK's `audioApi.getUniversalAudioStreamUrl(...)` if present in 1.8.8 — needs verification before committing.
+
+   The hand-built URL form is what ExoPlayer hits today, so option 1 is lower-risk for playback regressions. Confirm before choosing.
+
+4. **`onStop()` latent bug followup.** The legacy `ProgressHandler.onStop()` constructed a `PlaybackStopInfo` but never reported it. Phase 6B preserved that behavior. Decide whether Phase 6C (or a separate small PR) should fix this by calling `playStateApi.reportPlaybackStopped(...)`. Fixing it is a behavior change against the server (it will now see stop events), so it warrants a deliberate decision rather than a silent fix.
+
+5. **`JellyfinSdkSession.updateSessionFromApiClient(ApiClient?)`** has no remaining callers in production. Delete it as part of Phase 6C, or hold it until Phase 7 cleanup. Either is fine; deleting it now means the file would no longer import `org.jellyfin.apiclient.interaction.ApiClient`.
 
 ### Phase 7: Remove the Legacy Dependency
 
@@ -333,13 +364,13 @@ Required manual smoke checks against a real Jellyfin server (after automated che
 
 ## Main Risks
 
-1. Playlist mutation and fetch parity is still tied to legacy client helpers and DTOs; this is now a central blocker for removing the Java dependency.
-2. Auth/session bootstrap still depends on `ApiClient` for restore/capability/websocket setup, so the SDK session layer is not yet the sole source of truth.
-3. Playback reporting and remote session events may be the hardest parity area if the Kotlin SDK does not mirror the old Java client's helper surface.
-4. Image URL generation currently relies on a convenience method from the Java client; replacing it may require custom URL construction or a dedicated image helper.
+1. **Remote session WebSocket parity.** `EventListener.java` is the only meaningful behavior left on the legacy `ApiClient` — it dispatches `PlaystateCommand` messages (PlayPause / Pause / Unpause / NextTrack / PreviousTrack / Seek / Stop) into `MusicPlayerRemote`. The SDK 1.8.8 ships `org.jellyfin.sdk.api.sockets.*` (`SocketApi`, `SubscriptionExtensions`, `SocketReconnectPolicy`), so parity is achievable, but the lifecycle (when to subscribe, how reconnects interact with our `MusicService` lifecycle) needs validation against a real server before commit.
+2. **Streaming URL construction.** `MusicUtil.getTranscodeUri` builds an `/Audio/{id}/universal?...` URL by hand. Any reshape of this URL risks ExoPlayer regressions that are hard to catch in unit tests. The lowest-risk migration is to keep the same hand-built URL and only swap the four accessor calls (`getApiUrl/getCurrentUserId/getDeviceId/getAccessToken`) onto `JellyfinSdkSession`.
+3. **Favorite toggling.** `MusicUtil.toggleFavorite` is the last write call still going through the legacy client. The SDK equivalent (`userLibraryApi.markFavoriteItem` / `unmarkFavoriteItem`) returns a `UserItemDataDto` synchronously from a `suspend` function — different shape from the legacy callback. Behavioral parity is straightforward but UI feedback wiring needs care.
+4. **Latent `onStop()` non-report.** Phase 6B preserved a legacy bug where `PlaybackStopInfo` is built but never sent. Server-side "currently playing" state may linger past local stop until the timeout. Fix is a one-line `playStateApi.reportPlaybackStopped(...)` call but it is a behavior change that warrants a deliberate decision.
 
 ## Bottom Line
 
-The migration is now past the “early/scaffolding-only” stage. Query and browse reads have been moved substantially onto SDK-backed paths, and direct legacy query DTO construction has been reduced in major UI flows.
+The migration has cleared every read-path surface and most write-path surfaces. Phases 5C, 6A, and 6B have landed, removing legacy code for session restore, capability reporting, image URL generation, and playback reporting (start/progress/markPlayed). JVM unit-test coverage is now 62 tests across 5 files (`QueryUtilTest`, `PlaylistUtilTest`, `LoginServiceTest`, `JellyfinImageUrlsTest`, `PlaybackReporterTest`) and the build is green.
 
-The remaining high-impact work is now concentrated in non-read legacy surfaces: playlist internals/mutations, auth/session restore, playback reporting, websocket events, and image URL generation. The next correct step is to finish those blockers — each landing with JVM unit tests for the translation logic it introduces — so the Java client dependency can be removed cleanly without regressing what already works.
+The remaining legacy `ApiClient` surface is now well-bounded and accurately enumerated in the table under "What is still on the legacy Java client". Phase 6C is paused on the open scoping questions documented under "Phase 6 Status update" — the choice between a single bundled Phase 6C and splitting it into smaller 6C/6D PRs is the gating decision. Once that is resolved, the only remaining work to enable Phase 7 dependency removal is: `EventListener` → SDK socket subscriptions, `MusicUtil` 4 sites → SDK + `JellyfinSdkSession` accessors, and the two `AbsMusicContentActivity` null checks → `JellyfinSdkSession.getBaseUrl() != null` or equivalent.
