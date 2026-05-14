@@ -24,7 +24,7 @@ This document captures the current status of the migration from `jellyfin-apicli
 - The app still depends on `com.github.jellyfin.jellyfin-apiclient-java:android:0.7.3` in [app/build.gradle](/mnt/data/source/gelli/app/build.gradle:55).
 - `settings.gradle` still contains local dependency substitution support for the Java client in [settings.gradle](/mnt/data/source/gelli/settings.gradle:5).
 - `App` still exposes a global legacy `ApiClient` singleton in [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:29) and [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66).
-- Legacy API client usage still exists in the session restore/bootstrap flow (`LoginService.java`), playback reporting, websocket event handling, and image URL generation. Login authentication itself has been migrated to the SDK.
+- Legacy API client usage still exists in playback reporting, websocket event handling, and image URL generation. Login authentication and session restore have been migrated to the SDK; `LoginService` retains only a three-call WebSocket bootstrap shim against the legacy `ApiClient`, scheduled for removal in Phase 6 when `EventListener` is migrated.
 
 ### Main legacy dependency clusters
 
@@ -34,7 +34,7 @@ This document captures the current status of the migration from `jellyfin-apicli
 2. App/session bootstrap
    - [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66) constructs the legacy `ApiClient`.
    - `LoginActivity` — migrated. Authentication now uses `userApi.authenticateUserByName` and `SdkUserMapper.toUserOrNull`; no legacy imports remain.
-   - [LoginService.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/service/LoginService.java:59) restores auth, checks server availability, reports capabilities, and opens the WebSocket through the Java client. (Phase 5C)
+   - `LoginService` — migrated. Server availability is checked via `systemApi.getSystemInfo()` (authenticated; doubles as token validation) and capabilities are reported via `sessionApi.postCapabilities(...)`. Only the three-call WebSocket bootstrap (`ChangeServerLocation`, `SetAuthenticationInfo`, `ensureWebSocket`) remains against the legacy `ApiClient`, isolated in a `legacyWebSocketBootstrap` helper and explicitly marked as a Phase 6 shim until `EventListener` is migrated.
 
 3. Playback reporting and remote session events
    - [MusicService.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/service/MusicService.java:58) still imports legacy playback-reporting models and reports playback start/progress/stop through `App.getApiClient()`.
@@ -230,13 +230,14 @@ Exit criteria:
 - Login and app restart no longer require `ApiClient`.
 - Session restoration is owned by the new SDK session layer.
 
-Status update (partial):
+Status update:
 
 - `JellyfinSdkSession.kt` — added `createApiForServer(serverUrl)`: creates an unauthenticated SDK `ApiClient` from a bare server URL, reusing the same `buildJellyfin` helper now shared with `createApiOrNull()`. This factory is required for the login flow, which has no access token yet.
 - `LoginActivity.java` replaced by `LoginActivity.kt`. Authentication now calls `userApi.authenticateUserByName`, maps the result with `SdkUserMapper.toUserOrNull`, and checks server version via `systemApi.getPublicSystemInfo()` (public endpoint, no token required). Error handling distinguishes `InvalidStatusException(401)` (wrong credentials) from all other failures (server unreachable). No `org.jellyfin.apiclient.*` imports remain in the file.
 - `LegacyUserMapper.java` deleted — `LoginActivity` was its only production caller.
 - `User.java` required no changes; `SdkUserMapper` already mapped the SDK `AuthenticationResult` to `User` before this phase.
-- Remaining in Phase 5: `LoginService.java` session restore, connectivity check, capability reporting, and WebSocket bootstrap (the three legacy `ApiClient` calls for WebSocket will be kept as an explicit Phase 6 shim until `EventListener` is migrated).
+- `LoginService.java` replaced by `LoginService.kt` (Phase 5C). Session restore now runs `systemApi.getSystemInfo()` on the authenticated SDK `ApiClient` (which validates both server reachability and token validity in a single call) and reports capabilities via `sessionApi.postCapabilities(supportsMediaControl = true, supportsPersistentIdentifier = true)`. The previous `EmptyResponse`/`Response<SystemInfo>` callbacks and the `ClientCapabilities` DTO are gone. A new JVM unit test, `LoginServiceTest`, pins the capability default flags so a silent flip during refactors fails the build instead of degrading remote-control behavior against a live server.
+- The three legacy `ApiClient` calls required to keep the WebSocket alive (`ChangeServerLocation`, `SetAuthenticationInfo`, `ensureWebSocket`) are isolated in a `legacyWebSocketBootstrap` helper inside `LoginService.kt` and labeled as an explicit Phase 6 shim. They will be removed when `EventListener` is migrated.
 
 ### Phase 6: Migrate Playback Reporting, Remote Commands, and Images
 
