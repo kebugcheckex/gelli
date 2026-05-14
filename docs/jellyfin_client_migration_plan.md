@@ -24,7 +24,7 @@ This document captures the current status of the migration from `jellyfin-apicli
 - The app still depends on `com.github.jellyfin.jellyfin-apiclient-java:android:0.7.3` in [app/build.gradle](/mnt/data/source/gelli/app/build.gradle:55).
 - `settings.gradle` still contains local dependency substitution support for the Java client in [settings.gradle](/mnt/data/source/gelli/settings.gradle:5).
 - `App` still exposes a global legacy `ApiClient` singleton in [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:29) and [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66).
-- Legacy API client usage still exists in playback reporting and websocket event handling. Login authentication and session restore have been migrated to the SDK; `LoginService` retains only a three-call WebSocket bootstrap shim against the legacy `ApiClient`, scheduled for removal in Phase 6 when `EventListener` is migrated. Image URL generation has been migrated (Phase 6A complete).
+- Legacy API client usage still exists in websocket event handling. Login authentication, session restore, playback reporting, and image URL generation have all been migrated to the SDK. `MusicService` retains only `App.getApiClient().ensureWebSocket()` in `ProgressHandler.onNext()`, which is the same WebSocket bootstrap shim used in `LoginService.kt`, scheduled for removal in Phase 6C when `EventListener` is migrated.
 
 ### Main legacy dependency clusters
 
@@ -37,8 +37,8 @@ This document captures the current status of the migration from `jellyfin-apicli
    - `LoginService` — migrated. Server availability is checked via `systemApi.getSystemInfo()` (authenticated; doubles as token validation) and capabilities are reported via `sessionApi.postCapabilities(...)`. Only the three-call WebSocket bootstrap (`ChangeServerLocation`, `SetAuthenticationInfo`, `ensureWebSocket`) remains against the legacy `ApiClient`, isolated in a `legacyWebSocketBootstrap` helper and explicitly marked as a Phase 6 shim until `EventListener` is migrated.
 
 3. Playback reporting and remote session events
-   - [MusicService.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/service/MusicService.java:58) still imports legacy playback-reporting models and reports playback start/progress/stop through `App.getApiClient()`.
-   - [EventListener.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/helper/EventListener.java:18) extends the Java client's event listener for remote session commands and library/session events.
+   - `MusicService.java` playback reporting is migrated (Phase 6B complete). The three legacy session model imports (`PlaybackStartInfo`, `PlaybackProgressInfo`, `PlaybackStopInfo`) and their associated `EmptyResponse`/`Response` callbacks have been removed. Only `App.getApiClient().ensureWebSocket()` remains in `ProgressHandler.onNext()` as an explicit Phase 6C shim.
+   - [EventListener.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/helper/EventListener.java:18) extends the Java client's event listener for remote session commands and library/session events. This and the `ensureWebSocket` shim are the last legacy surfaces remaining.
 
 4. Model mapping and DTO coupling
    - All app media models now map through dedicated mapper utilities. The only remaining legacy mapper is `LegacySongMapper.java`, which is dead code in production (kept because the backend integration test still imports it directly).
@@ -271,7 +271,16 @@ Status update:
   - New file `JellyfinImageUrls.kt` provides a `@JvmStatic` `buildPrimaryImageUrl(itemId, maxHeight)` method backed by the SDK's `UrlBuilder`. The internal overload accepts `baseUrl` for testability.
   - URL shape is identical to the legacy path: `{baseUrl}/Items/{dashed-uuid}/Images/Primary?maxHeight=800`. Existing Glide disk caches are not invalidated.
   - 9 new JVM unit tests in `JellyfinImageUrlsTest` cover: expected URL for dashless and dashed IDs, custom `maxHeight`, default `maxHeight=800`, null/blank `baseUrl` path-only fallback, trailing-slash normalization, expected path segments, and invalid UUID fallback.
-  - Phase 6B (playback reporting — `MusicService.java`) and Phase 6C (remote session events — `EventListener.java` and WebSocket bootstrap shim in `LoginService.kt`) are still pending.
+
+- Phase 6B complete (playback reporting migrated).
+  - New file `PlaybackReporter.kt` (`object PlaybackReporter`) provides `@JvmStatic` methods `reportStart`, `reportProgress`, and `markPlayed`, each running fire-and-forget on a background thread via `Thread { runBlocking { ... } }.start()`. All three call `api.playStateApi` from the Kotlin SDK.
+  - Internal `buildStartInfo` and `buildProgressInfo` builders construct SDK `PlaybackStartInfo` / `PlaybackProgressInfo` DTOs with the same field values as the legacy setter calls in `MusicService.java`.
+  - `MusicService.java` `ProgressHandler`: the three legacy session model imports (`PlaybackStartInfo`, `PlaybackProgressInfo`, `PlaybackStopInfo`) and their `EmptyResponse`/`Response` imports have been removed. `onNext()`, `onProgress()`, and `onStop()` now call `PlaybackReporter` methods instead.
+  - `onStop()` latent bug preserved for parity: the legacy code constructed a `PlaybackStopInfo` but never sent it to the server (only cancelled the local timer). The migrated `onStop()` simply cancels the timer, matching that behavior exactly. The dead `PlaybackStopInfo` construction was deleted since its import is gone; this is documented here for followup.
+  - `App.getApiClient().ensureWebSocket()` in `onNext()` is retained as the Phase 6C shim — identical to the shim in `LoginService.kt`.
+  - 14 new JVM unit tests in `PlaybackReporterTest` pin all fields set by `buildStartInfo` and `buildProgressInfo` (itemId UUID parsing, canSeek, isPaused, volumeLevel, positionTicks conversion, playSessionId pass-through, playMethod, repeatMode, playbackOrder).
+
+- Phase 6C (remote session events — `EventListener.java` and WebSocket bootstrap shim in `LoginService.kt` / `MusicService.java`) is still pending.
 
 ### Phase 7: Remove the Legacy Dependency
 

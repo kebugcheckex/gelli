@@ -55,15 +55,8 @@ import com.dkanada.gramophone.views.widgets.AppWidgetCard;
 import com.dkanada.gramophone.views.widgets.AppWidgetClassic;
 import com.google.android.exoplayer2.Player;
 
-import org.jellyfin.apiclient.interaction.EmptyResponse;
-import org.jellyfin.apiclient.interaction.Response;
-import org.jellyfin.apiclient.model.session.PlaybackProgressInfo;
-import org.jellyfin.apiclient.model.session.PlaybackStartInfo;
-import org.jellyfin.apiclient.model.session.PlaybackStopInfo;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -769,22 +762,14 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         }
 
         public void onNext() {
-            PlaybackStartInfo startInfo = new PlaybackStartInfo();
-
-            startInfo.setItemId(mService.get().queueManager.getCurrentSong().id);
-            startInfo.setVolumeLevel(mService.get().playback.getVolume());
-            startInfo.setCanSeek(true);
-            startInfo.setIsPaused(false);
+            Song currentSong = mService.get().queueManager.getCurrentSong();
 
             App.getApiClient().ensureWebSocket();
-            App.getApiClient().ReportPlaybackStartAsync(startInfo, new EmptyResponse());
+            PlaybackReporter.reportStart(currentSong.id, mService.get().playback.getVolume());
         }
 
         public void onProgress() {
-            PlaybackProgressInfo progressInfo = new PlaybackProgressInfo();
             Song current = mService.get().queueManager.getCurrentSong();
-            String user = App.getApiClient().getCurrentUserId();
-            Date time = new Date(System.currentTimeMillis());
 
             if (current == null) {
                 return;
@@ -794,26 +779,19 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             long progress = mService.get().getSongProgressMillis();
             double duration = mService.get().getSongDurationMillis();
             if (progress / duration > 0.9) {
-                App.getApiClient().MarkPlayedAsync(current.id, user, time, new Response<>());
+                PlaybackReporter.markPlayed(current.id);
             }
 
-            progressInfo.setItemId(current.id);
-            progressInfo.setPositionTicks(progress * 10000);
-            progressInfo.setVolumeLevel(mService.get().playback.getVolume());
-            progressInfo.setIsPaused(!mService.get().playback.isPlaying());
-            progressInfo.setPlaySessionId(Integer.toString(current.id.hashCode()));
-            progressInfo.setCanSeek(true);
-
-            App.getApiClient().ReportPlaybackProgressAsync(progressInfo, new EmptyResponse());
+            PlaybackReporter.reportProgress(
+                current.id,
+                progress,
+                mService.get().playback.getVolume(),
+                !mService.get().playback.isPlaying(),
+                Integer.toString(current.id.hashCode())
+            );
         }
 
         public void onStop() {
-            PlaybackStopInfo info = new PlaybackStopInfo();
-            long progress = mService.get().getSongProgressMillis();
-
-            info.setItemId(mService.get().queueManager.getCurrentSong().id);
-            info.setPositionTicks(progress * 10000);
-
             if (task != null) task.cancel(true);
             if (executorService != null) executorService.shutdownNow();
         }
