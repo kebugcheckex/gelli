@@ -84,26 +84,29 @@ object JellyfinSdkSession {
     fun getCurrentUserId(): String? = userId
 
     fun createApiOrNull() = snapshotOrNull()?.let { snapshot ->
-        val context = appContext ?: App.getInstance()?.applicationContext
-        if (context == null) {
-            null
-        } else {
-            val jellyfin = createJellyfin {
-                clientInfo = ClientInfo(
-                    name = context.getString(R.string.app_name),
-                    version = BuildConfig.VERSION_NAME
-                )
-                deviceInfo = DeviceInfo(
-                    id = resolveDeviceId(context),
-                    name = Build.MODEL
-                )
-                this.context = context
-            }
-            jellyfin.createApi(
-                baseUrl = snapshot.baseUrl,
-                accessToken = snapshot.accessToken
-            )
-        }
+        val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
+        buildJellyfin(context).createApi(
+            baseUrl = snapshot.baseUrl,
+            accessToken = snapshot.accessToken
+        )
+    }
+
+    @JvmStatic
+    fun createApiForServer(serverUrl: String) = normalizeBaseUrl(serverUrl)?.let { normalized ->
+        val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
+        buildJellyfin(context).createApi(baseUrl = normalized)
+    }
+
+    private fun buildJellyfin(context: Context) = createJellyfin {
+        clientInfo = ClientInfo(
+            name = context.getString(R.string.app_name),
+            version = BuildConfig.VERSION_NAME
+        )
+        deviceInfo = DeviceInfo(
+            id = resolveDeviceId(context),
+            name = Build.MODEL
+        )
+        this.context = context
     }
 
     private fun snapshotOrNull(): SessionSnapshot? {
