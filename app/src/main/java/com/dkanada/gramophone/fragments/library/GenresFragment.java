@@ -10,12 +10,10 @@ import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 
-import org.jellyfin.apiclient.model.querying.ItemsByNameQuery;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class GenresFragment extends AbsLibraryPagerRecyclerViewFragment<GenreAdapter, LinearLayoutManager, ItemsByNameQuery> {
+public class GenresFragment extends AbsLibraryPagerRecyclerViewFragment<GenreAdapter, LinearLayoutManager> {
     @NonNull
     @Override
     protected LinearLayoutManager createLayoutManager() {
@@ -29,26 +27,9 @@ public class GenresFragment extends AbsLibraryPagerRecyclerViewFragment<GenreAda
         return new GenreAdapter(getLibraryFragment().getMainActivity(), dataSet);
     }
 
-    @NonNull
-    @Override
-    protected ItemsByNameQuery createQuery() {
-        ItemsByNameQuery query = new ItemsByNameQuery();
-
-        query.setUserId(App.getApiClient().getCurrentUserId());
-        query.setRecursive(true);
-        query.setLimit(PreferenceUtil.getInstance(App.getInstance()).getPageSize());
-        query.setStartIndex(getAdapter().getItemCount());
-        query.setParentId(QueryUtil.currentLibrary.getId());
-
-        return query;
-    }
-
     @Override
     protected void loadItems(int index) {
-        ItemsByNameQuery query = getQuery();
-        query.setStartIndex(index);
-
-        QueryUtil.getGenres(query, media -> {
+        QueryUtil.getGenres(index, media -> {
             if (index == 0) getAdapter().getDataSet().clear();
             getAdapter().getDataSet().addAll(media);
             if (media.size() < PreferenceUtil.getInstance(App.getInstance()).getPageSize()) {

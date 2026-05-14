@@ -7,20 +7,16 @@ import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.song.ShuffleButtonSongAdapter;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
-import com.dkanada.gramophone.mapper.LegacySortMapper;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 
-import org.jellyfin.apiclient.model.querying.ItemFields;
-import org.jellyfin.apiclient.model.querying.ItemQuery;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<SongAdapter, GridLayoutManager, ItemQuery> {
+public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<SongAdapter, GridLayoutManager> {
     @NonNull
     @Override
     protected GridLayoutManager createLayoutManager() {
@@ -56,30 +52,9 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
         return adapter;
     }
 
-    @NonNull
-    @Override
-    protected ItemQuery createQuery() {
-        ItemQuery query = new ItemQuery();
-
-        query.setIncludeItemTypes(new String[]{"Audio"});
-        query.setFields(new ItemFields[]{ItemFields.MediaSources});
-        query.setUserId(App.getApiClient().getCurrentUserId());
-        query.setRecursive(true);
-        query.setLimit(PreferenceUtil.getInstance(App.getInstance()).getPageSize());
-        query.setStartIndex(getAdapter().getItemCount());
-        query.setParentId(QueryUtil.currentLibrary.getId());
-
-        query.setSortBy(new String[]{PreferenceUtil.getInstance(App.getInstance()).getSongSortMethod().getApi()});
-        query.setSortOrder(LegacySortMapper.toApi(PreferenceUtil.getInstance(App.getInstance()).getSongSortOrder()));
-        return query;
-    }
-
     @Override
     protected void loadItems(int index) {
-        ItemQuery query = getQuery();
-        query.setStartIndex(index);
-
-        QueryUtil.getSongs(query, media -> {
+        QueryUtil.getSongs(getSortMethod(), getSortOrder(), index, isOnlyFavorites(), media -> {
             if (index == 0) getAdapter().getDataSet().clear();
             getAdapter().getDataSet().addAll(media);
             if (media.size() < PreferenceUtil.getInstance(App.getInstance()).getPageSize()) {
@@ -90,6 +65,10 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
             getAdapter().notifyDataSetChanged();
             loading = false;
         });
+    }
+
+    protected boolean isOnlyFavorites() {
+        return false;
     }
 
     @Override

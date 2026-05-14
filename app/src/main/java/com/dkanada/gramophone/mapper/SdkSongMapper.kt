@@ -1,5 +1,6 @@
 package com.dkanada.gramophone.mapper
 
+import com.dkanada.gramophone.model.PlaylistSong
 import com.dkanada.gramophone.model.Song
 import org.jellyfin.sdk.model.api.BaseItemDto
 
@@ -44,5 +45,10 @@ object SdkSongMapper {
         }
 
         return song
+    }
+
+    @JvmStatic
+    fun fromPlaylistItem(item: BaseItemDto, playlistId: String): PlaylistSong {
+        return PlaylistSong(fromItem(item), playlistId, item.playlistItemId)
     }
 }

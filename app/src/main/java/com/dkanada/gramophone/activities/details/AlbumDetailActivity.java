@@ -31,7 +31,7 @@ import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
-import com.dkanada.gramophone.util.JellyfinSdkBridge;
+import com.dkanada.gramophone.util.QueryUtil;
 
 import java.util.List;
 import java.util.Objects;
@@ -74,7 +74,7 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
             return;
         }
         Log.d("AlbumDetailActivity", "onStateOnline: starting fetch for album id = " + album.id);
-        JellyfinSdkBridge.getAlbumSongs(album.id, media -> {
+        QueryUtil.getAlbumSongs(album.id, media -> {
             Log.d("AlbumDetailActivity", "onStateOnline: fetch finished, songs size = " + (media != null ? media.size() : "null"));
             if (media != null && !media.isEmpty()) {
                 album.songs = media;

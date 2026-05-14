@@ -1,8 +1,9 @@
 package com.dkanada.gramophone.util
 
-import org.jellyfin.apiclient.model.entities.SortOrder as LegacySortOrder
-import org.jellyfin.apiclient.model.querying.ItemQuery
+import com.dkanada.gramophone.model.SortMethod
+import com.dkanada.gramophone.model.SortOrder as AppSortOrder
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
 import org.junit.Assert.assertEquals
@@ -36,10 +37,9 @@ class QueryUtilTest {
     @Test
     fun playlistsRequest_doesNotScopeByCurrentLibrary() {
         val request = QueryUtil.playlistsRequest(
-            query = ItemQuery(),
+            startIndex = 0,
             userId = userId,
-            pageSize = 50,
-            library = library
+            pageSize = 50
         )
 
         assertNull("playlist request must not inherit library parentId", request.parentId)
@@ -50,89 +50,227 @@ class QueryUtilTest {
     @Test
     fun playlistsRequest_isStableWithNoLibrary() {
         val request = QueryUtil.playlistsRequest(
-            query = ItemQuery(),
+            startIndex = 0,
             userId = userId,
-            pageSize = 50,
-            library = null
+            pageSize = 50
         )
 
         assertNull(request.parentId)
         assertEquals(listOf(BaseItemKind.PLAYLIST), request.includeItemTypes)
     }
 
-    // --- applyProperties: the policy that scopes browse queries to the current library.
-
     @Test
-    fun applyProperties_setsParentIdToCurrentLibrary_whenUnset() {
-        val query = ItemQuery()
-        QueryUtil.applyProperties(query, userId, pageSize = 50, library = library)
+    fun playlistsRequest_passesStartIndex() {
+        val request = QueryUtil.playlistsRequest(startIndex = 25, userId = userId, pageSize = 50)
 
-        assertEquals(library.id, query.parentId)
-        assertEquals(userId, query.userId)
-        assertTrue(query.recursive)
-        assertEquals(50, query.limit)
+        assertEquals(25, request.startIndex)
     }
 
-    @Test
-    fun applyProperties_doesNotOverrideExplicitParentId() {
-        val query = ItemQuery().apply { parentId = "explicit-parent" }
-        QueryUtil.applyProperties(query, userId, pageSize = 50, library = library)
-
-        assertEquals("explicit-parent", query.parentId)
-    }
+    // --- albumsRequest: library scope, sort, paging ---
 
     @Test
-    fun applyProperties_skipsLibraryScope_whenArtistFilterPresent() {
-        val query = ItemQuery().apply { artistIds = arrayOf("artist-a") }
-        QueryUtil.applyProperties(query, userId, pageSize = 50, library = library)
-
-        // Artist-scoped queries must not be re-scoped to a library parent.
-        assertNull(query.parentId)
-    }
-
-    @Test
-    fun applyProperties_skipsLimit_whenArtistFilterPresent() {
-        val query = ItemQuery().apply { artistIds = arrayOf("artist-a") }
-        QueryUtil.applyProperties(query, userId, pageSize = 50, library = library)
-
-        // Artist queries should not be paginated by the default page size.
-        assertTrue("artist query must not have default page size applied", query.limit == null || query.limit == 0)
-    }
-
-    // --- itemQueryToRequest: the full ItemQuery → GetItemsRequest translation.
-
-    @Test
-    fun itemQueryToRequest_scopesAlbumsToCurrentLibrary() {
-        val query = ItemQuery()
-        val request = QueryUtil.itemQueryToRequest(query, userId, pageSize = 50, library = library)
+    fun albumsRequest_scopesToCurrentLibrary() {
+        val request = QueryUtil.albumsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 0,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
 
         assertEquals(UUID.fromString("11111111-1111-1111-1111-111111111111"), request.parentId)
         assertEquals(UUID.fromString("22222222-2222-2222-2222-222222222222"), request.userId)
+        assertEquals(listOf(BaseItemKind.MUSIC_ALBUM), request.includeItemTypes)
         assertEquals(true, request.recursive)
         assertEquals(50, request.limit)
     }
 
     @Test
-    fun itemQueryToRequest_propagatesFavoriteFilter() {
-        val query = ItemQuery().apply {
-            filters = arrayOf(org.jellyfin.apiclient.model.querying.ItemFilter.IsFavorite)
-        }
-        val request = QueryUtil.itemQueryToRequest(query, userId, pageSize = 50, library = library)
+    fun albumsRequest_hasNullParentId_whenNoLibrary() {
+        val request = QueryUtil.albumsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 0,
+            userId = userId,
+            pageSize = 50,
+            library = null
+        )
+
+        assertNull(request.parentId)
+    }
+
+    @Test
+    fun albumsRequest_passesStartIndex() {
+        val request = QueryUtil.albumsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 100,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertEquals(100, request.startIndex)
+    }
+
+    @Test
+    fun albumsRequest_mapsSortFieldsAndOrder() {
+        val request = QueryUtil.albumsRequest(
+            sortMethod = SortMethod.NAME,
+            sortOrder = AppSortOrder.ASCENDING,
+            startIndex = 0,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertEquals(listOf(ItemSortBy.SORT_NAME), request.sortBy)
+        assertEquals(listOf(SortOrder.ASCENDING), request.sortOrder)
+    }
+
+    @Test
+    fun albumsRequest_hasEmptySortLists_whenNullSort() {
+        val request = QueryUtil.albumsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 0,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertTrue(request.sortBy.isNullOrEmpty())
+        assertTrue(request.sortOrder.isNullOrEmpty())
+    }
+
+    // --- artistsRequest: library scope, sort, paging, genres field ---
+
+    @Test
+    fun artistsRequest_scopesToCurrentLibrary() {
+        val request = QueryUtil.artistsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 0,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertEquals(UUID.fromString("11111111-1111-1111-1111-111111111111"), request.parentId)
+        assertEquals(50, request.limit)
+    }
+
+    @Test
+    fun artistsRequest_passesStartIndex() {
+        val request = QueryUtil.artistsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 50,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertEquals(50, request.startIndex)
+    }
+
+    // --- songsRequest: library scope, sort, paging, favorites ---
+
+    @Test
+    fun songsRequest_scopesToCurrentLibrary() {
+        val request = QueryUtil.songsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 0,
+            onlyFavorites = false,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertEquals(UUID.fromString("11111111-1111-1111-1111-111111111111"), request.parentId)
+        assertEquals(listOf(BaseItemKind.AUDIO), request.includeItemTypes)
+        assertEquals(true, request.recursive)
+        assertNull(request.isFavorite)
+    }
+
+    @Test
+    fun songsRequest_setsFavoriteFlag_whenOnlyFavorites() {
+        val request = QueryUtil.songsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 0,
+            onlyFavorites = true,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
 
         assertEquals(true, request.isFavorite)
     }
 
     @Test
-    fun itemQueryToRequest_ignoresInvalidParentId() {
-        val query = ItemQuery().apply { parentId = "not-a-uuid" }
-        val request = QueryUtil.itemQueryToRequest(query, userId, pageSize = 50, library = library)
+    fun songsRequest_passesStartIndex() {
+        val request = QueryUtil.songsRequest(
+            sortMethod = null,
+            sortOrder = null,
+            startIndex = 75,
+            onlyFavorites = false,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
 
-        // Invalid parentId should be dropped rather than crash, so the request
-        // still reaches the server (the warning is logged separately).
-        assertNull(request.parentId)
+        assertEquals(75, request.startIndex)
     }
 
-    // --- mapSortBy
+    @Test
+    fun songsRequest_mapsSortDescending() {
+        val request = QueryUtil.songsRequest(
+            sortMethod = SortMethod.ADDED,
+            sortOrder = AppSortOrder.DESCENDING,
+            startIndex = 0,
+            onlyFavorites = false,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertEquals(listOf(ItemSortBy.DATE_CREATED), request.sortBy)
+        assertEquals(listOf(SortOrder.DESCENDING), request.sortOrder)
+    }
+
+    // --- genresRequest: library scope ---
+
+    @Test
+    fun genresRequest_scopesToCurrentLibrary() {
+        val request = QueryUtil.genresRequest(
+            startIndex = 0,
+            userId = userId,
+            pageSize = 50,
+            library = library
+        )
+
+        assertEquals(UUID.fromString("11111111-1111-1111-1111-111111111111"), request.parentId)
+        assertEquals(listOf(BaseItemKind.MUSIC_GENRE), request.includeItemTypes)
+        assertEquals(50, request.limit)
+    }
+
+    // --- mapSortOrder ---
+
+    @Test
+    fun mapSortOrder_translatesAscDesc() {
+        assertEquals(listOf(SortOrder.ASCENDING), QueryUtil.mapSortOrder(AppSortOrder.ASCENDING))
+        assertEquals(listOf(SortOrder.DESCENDING), QueryUtil.mapSortOrder(AppSortOrder.DESCENDING))
+    }
+
+    @Test
+    fun mapSortOrder_returnsEmptyForNull() {
+        assertEquals(emptyList<SortOrder>(), QueryUtil.mapSortOrder(null))
+    }
+
+    // --- mapSortBy ---
 
     @Test
     fun mapSortBy_translatesKnownValues() {
@@ -152,20 +290,44 @@ class QueryUtilTest {
         assertNull(QueryUtil.mapSortBy("NotARealSort"))
     }
 
-    // --- mapSortOrder
+    // --- albumSongsRequest: album scoping, sort, fields ---
 
     @Test
-    fun mapSortOrder_translatesAscDesc() {
-        assertEquals(listOf(SortOrder.ASCENDING), QueryUtil.mapSortOrder(LegacySortOrder.Ascending))
-        assertEquals(listOf(SortOrder.DESCENDING), QueryUtil.mapSortOrder(LegacySortOrder.Descending))
+    fun albumSongsRequest_scopesToAlbumId() {
+        val albumId = "aabbccddeeff00112233445566778899"
+        val request = QueryUtil.albumSongsRequest(albumId, userId)
+
+        assertEquals(listOf(UUID.fromString("aabbccdd-eeff-0011-2233-445566778899")), request.albumIds)
+        assertNull("album songs must not scope by parentId", request.parentId)
+        assertEquals(listOf(BaseItemKind.AUDIO), request.includeItemTypes)
+        assertEquals(true, request.recursive)
     }
 
     @Test
-    fun mapSortOrder_returnsEmptyForNull() {
-        assertEquals(emptyList<SortOrder>(), QueryUtil.mapSortOrder(null))
+    fun albumSongsRequest_includesMediaSources() {
+        val request = QueryUtil.albumSongsRequest("aabbccddeeff00112233445566778899", userId)
+
+        assertTrue(request.fields?.contains(ItemFields.MEDIA_SOURCES) == true)
     }
 
-    // --- UUID round-trip
+    @Test
+    fun albumSongsRequest_sortsByDiscThenTrack() {
+        val request = QueryUtil.albumSongsRequest("aabbccddeeff00112233445566778899", userId)
+
+        assertEquals(
+            listOf(ItemSortBy.PARENT_INDEX_NUMBER, ItemSortBy.INDEX_NUMBER),
+            request.sortBy
+        )
+    }
+
+    @Test
+    fun albumSongsRequest_convertsUserId() {
+        val request = QueryUtil.albumSongsRequest("aabbccddeeff00112233445566778899", userId)
+
+        assertEquals(UUID.fromString("22222222-2222-2222-2222-222222222222"), request.userId)
+    }
+
+    // --- UUID round-trip ---
 
     @Test
     fun toUuidOrNull_acceptsDashedAndDashlessForms() {

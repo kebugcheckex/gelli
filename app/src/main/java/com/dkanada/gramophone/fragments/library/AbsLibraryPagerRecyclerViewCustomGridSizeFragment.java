@@ -12,7 +12,7 @@ import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.util.Util;
 
-public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extends RecyclerView.Adapter, L extends RecyclerView.LayoutManager, Q> extends AbsLibraryPagerRecyclerViewFragment<A, L, Q> {
+public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extends RecyclerView.Adapter, L extends RecyclerView.LayoutManager> extends AbsLibraryPagerRecyclerViewFragment<A, L> {
     private int gridSize;
     private SortMethod sortMethod;
     private SortOrder sortOrder;
