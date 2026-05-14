@@ -24,7 +24,7 @@ This document captures the current status of the migration from `jellyfin-apicli
 - The app still depends on `com.github.jellyfin.jellyfin-apiclient-java:android:0.7.3` in [app/build.gradle](/mnt/data/source/gelli/app/build.gradle:55).
 - `settings.gradle` still contains local dependency substitution support for the Java client in [settings.gradle](/mnt/data/source/gelli/settings.gradle:5).
 - `App` still exposes a global legacy `ApiClient` singleton in [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:29) and [App.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/App.java:66).
-- Legacy API client usage still exists in playback reporting, websocket event handling, and image URL generation. Login authentication and session restore have been migrated to the SDK; `LoginService` retains only a three-call WebSocket bootstrap shim against the legacy `ApiClient`, scheduled for removal in Phase 6 when `EventListener` is migrated.
+- Legacy API client usage still exists in playback reporting and websocket event handling. Login authentication and session restore have been migrated to the SDK; `LoginService` retains only a three-call WebSocket bootstrap shim against the legacy `ApiClient`, scheduled for removal in Phase 6 when `EventListener` is migrated. Image URL generation has been migrated (Phase 6A complete).
 
 ### Main legacy dependency clusters
 
@@ -44,7 +44,7 @@ This document captures the current status of the migration from `jellyfin-apicli
    - All app media models now map through dedicated mapper utilities. The only remaining legacy mapper is `LegacySongMapper.java`, which is dead code in production (kept because the backend integration test still imports it directly).
 
 5. Image URL generation
-   - [CustomGlideRequest.java](/mnt/data/source/gelli/app/src/main/java/com/dkanada/gramophone/glide/CustomGlideRequest.java:98) still calls `App.getApiClient().GetImageUrl(...)`.
+   - Complete. `CustomGlideRequest.java` now delegates to `JellyfinImageUrls.buildPrimaryImageUrl(...)`. The legacy `GetImageUrl` call and its two imports (`ImageOptions`, `ImageType` from `org.jellyfin.apiclient.*`) have been removed.
 
 ## Migration Constraints
 
@@ -263,6 +263,15 @@ Exit criteria:
 - Playback reporting no longer imports legacy session models.
 - Image loading no longer depends on `GetImageUrl(...)`.
 - Any remaining legacy usage is confined to a clearly documented temporary shim.
+
+Status update:
+
+- Phase 6A complete (image URL generation migrated).
+  - `CustomGlideRequest.java` no longer calls `App.getApiClient().GetImageUrl(...)`. The two legacy imports (`org.jellyfin.apiclient.model.dto.ImageOptions`, `org.jellyfin.apiclient.model.entities.ImageType`) have been removed.
+  - New file `JellyfinImageUrls.kt` provides a `@JvmStatic` `buildPrimaryImageUrl(itemId, maxHeight)` method backed by the SDK's `UrlBuilder`. The internal overload accepts `baseUrl` for testability.
+  - URL shape is identical to the legacy path: `{baseUrl}/Items/{dashed-uuid}/Images/Primary?maxHeight=800`. Existing Glide disk caches are not invalidated.
+  - 9 new JVM unit tests in `JellyfinImageUrlsTest` cover: expected URL for dashless and dashed IDs, custom `maxHeight`, default `maxHeight=800`, null/blank `baseUrl` path-only fallback, trailing-slash normalization, expected path segments, and invalid UUID fallback.
+  - Phase 6B (playback reporting — `MusicService.java`) and Phase 6C (remote session events — `EventListener.java` and WebSocket bootstrap shim in `LoginService.kt`) are still pending.
 
 ### Phase 7: Remove the Legacy Dependency
 

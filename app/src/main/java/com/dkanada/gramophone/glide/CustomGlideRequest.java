@@ -15,14 +15,10 @@ import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.signature.ObjectKey;
-import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.glide.palette.BitmapPaletteCrossFadeFactory;
 import com.dkanada.gramophone.glide.palette.BitmapPaletteWrapper;
 import com.wolt.blurhashkt.BlurHashDecoder;
-
-import org.jellyfin.apiclient.model.dto.ImageOptions;
-import org.jellyfin.apiclient.model.entities.ImageType;
 
 import static com.bumptech.glide.GenericTransitionOptions.with;
 
@@ -106,10 +102,6 @@ public class CustomGlideRequest {
     }
 
     public static String createUrl(String item) {
-        ImageOptions options = new ImageOptions();
-        options.setImageType(ImageType.Primary);
-        options.setMaxHeight(800);
-
-        return App.getApiClient().GetImageUrl(item, options);
+        return JellyfinImageUrls.buildPrimaryImageUrl(item);
     }
 }
