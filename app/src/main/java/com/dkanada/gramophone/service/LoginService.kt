@@ -40,10 +40,6 @@ class LoginService : Service() {
         }
 
         JellyfinSdkSession.updateSession(user.server, user.token, user.jellyfinUserId)
-        // Keep these in sync for CustomGlideRequest and MusicUtil until image URL
-        // generation is migrated to the SDK (Phase 6 image URL work).
-        App.getApiClient().ChangeServerLocation(user.server)
-        App.getApiClient().SetAuthenticationInfo(user.token, user.jellyfinUserId)
 
         Thread {
             try {
