@@ -17,9 +17,6 @@ import com.dkanada.gramophone.model.Codec;
 import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.model.Song;
 
-import org.jellyfin.apiclient.interaction.ApiClient;
-import org.jellyfin.apiclient.interaction.Response;
-import org.jellyfin.apiclient.model.dto.UserItemDataDto;
 
 import java.io.File;
 import java.util.List;
@@ -32,15 +29,14 @@ public class MusicUtil {
         PreferenceUtil preferenceUtil = PreferenceUtil.getInstance(App.getInstance());
 
         StringBuilder builder = new StringBuilder(256);
-        ApiClient apiClient = App.getApiClient();
 
-        builder.append(apiClient.getApiUrl());
+        builder.append(JellyfinSdkSession.getBaseUrl());
         builder.append("/Audio/");
         builder.append(song.id);
         builder.append("/universal");
-        builder.append("?UserId=").append(apiClient.getCurrentUserId());
+        builder.append("?UserId=").append(JellyfinSdkSession.getCurrentUserId());
         builder.append("&PlaySessionId=").append(song.id.hashCode());
-        builder.append("&DeviceId=").append(apiClient.getDeviceId());
+        builder.append("&DeviceId=").append(JellyfinSdkSession.getDeviceId());
 
         // web client maximum is 12444445 and 320kbps is 320000
         builder.append("&MaxStreamingBitrate=").append(preferenceUtil.getMaximumBitrate());
@@ -58,7 +54,7 @@ public class MusicUtil {
         // preferred codec when transcoding
         // ToDo: Think about removing this. The server doesn't seem to respect it anyways
         builder.append("&AudioCodec=").append(preferenceUtil.getTranscodeCodec());
-        builder.append("&api_key=").append(apiClient.getAccessToken());
+        builder.append("&api_key=").append(JellyfinSdkSession.getAccessToken());
 
         Log.i(MusicUtil.class.getName(), "playing audio: " + builder);
         return builder.toString();
@@ -67,12 +63,12 @@ public class MusicUtil {
     public static String getDownloadUri(Song song) {
         StringBuilder builder = new StringBuilder(256);
 
-        builder.append(App.getApiClient().getApiUrl());
+        builder.append(JellyfinSdkSession.getBaseUrl());
         builder.append("/Items/");
         builder.append(song.id);
         builder.append("/Download");
 
-        builder.append("?api_key=").append(App.getApiClient().getAccessToken());
+        builder.append("?api_key=").append(JellyfinSdkSession.getAccessToken());
 
         return builder.toString();
     }
@@ -181,21 +177,7 @@ public class MusicUtil {
     }
 
     public static void toggleFavorite(Song song) {
-        song.favorite = !song.favorite;
-
-        String user = App.getApiClient().getCurrentUserId();
-        App.getApiClient().UpdateFavoriteStatusAsync(song.id, user, song.favorite, new Response<UserItemDataDto>() {
-                @Override
-                public void onResponse(UserItemDataDto data) {
-                    song.favorite = data.getIsFavorite();
-                }
-
-                @Override
-                public void onError(Exception exception) {
-                    exception.printStackTrace();
-                }
-            }
-        );
+        UserLibraryUtil.toggleFavorite(song);
     }
 
     @NonNull

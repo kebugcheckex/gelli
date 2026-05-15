@@ -18,6 +18,7 @@ import com.bumptech.glide.signature.ObjectKey;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.glide.palette.BitmapPaletteCrossFadeFactory;
 import com.dkanada.gramophone.glide.palette.BitmapPaletteWrapper;
+import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.wolt.blurhashkt.BlurHashDecoder;
 
 import static com.bumptech.glide.GenericTransitionOptions.with;

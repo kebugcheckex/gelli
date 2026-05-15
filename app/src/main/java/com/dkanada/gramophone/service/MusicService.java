@@ -55,6 +55,8 @@ import com.dkanada.gramophone.views.widgets.AppWidgetCard;
 import com.dkanada.gramophone.views.widgets.AppWidgetClassic;
 import com.google.android.exoplayer2.Player;
 
+import com.dkanada.gramophone.util.PlaybackReporter;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -762,10 +764,8 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         }
 
         public void onNext() {
-            Song currentSong = mService.get().queueManager.getCurrentSong();
-
-            App.getApiClient().ensureWebSocket();
-            PlaybackReporter.reportStart(currentSong.id, mService.get().playback.getVolume());
+            Song current = mService.get().queueManager.getCurrentSong();
+            PlaybackReporter.reportStart(current, mService.get().playback.getVolume());
         }
 
         public void onProgress() {
@@ -779,19 +779,24 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             long progress = mService.get().getSongProgressMillis();
             double duration = mService.get().getSongDurationMillis();
             if (progress / duration > 0.9) {
-                PlaybackReporter.markPlayed(current.id);
+                PlaybackReporter.markPlayed(current);
             }
 
             PlaybackReporter.reportProgress(
-                current.id,
-                progress,
-                mService.get().playback.getVolume(),
-                !mService.get().playback.isPlaying(),
-                Integer.toString(current.id.hashCode())
+                    current,
+                    progress,
+                    mService.get().playback.getVolume(),
+                    !mService.get().playback.isPlaying()
             );
         }
 
         public void onStop() {
+            long progress = mService.get().getSongProgressMillis();
+            Song current = mService.get().queueManager.getCurrentSong();
+            if (current != null) {
+                PlaybackReporter.reportStop(current, progress);
+            }
+
             if (task != null) task.cancel(true);
             if (executorService != null) executorService.shutdownNow();
         }

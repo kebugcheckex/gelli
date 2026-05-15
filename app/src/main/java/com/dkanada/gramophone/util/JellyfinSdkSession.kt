@@ -9,7 +9,6 @@ import com.dkanada.gramophone.App
 import com.dkanada.gramophone.BuildConfig
 import com.dkanada.gramophone.R
 import com.dkanada.gramophone.model.User
-import org.jellyfin.apiclient.interaction.ApiClient
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.DeviceInfo
@@ -59,19 +58,6 @@ object JellyfinSdkSession {
     }
 
     @JvmStatic
-    fun updateSessionFromApiClient(apiClient: ApiClient?) {
-        if (apiClient == null) {
-            clearSession()
-            return
-        }
-        updateSession(
-            apiClient.getApiUrl(),
-            apiClient.getAccessToken(),
-            apiClient.getCurrentUserId()
-        )
-    }
-
-    @JvmStatic
     fun clearSession() {
         synchronized(lock) {
             baseUrl = null
@@ -85,6 +71,15 @@ object JellyfinSdkSession {
 
     @JvmStatic
     fun getBaseUrl(): String? = baseUrl
+
+    @JvmStatic
+    fun getAccessToken(): String? = accessToken
+
+    @JvmStatic
+    fun getDeviceId(): String {
+        val context = appContext ?: return "gelli-device"
+        return resolveDeviceId(context)
+    }
 
     fun createApiOrNull() = snapshotOrNull()?.let { snapshot ->
         val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null

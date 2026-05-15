@@ -8,9 +8,9 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
-import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.interfaces.StateListener;
 import com.dkanada.gramophone.service.LoginService;
+import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.dkanada.gramophone.util.NavigationUtil;
 
 public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity implements StateListener {
@@ -44,7 +44,7 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
 
         registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
-        if (App.getApiClient() == null) {
+        if (JellyfinSdkSession.getCurrentUserId() == null) {
             startService(new Intent(this, LoginService.class));
         } else {
             dispatchOnlineOnce();
@@ -55,7 +55,7 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
     protected void onResume() {
         super.onResume();
 
-        if (App.getApiClient() == null) {
+        if (JellyfinSdkSession.getCurrentUserId() == null) {
             startService(new Intent(this, LoginService.class));
         }
     }

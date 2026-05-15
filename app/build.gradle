@@ -76,7 +76,6 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
     implementation 'org.jellyfin.sdk:jellyfin-core:1.8.8'
 
-    implementation 'com.github.jellyfin.jellyfin-apiclient-java:android:0.7.3' // TODO deprecated, need to replace with the Kotlin library
     implementation 'com.github.woltapp:blurhash:f41a23cc50'
     implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
     implementation 'com.google.android.material:material:1.13.0'

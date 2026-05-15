@@ -3,13 +3,3 @@ plugins {
 }
 include ':app'
 
-def enableDependencySubstitution = properties.get('enable.dependency.substitution', 'true').equalsIgnoreCase('true')
-def apiClientLocation = '../jellyfin-apiclient-java'
-
-if (new File(apiClientLocation).exists() && enableDependencySubstitution) {
-    includeBuild(apiClientLocation) {
-        dependencySubstitution {
-            substitute module('com.github.jellyfin.jellyfin-apiclient-java:android') with project(':android')
-        }
-    }
-}
