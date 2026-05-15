@@ -9,7 +9,6 @@ import android.provider.Settings;
 import androidx.room.Room;
 
 import com.dkanada.gramophone.database.JellyDatabase;
-import com.dkanada.gramophone.helper.EventListener;
 import com.dkanada.gramophone.model.User;
 import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.dkanada.gramophone.util.PreferenceUtil;
@@ -18,6 +17,7 @@ import com.melegy.redscreenofdeath.RedScreenOfDeath;
 
 import org.jellyfin.apiclient.interaction.AndroidDevice;
 import org.jellyfin.apiclient.interaction.ApiClient;
+import org.jellyfin.apiclient.interaction.ApiEventListener;
 import org.jellyfin.apiclient.interaction.VolleyHttpClient;
 import org.jellyfin.apiclient.interaction.device.IDevice;
 import org.jellyfin.apiclient.interaction.http.IAsyncHttpClient;
@@ -82,9 +82,7 @@ public class App extends Application {
         ILogger logger = new AndroidLogger(context.getClass().getName());
         IAsyncHttpClient httpClient = new VolleyHttpClient(logger, context);
         IDevice device = new AndroidDevice(deviceId, deviceName);
-        EventListener eventListener = new EventListener();
-
-        return new ApiClient(httpClient, logger, server, appName, appVersion, device, eventListener);
+        return new ApiClient(httpClient, logger, server, appName, appVersion, device, new ApiEventListener());
     }
 
     public static JellyDatabase getDatabase() {
