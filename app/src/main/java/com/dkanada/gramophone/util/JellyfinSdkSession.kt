@@ -83,6 +83,9 @@ object JellyfinSdkSession {
     @JvmStatic
     fun getCurrentUserId(): String? = userId
 
+    @JvmStatic
+    fun getBaseUrl(): String? = baseUrl
+
     fun createApiOrNull() = snapshotOrNull()?.let { snapshot ->
         val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
         buildJellyfin(context).createApi(
