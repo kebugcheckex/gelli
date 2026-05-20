@@ -51,8 +51,8 @@ class LoginService : Service() {
                         data = ClientCapabilitiesDto(
                             playableMediaTypes = listOf(),
                             supportedCommands = listOf(),
-                            supportsMediaControl = true,
-                            supportsPersistentIdentifier = true,
+                            supportsMediaControl = DEFAULT_CAPABILITIES.supportsMediaControl,
+                            supportsPersistentIdentifier = DEFAULT_CAPABILITIES.supportsPersistentIdentifier,
                         )
                     )
                 }
@@ -75,5 +75,15 @@ class LoginService : Service() {
         const val STATE_POLLING = "$PACKAGE_NAME.unknown"
         const val STATE_ONLINE = "$PACKAGE_NAME.online"
         const val STATE_OFFLINE = "$PACKAGE_NAME.offline"
+
+        data class ClientCapabilityArgs(
+            val supportsMediaControl: Boolean,
+            val supportsPersistentIdentifier: Boolean,
+        )
+
+        val DEFAULT_CAPABILITIES = ClientCapabilityArgs(
+            supportsMediaControl = true,
+            supportsPersistentIdentifier = true,
+        )
     }
 }

@@ -49,15 +49,11 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
     private List<QueryUtil.Library> libraries;
 
     @Nullable
-    private Bundle state;
-    @Nullable
     private Fragment pendingFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        state = savedInstanceState;
 
         setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
     }
@@ -89,9 +85,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
             setUpDrawerLayout();
 
             menu.getItem(0).setChecked(true);
-            if (state == null) {
-                setCurrentFragment(LibraryFragment.newInstance());
-            }
+            setCurrentFragment(LibraryFragment.newInstance());
         });
     }
 
@@ -167,7 +161,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
             }
 
             // only run the following code when a new library has been selected
-            if (menuItem.getItemId() == QueryUtil.currentLibrary.getId().hashCode()) return true;
+            if (QueryUtil.currentLibrary != null && menuItem.getItemId() == QueryUtil.currentLibrary.getId().hashCode()) return true;
 
             for (QueryUtil.Library itemDto : libraries) {
                 if (menuItem.getItemId() == itemDto.getId().hashCode()) {
