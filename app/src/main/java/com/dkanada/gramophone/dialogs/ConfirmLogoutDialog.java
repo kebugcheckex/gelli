@@ -9,6 +9,7 @@ import androidx.fragment.app.DialogFragment;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
+import com.dkanada.gramophone.helper.EventListener;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.model.User;
 import com.dkanada.gramophone.util.NavigationUtil;
@@ -33,6 +34,7 @@ public class ConfirmLogoutDialog extends DialogFragment {
                 .positiveText(R.string.logout)
                 .negativeText(android.R.string.cancel)
                 .onPositive((dialog, which) -> {
+                    EventListener.stop();
                     MusicPlayerRemote.clearQueue();
 
                     PreferenceUtil.getInstance(requireContext()).setServer(null);

@@ -1,7 +1,6 @@
 package com.dkanada.gramophone.helper
 
 import android.util.Log
-import com.dkanada.gramophone.helper.MusicPlayerRemote
 import com.dkanada.gramophone.util.JellyfinSdkSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +18,6 @@ object EventListener {
     @Volatile
     private var scope: CoroutineScope? = null
 
-    @JvmStatic
     fun start() {
         scope?.cancel()
         val api = JellyfinSdkSession.createApiOrNull() ?: run {

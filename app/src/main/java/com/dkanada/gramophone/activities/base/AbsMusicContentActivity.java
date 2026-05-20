@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
+import com.dkanada.gramophone.helper.EventListener;
 import com.dkanada.gramophone.interfaces.StateListener;
 import com.dkanada.gramophone.service.LoginService;
 import com.dkanada.gramophone.util.JellyfinSdkSession;
@@ -27,6 +28,7 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
                     break;
                 case LoginService.STATE_OFFLINE:
                     onlineStateDelivered = false;
+                    EventListener.stop();
                     NavigationUtil.startLogin(context);
                     break;
             }
