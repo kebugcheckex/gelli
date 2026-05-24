@@ -24,3 +24,6 @@ captures/
 .claude/
 .codex
 
+# Decompiled bytecode (used for migration reference)
+androidx/
+
