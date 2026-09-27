@@ -2,9 +2,9 @@
 
 ## Status
 
-Phases 0–3 are complete. The branch compiles against Media3 1.5.1 and basic playback has been verified on a physical device.
+The Media3 1.5.1 migration is ready for review for personal use. The maintainer reports that live playback testing looks good and playback functions work. Debug APK assembly, all 63 JVM unit tests, and release R8 shrinking passed.
 
-Remaining: Phase 4 (release build + shrinker test) before merging. Phase 5 is a separate follow-up.
+A signed release APK and runtime testing of that APK are deferred: the maintainer uses the app personally and does not plan to publish it to Google Play. These are not merge requirements for this migration. Detailed device/API coverage is recorded in `media3_smoke_test_matrix.md`; Phase 5 remains a separate follow-up.
 
 ---
 
@@ -23,7 +23,7 @@ Remaining: Phase 4 (release build + shrinker test) before merging. Phase 5 is a 
 
 ## Phase 0: Baseline and Guardrails — Done
 
-Smoke checklist captured in `media3_smoke_test_matrix.md`. Verified on a physical device before and after migration.
+Smoke checklist captured in `media3_smoke_test_matrix.md`. Basic playback was previously reported as verified on a physical device before and after migration; this does not establish that every checklist scenario was run.
 
 ## Phase 1: Dependency Layer Migration — Done
 
@@ -54,15 +54,16 @@ Static constants (`MEDIA_ITEM_TRANSITION_REASON_*`, `PLAY_WHEN_READY_CHANGE_REAS
 
 Cache release order in `LocalPlayer.stop()` was corrected to release the player before the cache (`exoPlayer.release()` then `simpleCache.release()`).
 
-## Phase 3: Behavioral Parity Verification — Done
+## Phase 3: Behavioral Parity Verification — Playback Accepted
 
-Basic playback verified on a physical device. See `media3_smoke_test_matrix.md` for the full scenario checklist.
+The maintainer reports successful live playback testing and working playback functions. The earlier device check covered basic playback and queue/mode behavior. See `media3_smoke_test_matrix.md` for coverage and scenarios without individual results; the general playback report is not a full matrix sign-off.
 
-## Phase 4: Compatibility and Integration Hardening — Pending
+## Phase 4: Compatibility and Integration Hardening — Build Checks Passed; Release Testing Deferred
 
-- [ ] Build release APK (`./gradlew assembleRelease`) and confirm no shrinker-related failures. The current proguard rules use `-keepnames class **.*` broadly, but Media3 uses service discovery for module registration (e.g. HLS factory) which can be affected by aggressive shrinking.
-- [ ] Re-test transport controls from notification, `MediaButtonIntentReceiver`, and external media button intents.
-- [ ] Confirm `MediaSessionCompat` state/metadata stays in sync after the Media3 switch.
+- [x] Build debug APK and run JVM unit tests (`.\gradlew.bat assembleDebug testDebugUnitTest --console=plain`): successful; 63 tests passed, with no failures, errors, or skipped tests.
+- [x] Run release code shrinking (`.\gradlew.bat :app:minifyReleaseWithR8 --console=plain`): successful. This verifies release compilation and R8 processing, not complete APK assembly or runtime behavior of the shrunk app.
+- **Deferred:** Signed release APK assembly (`.\gradlew.bat assembleRelease`) and release-device smoke testing. Release signing is not configured and a release APK is not required for the current personal-use workflow.
+- **Follow-up coverage:** Explicit notification controls, `MediaButtonIntentReceiver`/external media buttons, and `MediaSessionCompat` state/metadata synchronization results were not supplied separately. Keep these and the other unrecorded matrix scenarios available for future regression testing; do not mark them individually passed based on the general playback report.
 
 ## Phase 5: Optional Follow-Up Modernization (Separate PR)
 

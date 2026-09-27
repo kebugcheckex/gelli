@@ -1,9 +1,22 @@
 # Media3 Migration — Smoke Test Matrix
 
 Manual test matrix for verifying behavioral parity after the ExoPlayer 2 → Media3 migration.
-Run on at least one API 23 device/emulator and one modern API level (API 33+).
+For full compatibility coverage, run on at least one API 23 device/emulator and one modern API level (API 33+). This coverage has not been recorded for the current personal-use validation.
 
-**Status:** Basic playback verified on a physical device (Playback and Queue/Modes scenarios). Cache/streaming paths, service lifecycle, and edge cases remain to be explicitly run before merge.
+**Status:** The maintainer reports that live testing looks good and playback functions work. Earlier notes record physical-device verification of basic playback and queue/mode behavior. This is accepted for the current personal-use migration; it does not establish a pass for every scenario below.
+
+## Validation Record
+
+| Check | Result |
+|---|---|
+| Debug APK assembly | Passed: `.\gradlew.bat assembleDebug testDebugUnitTest --console=plain` |
+| JVM unit tests | 63 passed; no failures, errors, or skipped tests. These are not a replacement for the device scenarios below. |
+| Release compilation and R8 code shrinking | Passed: `.\gradlew.bat :app:minifyReleaseWithR8 --console=plain` |
+| Live playback | Maintainer reports working playback functions; exact device/API and per-scenario results were not supplied with this report. |
+| Signed release APK assembly and runtime testing | Deferred for personal use; no Google Play publication planned and signing is not configured. Not a merge requirement. |
+| Detailed cache/HLS, service lifecycle, session synchronization, and edge-case coverage | No individual results recorded; retained as follow-up regression scenarios. |
+
+The tables below describe test procedures and pass criteria, not individual recorded results. Successful R8 processing does not verify playback in a signed, shrunk release APK.
 
 ## Playback
 
