@@ -25,9 +25,9 @@ There are three independent cache layers.
 
 Practical result: downloaded songs are saved as normal files in the configured download location.
 
-### 2) ExoPlayer media cache (implicit streaming cache)
+### 2) Media3 streaming cache (implicit streaming cache)
 
-- `LocalPlayer` creates ExoPlayer `SimpleCache` at `location_cache/exoplayer`.
+- `LocalPlayer` creates a Media3 `SimpleCache` at `location_cache/exoplayer` (directory name is a historical artifact).
 - Cache size is controlled by `media_cache_size` preference.
 - Data source uses `CacheDataSource` + `CacheDataSink` + LRU evictor.
 
@@ -130,7 +130,7 @@ Deliverable: long-term correctness of offline index and user trust.
 
 ## Risks and Notes
 
-- ExoPlayer streaming cache is opaque for user-facing "downloaded" semantics; explicit downloads should remain the primary offline guarantee.
+- The Media3 streaming cache is opaque for user-facing "downloaded" semantics; explicit downloads should remain the primary offline guarantee.
 - Existing queue persistence currently stores songs from active queue; this is not equivalent to full offline library storage.
 - Introducing offline mode affects navigation/login flow and should be tested across process restarts and account switching.
 

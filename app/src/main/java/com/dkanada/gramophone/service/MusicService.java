@@ -53,7 +53,7 @@ import com.dkanada.gramophone.util.Util;
 import com.dkanada.gramophone.views.widgets.AppWidgetAlbum;
 import com.dkanada.gramophone.views.widgets.AppWidgetCard;
 import com.dkanada.gramophone.views.widgets.AppWidgetClassic;
-import com.google.android.exoplayer2.Player;
+import androidx.media3.common.Player;
 
 import com.dkanada.gramophone.util.PlaybackReporter;
 
@@ -66,10 +66,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.android.exoplayer2.Player.MEDIA_ITEM_TRANSITION_REASON_AUTO;
-import static com.google.android.exoplayer2.Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED;
-import static com.google.android.exoplayer2.Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT;
-import static com.google.android.exoplayer2.Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM;
+import static androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_AUTO;
+import static androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED;
+import static androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT;
+import static androidx.media3.common.Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM;
 
 public class MusicService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String PACKAGE_NAME = BuildConfig.APPLICATION_ID;
@@ -775,7 +775,6 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
                 return;
             }
 
-            // TODO these cause a wrong thread error
             long progress = mService.get().getSongProgressMillis();
             double duration = mService.get().getSongDurationMillis();
             if (progress / duration > 0.9) {

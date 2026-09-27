@@ -13,22 +13,22 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.audio.AudioAttributes;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.database.StandaloneDatabaseProvider;
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSource;
-import com.google.android.exoplayer2.upstream.FileDataSource;
-import com.google.android.exoplayer2.upstream.cache.CacheDataSink;
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
-import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
-import com.google.android.exoplayer2.upstream.cache.SimpleCache;
-import com.google.android.exoplayer2.util.MimeTypes;
+import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.database.StandaloneDatabaseProvider;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.datasource.FileDataSource;
+import androidx.media3.datasource.cache.CacheDataSink;
+import androidx.media3.datasource.cache.CacheDataSource;
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor;
+import androidx.media3.datasource.cache.SimpleCache;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 
 import java.io.File;
 import java.util.List;
@@ -277,8 +277,8 @@ public class LocalPlayer implements Playback {
     @Override
     public void stop() {
         postToMain(() -> {
-            simpleCache.release();
             exoPlayer.release();
+            simpleCache.release();
         });
     }
 
