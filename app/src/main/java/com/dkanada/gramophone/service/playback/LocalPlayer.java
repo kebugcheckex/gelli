@@ -265,6 +265,11 @@ public class LocalPlayer implements Playback {
     }
 
     @Override
+    public boolean isEnded() {
+        return getOnMain(() -> exoPlayer.getPlaybackState() == Player.STATE_ENDED, false);
+    }
+
+    @Override
     public void start() {
         postToMain(() -> exoPlayer.setPlayWhenReady(true));
     }
