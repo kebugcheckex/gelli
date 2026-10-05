@@ -502,10 +502,25 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     }
 
     private void updateMediaSessionState() {
+        final int state;
+        if (playback.isEnded()) {
+            // playWhenReady stays true after the last track ends, so isPlaying() alone would report PLAYING
+            state = PlaybackStateCompat.STATE_STOPPED;
+        } else if (!isPlaying()) {
+            state = PlaybackStateCompat.STATE_PAUSED;
+        } else if (isLoading()) {
+            state = PlaybackStateCompat.STATE_BUFFERING;
+        } else {
+            state = PlaybackStateCompat.STATE_PLAYING;
+        }
+
+        // speed must be 0 whenever the position is not advancing, controllers extrapolate position from it
+        final float speed = state == PlaybackStateCompat.STATE_PLAYING ? 1 : 0;
+
         mediaSession.setPlaybackState(
             new PlaybackStateCompat.Builder()
                 .setActions(MEDIA_SESSION_ACTIONS)
-                .setState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, getSongProgressMillis(), 1)
+                .setState(state, getSongProgressMillis(), speed)
                 .build());
     }
 

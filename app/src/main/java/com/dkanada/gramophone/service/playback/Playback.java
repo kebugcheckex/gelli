@@ -18,6 +18,8 @@ public interface Playback {
 
     boolean isLoading();
 
+    boolean isEnded();
+
     void start();
 
     void pause();

@@ -67,6 +67,8 @@ The maintainer reports successful live playback testing and working playback fun
 
 ## Phase 5: Optional Follow-Up Modernization (Separate PR)
 
+Planned in detail in `media3_session_migration_plan.md`.
+
 - Evaluate migration from `MediaSessionCompat` to `androidx.media3.session.MediaSession` / `MediaSessionService`.
 - If migrated, update notification/session integration accordingly.
 - Decide whether to keep `MediaButtonIntentReceiver` or adopt Media3 session command routing.
