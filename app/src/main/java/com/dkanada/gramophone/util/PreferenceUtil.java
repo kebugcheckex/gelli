@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 
 import com.dkanada.gramophone.model.Theme;
@@ -15,6 +16,7 @@ import com.dkanada.gramophone.model.Codec;
 import com.dkanada.gramophone.interfaces.base.PreferenceMigration;
 import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -32,6 +34,7 @@ public final class PreferenceUtil {
     public static final String POSITION = "position";
     public static final String PROGRESS = "progress";
     public static final String TAB = "tab";
+    public static final String OFFLINE_MODE = "offline_mode";
 
     public static final String SLEEP_TIMER_LAST_VALUE = "sleep_timer_last_value";
     public static final String SLEEP_TIMER_ELAPSED_REALTIME = "sleep_timer_elapsed_real_time";
@@ -212,6 +215,14 @@ public final class PreferenceUtil {
 
     public void setLastTab(final int value) {
         mPreferences.edit().putInt(TAB, value).apply();
+    }
+
+    public final boolean getOfflineMode() {
+        return mPreferences.getBoolean(OFFLINE_MODE, false);
+    }
+
+    public void setOfflineMode(final boolean value) {
+        mPreferences.edit().putBoolean(OFFLINE_MODE, value).commit();
     }
 
     public final NowPlayingScreen getNowPlayingScreen() {
@@ -420,7 +431,8 @@ public final class PreferenceUtil {
     }
 
     public final String getLocationDownload() {
-        return mPreferences.getString(LOCATION_DOWNLOAD, mContext.getCacheDir().toString());
+        File music = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        return mPreferences.getString(LOCATION_DOWNLOAD, new File(music, "gelli").toString());
     }
 
     public final String getLocationCache() {

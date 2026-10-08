@@ -30,7 +30,11 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.fragments.main.DownloadsFragment;
 import com.dkanada.gramophone.fragments.main.LibraryFragment;
+import com.dkanada.gramophone.helper.EventListener;
+import com.dkanada.gramophone.service.LoginService;
+import com.dkanada.gramophone.util.DownloadUtil;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -75,18 +79,59 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
                 menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_album_white_24dp);
             }
 
-            menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_settings, menu.size(), R.string.action_settings);
-            menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_settings_white_24dp);
-            menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_about, menu.size(), R.string.action_about);
-            menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_info_outline_white_24dp);
-            menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_logout, menu.size(), R.string.logout);
-            menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_exit_to_app_white_48dp);
-
+            addOtherMenuItems(menu);
             setUpDrawerLayout();
 
             menu.getItem(0).setChecked(true);
             setCurrentFragment(LibraryFragment.newInstance());
         });
+    }
+
+    @Override
+    public void onStateOffline() {
+        Menu menu = binding.navigationView.getMenu();
+        libraries = null;
+        menu.clear();
+
+        menu.add(R.id.navigation_drawer_menu_category_sections, R.id.nav_downloads, menu.size(), R.string.downloads);
+        menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_download_24dp);
+
+        addOtherMenuItems(menu);
+        setUpDrawerLayout();
+
+        menu.getItem(0).setChecked(true);
+        setCurrentFragment(DownloadsFragment.newInstance());
+    }
+
+    private void addOtherMenuItems(Menu menu) {
+        if (DownloadUtil.isOfflineMode()) {
+            menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_offline_mode, menu.size(), R.string.action_go_online);
+            menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_cloud_white_24dp);
+        } else {
+            menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_offline_mode, menu.size(), R.string.action_go_offline);
+            menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_cloud_off_white_24dp);
+        }
+
+        menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_settings, menu.size(), R.string.action_settings);
+        menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_settings_white_24dp);
+        menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_about, menu.size(), R.string.action_about);
+        menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_info_outline_white_24dp);
+        menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_logout, menu.size(), R.string.logout);
+        menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_exit_to_app_white_48dp);
+    }
+
+    private void toggleOfflineMode() {
+        boolean offline = !DownloadUtil.isOfflineMode();
+        PreferenceUtil.getInstance(this).setOfflineMode(offline);
+
+        if (offline) {
+            EventListener.stop();
+        } else {
+            startService(new Intent(this, LoginService.class));
+        }
+
+        // restart so every screen picks up the new mode
+        NavigationUtil.startMain(this);
     }
 
     @Override
@@ -145,6 +190,9 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
         binding.navigationView.setNavigationItemSelectedListener(menuItem -> {
             binding.drawerLayout.closeDrawers();
             switch (menuItem.getItemId()) {
+                case R.id.nav_offline_mode:
+                    new Handler().postDelayed(this::toggleOfflineMode, 200);
+                    break;
                 case R.id.nav_settings:
                     new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, SettingsActivity.class)), 200);
                     break;
@@ -161,6 +209,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
             }
 
             // only run the following code when a new library has been selected
+            if (libraries == null) return true;
             if (QueryUtil.currentLibrary != null && menuItem.getItemId() == QueryUtil.currentLibrary.getId().hashCode()) return true;
 
             for (QueryUtil.Library itemDto : libraries) {

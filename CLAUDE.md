@@ -58,7 +58,7 @@ Fragment / Activity
 
 Room database (`JellyDatabase`) with migrations tracked in the class. DAOs:
 - `UserDao` — saved server/user credentials
-- `CacheDao` — cached songs for offline playback
+- `DownloadDao` — songs downloaded per account, used by offline mode
 - `QueueSongDao` — persisted playback queue
 - `SongDao` — general song metadata cache
 

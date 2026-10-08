@@ -73,13 +73,28 @@ public class MusicUtil {
         return builder.toString();
     }
 
+    // target path for a new download, existing downloads keep the path stored in the database
     public static String getFileUri(Song song) {
-        File root = new File(PreferenceUtil.getInstance(App.getInstance()).getLocationDownload(), "music");
+        File root = new File(PreferenceUtil.getInstance(App.getInstance()).getLocationDownload());
 
         String path = "/" + ascii(song.artistName) + "/" + ascii(song.albumName);
-        String name = "/" + song.discNumber + "." + song.trackNumber + " - " + ascii(song.title) + "." + song.container;
+        String name = "/" + song.discNumber + "." + song.trackNumber + " - " + ascii(song.title) + "." + getFileExtension(song);
 
         return root + path + name;
+    }
+
+    // prefer the extension of the original file since the container can be a list like "mov,mp4,m4a"
+    // and shared storage rejects files whose extension does not match an audio type
+    private static String getFileExtension(Song song) {
+        if (song.path != null) {
+            String name = new File(song.path).getName();
+            int dot = name.lastIndexOf('.');
+            if (dot > 0 && dot < name.length() - 1) {
+                return name.substring(dot + 1);
+            }
+        }
+
+        return song.container;
     }
 
     @NonNull

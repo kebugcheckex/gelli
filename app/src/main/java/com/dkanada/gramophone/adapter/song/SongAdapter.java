@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.base.AbsMultiSelectAdapter;
@@ -26,6 +25,7 @@ import com.dkanada.gramophone.helper.menu.SongsMenuHelper;
 import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.DownloadUtil;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
@@ -114,7 +114,7 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
         }
 
         if (holder.cached != null) {
-            if (App.getDatabase().cacheDao().isCached(song.id)) {
+            if (DownloadUtil.isDownloaded(song)) {
                 holder.cached.setVisibility(View.VISIBLE);
             } else {
                 holder.cached.setVisibility(View.GONE);

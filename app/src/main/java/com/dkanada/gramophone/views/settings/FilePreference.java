@@ -21,7 +21,7 @@ public class FilePreference extends Preference implements View.OnClickListener, 
         super(context, attrs);
 
         preferences = PreferenceUtil.getInstance(getContext()).getPreferences();
-        defaultLocation = getContext().getCacheDir().toString();
+        defaultLocation = PreferenceUtil.getInstance(getContext()).getLocationDownload();
 
         setSummary(preferences.getString(getKey(), defaultLocation));
     }

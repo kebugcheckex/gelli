@@ -17,9 +17,13 @@ import java.util.UUID
 object PlaybackReporter {
     private const val TAG = "PlaybackReporter"
 
+    // nothing is reported to the server in offline mode
+    private fun apiOrNull() =
+        if (DownloadUtil.isOfflineMode()) null else JellyfinSdkSession.createApiOrNull()
+
     @JvmStatic
     fun reportStart(song: Song, volume: Int) {
-        val api = JellyfinSdkSession.createApiOrNull() ?: return
+        val api = apiOrNull() ?: return
         val itemId = QueryUtil.toUuidOrNull(song.id) ?: return
         Thread {
             try {
@@ -34,7 +38,7 @@ object PlaybackReporter {
 
     @JvmStatic
     fun reportProgress(song: Song, progressMs: Long, volume: Int, isPaused: Boolean) {
-        val api = JellyfinSdkSession.createApiOrNull() ?: return
+        val api = apiOrNull() ?: return
         val itemId = QueryUtil.toUuidOrNull(song.id) ?: return
         val sessionId = song.id.hashCode().toString()
         Thread {
@@ -54,7 +58,7 @@ object PlaybackReporter {
 
     @JvmStatic
     fun reportStop(song: Song, progressMs: Long) {
-        val api = JellyfinSdkSession.createApiOrNull() ?: return
+        val api = apiOrNull() ?: return
         val itemId = QueryUtil.toUuidOrNull(song.id) ?: return
         Thread {
             try {
@@ -69,7 +73,7 @@ object PlaybackReporter {
 
     @JvmStatic
     fun markPlayed(song: Song) {
-        val api = JellyfinSdkSession.createApiOrNull() ?: return
+        val api = apiOrNull() ?: return
         val itemId = QueryUtil.toUuidOrNull(song.id) ?: return
         val userId = QueryUtil.toUuidOrNull(JellyfinSdkSession.getCurrentUserId())
         Thread {

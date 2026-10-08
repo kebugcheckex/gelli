@@ -78,6 +78,12 @@
     <string name="added_title_to_queue">"Added 1 title to the queue."</string>
     <string name="added_x_titles_to_queue">Added %1$d titles to the queue.</string>
     <string name="downloading_x_songs">Downloading %1$d songs.</string>
+    <string name="x_songs_unavailable_offline">%1$d songs are not downloaded and were skipped.</string>
+    <string name="action_go_offline">Go offline</string>
+    <string name="action_go_online">Go online</string>
+    <string name="downloads">Downloads</string>
+    <string name="offline">Offline</string>
+    <string name="no_downloads">No downloaded songs.</string>
     <string name="delete_playlist_x"><![CDATA[Delete the playlist <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Delete <b>%1$d</b> playlists?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Remove the song <b>%1$s</b> from the playlist?]]></string>

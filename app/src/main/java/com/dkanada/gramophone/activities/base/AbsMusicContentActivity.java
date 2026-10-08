@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import com.dkanada.gramophone.helper.EventListener;
 import com.dkanada.gramophone.interfaces.StateListener;
 import com.dkanada.gramophone.service.LoginService;
+import com.dkanada.gramophone.util.DownloadUtil;
 import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.dkanada.gramophone.util.NavigationUtil;
 
@@ -20,7 +21,8 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, @NonNull Intent intent) {
-            if (intent.getAction() == null) return;
+            // offline mode is chosen by the user, so login results don't change it
+            if (intent.getAction() == null || DownloadUtil.isOfflineMode()) return;
 
             switch(intent.getAction()) {
                 case LoginService.STATE_ONLINE:
@@ -46,7 +48,9 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
 
         registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
-        if (JellyfinSdkSession.getCurrentUserId() == null) {
+        if (DownloadUtil.isOfflineMode()) {
+            onStateOffline();
+        } else if (JellyfinSdkSession.getCurrentUserId() == null) {
             startService(new Intent(this, LoginService.class));
         } else {
             dispatchOnlineOnce();
@@ -57,7 +61,7 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
     protected void onResume() {
         super.onResume();
 
-        if (JellyfinSdkSession.getCurrentUserId() == null) {
+        if (!DownloadUtil.isOfflineMode() && JellyfinSdkSession.getCurrentUserId() == null) {
             startService(new Intent(this, LoginService.class));
         }
     }

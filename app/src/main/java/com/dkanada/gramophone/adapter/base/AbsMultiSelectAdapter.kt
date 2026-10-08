@@ -11,6 +11,7 @@ import com.afollestad.materialcab.attached.isDestroyed
 import com.afollestad.materialcab.createCab
 import com.dkanada.gramophone.R
 import com.dkanada.gramophone.interfaces.CabHolder
+import com.dkanada.gramophone.util.DownloadUtil
 import com.dkanada.gramophone.util.PreferenceUtil
 import java.util.*
 
@@ -59,7 +60,10 @@ abstract class AbsMultiSelectAdapter<VH : RecyclerView.ViewHolder, I>(
                     backgroundColor(literal = PreferenceUtil.getInstance(context).primaryColor)
                     title(literal = getName(checked[0]))
 
-                    onCreate { cab, _ -> cabHolder.onCreateCab(cab) }
+                    onCreate { cab, menu ->
+                        DownloadUtil.hideOnlineActions(menu)
+                        cabHolder.onCreateCab(cab)
+                    }
                     onSelection { item -> onSelectionCab(item) }
                     onDestroy { onDestroyCab() }
                 }

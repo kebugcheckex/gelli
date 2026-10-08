@@ -713,6 +713,11 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             case PreferenceUtil.GAIN_OFFSET:
                 playback.setVolume(PreferenceUtil.getInstance(this).getGainOffset());
                 break;
+            case PreferenceUtil.OFFLINE_MODE:
+                if (PreferenceUtil.getInstance(this).getOfflineMode()) {
+                    queueManager.removeUnavailableSongs();
+                }
+                break;
         }
     }
 

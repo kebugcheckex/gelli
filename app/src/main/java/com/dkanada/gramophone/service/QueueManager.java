@@ -4,13 +4,17 @@ import android.content.Context;
 
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.DownloadUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import androidx.media3.common.Player;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class QueueManager {
     public static final int REPEAT_MODE_NONE = 0;
@@ -42,6 +46,7 @@ public class QueueManager {
         this.position = position;
         this.playingQueue = new ArrayList<>(queue);
         this.shuffledQueue = new ArrayList<>(queue);
+        removeUnplayableSongs();
         shuffleQueue();
 
         callbacks.onQueueChanged();
@@ -176,6 +181,8 @@ public class QueueManager {
     }
 
     public void addSong(int position, Song song) {
+        if (!isPlayable(song)) return;
+
         playingQueue.add(position, song);
         shuffledQueue.add(position, song);
 
@@ -184,6 +191,8 @@ public class QueueManager {
     }
 
     public void addSong(Song song) {
+        if (!isPlayable(song)) return;
+
         playingQueue.add(song);
         shuffledQueue.add(song);
 
@@ -192,6 +201,8 @@ public class QueueManager {
     }
 
     public void addSongs(int position, List<Song> songs) {
+        songs = filterPlayable(songs);
+
         playingQueue.addAll(position, songs);
         shuffledQueue.addAll(position, songs);
 
@@ -200,6 +211,8 @@ public class QueueManager {
     }
 
     public void addSongs(List<Song> songs) {
+        songs = filterPlayable(songs);
+
         playingQueue.addAll(songs);
         shuffledQueue.addAll(songs);
 
@@ -287,6 +300,11 @@ public class QueueManager {
         shuffleMode = PreferenceUtil.getInstance(context).getShuffle();
         repeatMode = PreferenceUtil.getInstance(context).getRepeat();
 
+        Song current = getCurrentSong();
+        if (removeUnplayableSongs() && (current == null || !current.equals(getCurrentSong()))) {
+            restoredProgress = 0;
+        }
+
         callbacks.onQueueChanged();
         callbacks.onRepeatModeChanged();
         callbacks.onShuffleModeChanged();
@@ -295,6 +313,72 @@ public class QueueManager {
     public void saveQueue() {
         PreferenceUtil.getInstance(context).setPosition(position);
         App.getDatabase().queueSongDao().updateQueues(playingQueue, shuffledQueue);
+    }
+
+    // called when offline mode is turned on while songs are already queued
+    public void removeUnavailableSongs() {
+        Song current = getCurrentSong();
+        if (!removeUnplayableSongs()) return;
+
+        // keep the current song playing without interruption when it is still in the queue
+        if (current != null && current.equals(getCurrentSong())) {
+            resetCurrentSong = false;
+        }
+
+        callbacks.onQueueChanged();
+    }
+
+    // offline mode can only play downloaded songs, so drop the rest from both queues
+    // and keep the position on the same song, or the next playable one if it was removed
+    private boolean removeUnplayableSongs() {
+        if (!DownloadUtil.isOfflineMode()) return false;
+
+        List<Song> queue = getPlayingQueue();
+        List<Song> playable = new ArrayList<>();
+        int newPosition = 0;
+
+        for (int i = 0; i < queue.size(); i++) {
+            if (!DownloadUtil.isPlayableOffline(queue.get(i))) continue;
+            if (i < position) newPosition++;
+            playable.add(queue.get(i));
+        }
+
+        int removed = queue.size() - playable.size();
+        if (removed == 0) return false;
+
+        // both queues hold the same songs in a different order
+        Set<Song> keep = new HashSet<>(playable);
+        List<Song> other = shuffleMode == SHUFFLE_MODE_SHUFFLE ? playingQueue : shuffledQueue;
+        List<Song> otherPlayable = other.stream().filter(keep::contains).collect(Collectors.toList());
+
+        if (shuffleMode == SHUFFLE_MODE_SHUFFLE) {
+            shuffledQueue = playable;
+            playingQueue = otherPlayable;
+        } else {
+            playingQueue = playable;
+            shuffledQueue = otherPlayable;
+        }
+
+        position = Math.max(0, Math.min(newPosition, playable.size() - 1));
+        DownloadUtil.showUnavailableToast(context, removed);
+
+        return true;
+    }
+
+    private boolean isPlayable(Song song) {
+        if (!DownloadUtil.isOfflineMode() || DownloadUtil.isPlayableOffline(song)) return true;
+
+        DownloadUtil.showUnavailableToast(context, 1);
+        return false;
+    }
+
+    private List<Song> filterPlayable(List<Song> songs) {
+        if (!DownloadUtil.isOfflineMode()) return songs;
+
+        List<Song> playable = songs.stream().filter(DownloadUtil::isPlayableOffline).collect(Collectors.toList());
+        DownloadUtil.showUnavailableToast(context, songs.size() - playable.size());
+
+        return playable;
     }
 
     public int getRestoredProgress() {

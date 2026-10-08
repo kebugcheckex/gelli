@@ -14,4 +14,7 @@
     <item name="action_sort_method_added" type="id" />
     <item name="action_sort_method_random" type="id" />
 
+    <item name="nav_downloads" type="id" />
+    <item name="nav_offline_mode" type="id" />
+
 </resources>

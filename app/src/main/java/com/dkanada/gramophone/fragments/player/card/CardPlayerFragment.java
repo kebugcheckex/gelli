@@ -37,6 +37,7 @@ import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.activities.base.AbsMusicPanelActivity;
 import com.dkanada.gramophone.fragments.player.AbsPlayerFragment;
 import com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment;
+import com.dkanada.gramophone.util.DownloadUtil;
 import com.dkanada.gramophone.util.ImageUtil;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.Util;
@@ -191,6 +192,7 @@ public class CardPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
     private void setUpPlayerToolbar() {
         binding.playerToolbar.inflateMenu(R.menu.menu_player);
+        DownloadUtil.hideOnlineActions(binding.playerToolbar.getMenu());
         binding.playerToolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
         binding.playerToolbar.setNavigationOnClickListener(v -> getActivity().onBackPressed());
         binding.playerToolbar.setOnMenuItemClickListener(this);

@@ -16,6 +16,7 @@ import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.DownloadUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 
 import java.util.Collections;
@@ -70,6 +71,7 @@ public class SongMenuHelper {
             PopupMenu popupMenu = new PopupMenu(activity, v);
 
             popupMenu.inflate(getMenuRes());
+            DownloadUtil.hideOnlineActions(popupMenu.getMenu());
             popupMenu.setOnMenuItemClickListener(this);
             popupMenu.show();
         }

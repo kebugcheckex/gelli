@@ -10,16 +10,16 @@ import com.dkanada.gramophone.model.User;
 
 @androidx.room.Database(
         entities = {
-                Cache.class,
+                Download.class,
                 Song.class,
                 QueueSong.class,
                 User.class
         },
-        version = 8,
+        version = 9,
         exportSchema = false
 )
 public abstract class JellyDatabase extends RoomDatabase {
-    public abstract CacheDao cacheDao();
+    public abstract DownloadDao downloadDao();
     public abstract SongDao songDao();
     public abstract QueueSongDao queueSongDao();
     public abstract UserDao userDao();
@@ -122,6 +122,44 @@ public abstract class JellyDatabase extends RoomDatabase {
                     + "bitDepth INTEGER NOT NULL,"
                     + "channels INTEGER NOT NULL,"
                     + "cache INTEGER NOT NULL DEFAULT 1)");
+        }
+    };
+
+    // Replaces the id-only cache table with downloads, which keeps song metadata
+    // and the downloaded file per account so cached songs can be browsed offline.
+    public static final Migration Migration9 = new Migration(8, 9) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE IF EXISTS cache");
+
+            database.execSQL("CREATE TABLE downloads (id TEXT NOT NULL,"
+                    + "title TEXT,"
+                    + "trackNumber INTEGER NOT NULL,"
+                    + "discNumber INTEGER NOT NULL,"
+                    + "year INTEGER NOT NULL,"
+                    + "duration INTEGER NOT NULL,"
+                    + "albumId TEXT,"
+                    + "albumName TEXT,"
+                    + "artistId TEXT,"
+                    + "artistName TEXT,"
+                    + "'primary' TEXT,"
+                    + "blurHash TEXT,"
+                    + "favorite INTEGER NOT NULL,"
+                    + "path TEXT,"
+                    + "size INTEGER NOT NULL,"
+                    + "container TEXT,"
+                    + "codec TEXT,"
+                    + "supportsTranscoding INTEGER NOT NULL,"
+                    + "sampleRate INTEGER NOT NULL,"
+                    + "bitRate INTEGER NOT NULL,"
+                    + "bitDepth INTEGER NOT NULL,"
+                    + "channels INTEGER NOT NULL,"
+                    + "cache INTEGER NOT NULL DEFAULT 1,"
+                    + "userId TEXT NOT NULL,"
+                    + "filePath TEXT,"
+                    + "fileSize INTEGER NOT NULL,"
+                    + "downloadedAt INTEGER NOT NULL,"
+                    + "PRIMARY KEY (id, userId))");
         }
     };
 }

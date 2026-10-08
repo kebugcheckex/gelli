@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
@@ -202,10 +203,11 @@ public abstract class AbsMusicServiceActivity extends AbsBaseActivity implements
         Context context = getApplicationContext();
         String downloadLocation = PreferenceUtil.getInstance(context).getLocationDownload();
 
-        if (downloadLocation.equals(context.getCacheDir().toString())) {
+        // android 11 and later let apps write their own audio files to shared storage without a permission
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q || downloadLocation.startsWith(context.getApplicationInfo().dataDir)) {
             return new ArrayList<>();
         }
 
-        return Arrays.asList(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return Arrays.asList(Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
 }
