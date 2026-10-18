@@ -42,6 +42,7 @@ import com.dkanada.gramophone.glide.CustomGlideRequest;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.LocalLibrary;
+import com.dkanada.gramophone.util.NetworkUtil;
 import com.dkanada.gramophone.service.notifications.PlayingNotification;
 import com.dkanada.gramophone.service.notifications.PlayingNotificationMarshmallow;
 import com.dkanada.gramophone.service.notifications.PlayingNotificationNougat;
@@ -155,6 +156,9 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     // queued songs switch to their stored file once saved, and back to streaming once removed
     private final LocalLibrary.Listener libraryListener = this::refreshQueue;
 
+    // and to a placeholder while they can't be streamed, so playback never waits on a stream that will fail
+    private final NetworkUtil.Listener networkListener = this::refreshQueue;
+
     private final PlaybackListener playbackCallbacks = new PlaybackListener() {
         @Override
         public void onStateChanged(int state) {
@@ -195,7 +199,8 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         public void onTrackChanged(int reason) {
             acquireWakeLock(30000);
 
-            if (reason == MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+            boolean auto = reason == MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == MEDIA_ITEM_TRANSITION_REASON_REPEAT;
+            if (auto) {
                 saveTrigger.onCompleted();
 
                 if (pendingQuit) {
@@ -204,14 +209,21 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
                     quit();
                     return;
                 }
-                progressHandler.sendEmptyMessage(TRACK_CHANGED);
                 queueManager.setNextPosition();
-            } else if (reason == MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
-                progressHandler.sendEmptyMessage(TRACK_CHANGED);
             }
 
             // the queue position is updated by now, so this is the song that just started
             Song song = queueManager.getCurrentSong();
+
+            // a song that can't play right now is skipped while playing, the jump reports the song it lands on
+            boolean skipped = song != null && playback.isReady() && !LocalLibrary.isPlayable(song) && skipUnplayable();
+
+            if (auto || reason == MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
+                progressHandler.sendEmptyMessage(TRACK_CHANGED);
+            }
+
+            if (skipped) return;
+
             saveTrigger.onTrackChanged(song);
             if (song != null) LocalLibrary.restoreMissing(song);
 
@@ -220,6 +232,11 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
 
             notifyChange(STATE_CHANGED);
             notifyChange(META_CHANGED);
+        }
+
+        @Override
+        public void onStreamLost() {
+            if (skipUnplayable()) progressHandler.sendEmptyMessage(TRACK_CHANGED);
         }
     };
 
@@ -276,6 +293,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
 
         queueManager = new QueueManager(this, queueCallbacks);
         LocalLibrary.addListener(libraryListener);
+        NetworkUtil.addListener(networkListener);
 
         progressHandlerThread = new HandlerThread(ProgressHandler.class.getName());
         progressHandlerThread.start();
@@ -491,6 +509,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         queueHandlerThread.quitSafely();
 
         LocalLibrary.removeListener(libraryListener);
+        NetworkUtil.removeListener(networkListener);
         saveTrigger.release();
         playback.stop();
         mediaSession.release();
@@ -509,13 +528,74 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     }
 
     public void playPreviousSong() {
+        if (!NetworkUtil.canStream(this)) {
+            int position = queueManager.getPosition();
+            int target = findPlayable(position, -1);
+            if (target >= 0) {
+                showSkipped(Math.floorMod(position - target, queueManager.getPlayingQueue().size()) - 1);
+                jumpTo(target);
+            } else {
+                // there is no stored song before this one to go back to
+                seek(0);
+            }
+            return;
+        }
+
         queueManager.setPreviousPosition();
         playback.previous();
     }
 
     public void playNextSong() {
+        if (!NetworkUtil.canStream(this)) {
+            int position = queueManager.getPosition();
+            int target = findPlayable(position, 1);
+            if (target >= 0) {
+                showSkipped(Math.floorMod(target - position, queueManager.getPlayingQueue().size()) - 1);
+                jumpTo(target);
+                return;
+            }
+            // with nothing stored ahead, landing on the next song pauses with a message
+        }
+
         queueManager.setNextPosition();
         playback.next();
+    }
+
+    // Moves from the current song, which can't play right now, to the next one that can. Pauses if none is
+    // left and returns whether it moved.
+    private boolean skipUnplayable() {
+        int position = queueManager.getPosition();
+        int target = findPlayable(position, 1);
+        if (target < 0) {
+            pause();
+            Toast.makeText(getApplicationContext(), R.string.no_stored_songs_left, Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        showSkipped(Math.floorMod(target - position, queueManager.getPlayingQueue().size()));
+        jumpTo(target);
+        return true;
+    }
+
+    // the nearest position from `from` in the direction of `step` with a song that can play right now, or -1
+    private int findPlayable(int from, int step) {
+        List<Song> queue = queueManager.getPlayingQueue();
+        boolean canStream = NetworkUtil.canStream(this);
+        boolean wrap = queueManager.getRepeatMode() == QueueManager.REPEAT_MODE_ALL;
+
+        return QueueManager.findPlayable(queue.size(), from, step, wrap, position -> canStream || LocalLibrary.isAvailable(queue.get(position)));
+    }
+
+    private void jumpTo(int position) {
+        queueManager.setPosition(position);
+        playback.playSongAt(position);
+    }
+
+    private void showSkipped(int count) {
+        if (count <= 0) return;
+
+        String message = getResources().getQuantityString(R.plurals.skipped_x_songs_not_stored, count, count);
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     public void initNotification() {

@@ -149,8 +149,10 @@ The settings live in a "Network" category of the settings screen, above "Local L
 ### Playback integration
 
 - `LocalPlayer.createMediaItems()` resolves each song through `LocalLibrary`: stored → `file://` URI (progressive), otherwise the stream URI.
-- Songs that are neither stored nor streamable under the current policy are skipped, with a single toast per queue action. The policy is checked when songs enter the queue: `MusicPlayerRemote` filters every open, play next and enqueue through `LocalLibrary.getPlayable()` (all songs while `NetworkUtil.canStream()`, otherwise the stored ones) before they reach `QueueManager`, since `LocalPlayer` assumes its items line up with the queue by index. Opening a queue at a skipped song starts at the next playable one.
-- Songs already queued keep their stream when the network changes, and the restored queue is not filtered. Playing such a song without a network fails like any other playback error. Re-checking queued songs on network changes is deferred.
+- Songs that are neither stored nor streamable under the current policy (`LocalLibrary.isPlayable()` is false) stay in the queue, since `LocalPlayer` assumes its items line up with the queue by index. Their media item is a silent placeholder (`PlaceholderMediaSourceFactory`, an `unavailable:` URI backed by a short `SilenceMediaSource`), so ExoPlayer never preloads a stream that would fail. Song lists show them greyed out with a cloud-off badge, and redraw when the network changes.
+- While playing, `MusicService` skips past them: when a track change lands on one, it jumps to the next playable song with one toast for the run it skipped, or pauses with a toast if none is left. Next and previous jump over them the same way. Repeat-all wraps around the queue. A paused queue resting on one plays its silence and moves on when started.
+- `NetworkUtil` tracks the default network with a `NetworkCallback` and notifies listeners when connectivity or meteredness changes, or the streaming setting does (`notifyChanged()`). `MusicService` refreshes the queue on every notification, turning streams into placeholders and back.
+- A stream that fails because the network stopped allowing it (`onPlayerError` while `canStream()` is false) moves on to the next playable song instead of clearing the player. If there is none, the song is held as a placeholder.
 - When a save completes for a song in the current queue (not the current item), its media item is replaced with the local one (`Player.replaceMediaItem`).
 
 `Playback.refreshQueue()` implements the replacement:
@@ -158,7 +160,7 @@ The settings live in a "Network" category of the settings screen, above "Local L
 - `MusicService` calls it whenever `LocalLibrary` notifies a change, and on every track change. The second call catches files deleted outside the app, which don't notify.
 - It looks up the whole queue with one query per 500 songs (`LocalLibrary.getFiles()`), then swaps each item both ways. A newly stored song switches to its file, and a removed or missing song switches back to the stream.
 - The current item is left alone, so a song keeps playing from wherever it started. Items whose media id no longer matches the queue are skipped, since the queue may have changed in the meantime.
-- A local item is replaced when its file path changes. A streamed item is replaced only when the song becomes stored, and its stream URI is never rebuilt, so a refresh doesn't restart buffering of the next song.
+- A local item is replaced when its file path changes. A streamed item is replaced only when the song becomes stored or can no longer be streamed, and its stream URI is never rebuilt, so a refresh doesn't restart buffering of the next song. A placeholder is replaced once the song is stored or streamable again, by removing and re-adding it, since a silence source accepts any item as an in-place update.
 - Playback reporting and favorite toggles are suppressed in offline mode. Queuing them for later sync is deferred.
 - The Media3 `SimpleCache` is removed, since played songs are persisted by the library. Streams play straight from the network through `DefaultMediaSourceFactory`. The "Media" cache size setting goes with it. Preference migration v4 (`PreferenceUtil.Migration4`) deletes `<location_cache>/exoplayer`, the cache index database `exoplayer_internal.db` and the `media_cache_size` key. The `media3-datasource` and `media3-database` dependencies are dropped, since nothing uses them directly any more.
 
@@ -220,7 +222,7 @@ Deliverable: played songs persist automatically according to the trigger.
 ### Phase 4: Network policy
 
 1. `ACCESS_NETWORK_STATE` and the "Network" settings category with `network_saving`, applied as the save worker's network constraint and to queued work when it changes. Cancel in the save notification moves to an app receiver, so restarting the worker never drops the queue.
-2. A network-state helper and `network_streaming`. Songs that are neither stored nor streamable under the policy are skipped when the queue is built, with a single toast per queue action.
+2. A network-state helper and `network_streaming`. Songs that are neither stored nor streamable under the policy stay queued as silent placeholders, shown greyed out, and playback skips past them to the next stored song with a toast.
 3. Manual offline mode switch: no streaming, no saving, no playback reporting or favorite toggles.
 
 Deliverable: the user controls when the app uses the network.

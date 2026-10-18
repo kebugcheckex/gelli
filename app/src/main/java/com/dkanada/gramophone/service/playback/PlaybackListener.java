@@ -8,4 +8,7 @@ public interface PlaybackListener {
     void onPlayingChanged(boolean playing);
 
     void onTrackChanged(int reason);
+
+    // the current song was streaming and failed after the network stopped allowing it
+    void onStreamLost();
 }

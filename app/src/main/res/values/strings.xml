@@ -79,9 +79,10 @@
     <string name="added_title_to_queue">"Added 1 title to the queue."</string>
     <string name="added_x_titles_to_queue">Added %1$d titles to the queue.</string>
     <plurals name="skipped_x_songs_not_stored">
-        <item quantity="one">Skipped %1$d song that is not on this device and can\'t be streamed on this network.</item>
-        <item quantity="other">Skipped %1$d songs that are not on this device and can\'t be streamed on this network.</item>
+        <item quantity="one">Skipped %1$d song that is not on this device.</item>
+        <item quantity="other">Skipped %1$d songs that are not on this device.</item>
     </plurals>
+    <string name="no_stored_songs_left">No songs left in the queue that are on this device.</string>
     <string name="downloading_x_songs">Downloading %1$d songs.</string>
     <string name="remove_x_songs_from_device"><![CDATA[Remove <b>%1$d</b> songs from the device? Only the saved files are removed, and the songs can still be streamed or downloaded again.]]></string>
     <string name="removed_x_songs_from_device">Removed %1$d songs from the device.</string>

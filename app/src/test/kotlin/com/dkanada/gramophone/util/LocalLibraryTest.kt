@@ -2,7 +2,6 @@ package com.dkanada.gramophone.util
 
 import com.dkanada.gramophone.database.LocalSong.Source
 import com.dkanada.gramophone.database.LocalSong.State
-import com.dkanada.gramophone.model.Song
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -84,44 +83,5 @@ class LocalLibraryTest {
     fun mergedSource_sameSourceUnchanged() {
         assertEquals(Source.PLAYED, LocalLibrary.mergedSource(Source.PLAYED, Source.PLAYED))
         assertEquals(Source.EXPLICIT, LocalLibrary.mergedSource(Source.EXPLICIT, Source.EXPLICIT))
-    }
-
-    // --- playablePosition ---
-
-    private val songs = List(5) { Song() }
-
-    @Test
-    fun playablePosition_allPlayable_unchanged() {
-        for (position in songs.indices) {
-            assertEquals(position, LocalLibrary.playablePosition(songs, songs, position))
-        }
-    }
-
-    @Test
-    fun playablePosition_keptSong_countsKeptSongsBefore() {
-        val playable = listOf(songs[1], songs[3], songs[4])
-        assertEquals(0, LocalLibrary.playablePosition(songs, playable, 1))
-        assertEquals(1, LocalLibrary.playablePosition(songs, playable, 3))
-        assertEquals(2, LocalLibrary.playablePosition(songs, playable, 4))
-    }
-
-    @Test
-    fun playablePosition_droppedSong_mapsToNextKept() {
-        val playable = listOf(songs[1], songs[3])
-        assertEquals(0, LocalLibrary.playablePosition(songs, playable, 0))
-        assertEquals(1, LocalLibrary.playablePosition(songs, playable, 2))
-    }
-
-    @Test
-    fun playablePosition_droppedTail_mapsToLastKept() {
-        val playable = listOf(songs[0], songs[1])
-        assertEquals(1, LocalLibrary.playablePosition(songs, playable, 4))
-    }
-
-    @Test
-    fun playablePosition_invalid_returnsMinusOne() {
-        assertEquals(-1, LocalLibrary.playablePosition(songs, songs, -1))
-        assertEquals(-1, LocalLibrary.playablePosition(songs, songs, songs.size))
-        assertEquals(-1, LocalLibrary.playablePosition(songs, emptyList(), 0))
     }
 }

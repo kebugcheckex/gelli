@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntPredicate;
 
 public class QueueManager {
     public static final int REPEAT_MODE_NONE = 0;
@@ -93,6 +94,25 @@ public class QueueManager {
                 position = (position - 1 + playingQueue.size()) % playingQueue.size();
                 break;
         }
+    }
+
+    /**
+     * Returns the first position after `from`, stepping by `step` (1 or -1), whose song is playable, or -1 if
+     * there is none. With `wrap` the search continues around the queue, but never back to `from` itself.
+     */
+    public static int findPlayable(int size, int from, int step, boolean wrap, IntPredicate playable) {
+        for (int i = 1; i < size; i++) {
+            int position = from + step * i;
+            if (wrap) {
+                position = Math.floorMod(position, size);
+            } else if (position < 0 || position >= size) {
+                break;
+            }
+
+            if (playable.test(position)) return position;
+        }
+
+        return -1;
     }
 
     public int getRepeatMode() {

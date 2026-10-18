@@ -9,6 +9,7 @@ import androidx.room.Room;
 import com.dkanada.gramophone.database.JellyDatabase;
 import com.dkanada.gramophone.model.User;
 import com.dkanada.gramophone.util.JellyfinSdkSession;
+import com.dkanada.gramophone.util.NetworkUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.views.shortcuts.DynamicShortcutManager;
 import com.melegy.redscreenofdeath.RedScreenOfDeath;
@@ -29,6 +30,7 @@ public class App extends Application {
         app = this;
         database = createDatabase(this);
         JellyfinSdkSession.initialize(this);
+        NetworkUtil.init(this);
 
         if (database.userDao().getUsers().size() == 0) {
             PreferenceUtil.getInstance(this).setServer(null);

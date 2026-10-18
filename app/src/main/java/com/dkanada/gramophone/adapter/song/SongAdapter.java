@@ -29,6 +29,7 @@ import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
+import com.dkanada.gramophone.util.NetworkUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
@@ -43,8 +44,9 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
     protected boolean usePalette;
     protected boolean showSectionName;
 
-    // badges follow the local library while the list is on screen
+    // badges follow the local library and the network while the list is on screen
     private final LocalLibrary.Listener libraryListener = this::notifyDataSetChanged;
+    private final NetworkUtil.Listener networkListener = this::notifyDataSetChanged;
 
     public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
         this(activity, dataSet, itemLayoutRes, usePalette, cabHolder, true);
@@ -80,12 +82,14 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         LocalLibrary.addListener(libraryListener);
+        NetworkUtil.addListener(networkListener);
     }
 
     @Override
     public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
         super.onDetachedFromRecyclerView(recyclerView);
         LocalLibrary.removeListener(libraryListener);
+        NetworkUtil.removeListener(networkListener);
     }
 
     @Override
@@ -130,6 +134,7 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
         }
 
         LocalLibrary.Availability availability = LocalLibrary.getAvailability(song);
+        boolean canStream = NetworkUtil.canStream(activity);
         if (holder.cached != null) {
             if (availability == LocalLibrary.Availability.STORED) {
                 holder.cached.setImageResource(R.drawable.ic_download_24dp);
@@ -137,12 +142,17 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
             } else if (availability == LocalLibrary.Availability.MISSING) {
                 holder.cached.setImageResource(R.drawable.ic_error_outline_white_24dp);
                 holder.cached.setVisibility(View.VISIBLE);
+            } else if (!canStream) {
+                holder.cached.setImageResource(R.drawable.ic_cloud_off_24dp);
+                holder.cached.setVisibility(View.VISIBLE);
             } else {
                 holder.cached.setVisibility(View.GONE);
             }
         }
 
-        setAlpha(holder, availability == LocalLibrary.Availability.MISSING ? 0.5f : 1f);
+        // missing songs, and songs that can't be streamed right now, are skipped by playback
+        boolean playable = availability == LocalLibrary.Availability.STORED || (availability == LocalLibrary.Availability.NONE && canStream);
+        setAlpha(holder, playable ? 1f : 0.5f);
 
         loadAlbumCover(song, holder);
     }

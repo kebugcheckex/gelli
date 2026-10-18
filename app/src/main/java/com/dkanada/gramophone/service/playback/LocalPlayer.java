@@ -14,6 +14,7 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.MusicUtil;
+import com.dkanada.gramophone.util.NetworkUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
@@ -88,6 +89,21 @@ public class LocalPlayer implements Playback {
         public void onPlayerError(PlaybackException error) {
             Log.i(TAG, String.format("onPlayerError: %s", error.getMessage()));
 
+            MediaItem current = exoPlayer.getCurrentMediaItem();
+            if (listener != null && current != null && !isLocal(current.localConfiguration.uri) && !NetworkUtil.canStream(context)) {
+                // the network went away while streaming, so move on to a stored song instead of stopping
+                int index = exoPlayer.getCurrentMediaItemIndex();
+                listener.onStreamLost();
+
+                if (exoPlayer.getCurrentMediaItemIndex() == index) {
+                    // nothing to move on to, so hold the song as a placeholder instead of retrying the stream
+                    exoPlayer.replaceMediaItem(index, PlaceholderMediaSourceFactory.createMediaItem(current.mediaId));
+                }
+
+                exoPlayer.prepare();
+                return;
+            }
+
             exoPlayer.clearMediaItems();
             exoPlayer.prepare();
 
@@ -107,7 +123,7 @@ public class LocalPlayer implements Playback {
         DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true);
 
         exoPlayer = new ExoPlayer.Builder(context)
-            .setMediaSourceFactory(new DefaultMediaSourceFactory(context, extractorsFactory))
+            .setMediaSourceFactory(new PlaceholderMediaSourceFactory(new DefaultMediaSourceFactory(context, extractorsFactory)))
             .setAudioAttributes(audioAttributes, true)
             .build();
 
@@ -155,8 +171,9 @@ public class LocalPlayer implements Playback {
     public void setQueue(List<Song> queue, int position, int progress, boolean resetCurrentSong) {
         executorService.submit(() -> {
             Map<String, File> files = LocalLibrary.getFiles(queue);
+            boolean canStream = NetworkUtil.canStream(context);
             List<MediaItem> mediaItems = queue.stream()
-                    .map(song -> createMediaItem(song, files.get(song.id)))
+                    .map(song -> createMediaItem(song, files.get(song.id), canStream))
                     .collect(Collectors.toList());
 
             mainHandler.post(() -> {
@@ -181,12 +198,13 @@ public class LocalPlayer implements Playback {
         });
     }
 
-    // Points queued songs at their stored file once saved, and back at the stream once removed.
-    // The current song keeps playing from wherever it started.
+    // Points queued songs at their stored file once saved, at the stream once removed, and at a placeholder
+    // while they can't be streamed. The current song keeps playing from wherever it started.
     @Override
     public void refreshQueue(List<Song> queue) {
         executorService.submit(() -> {
             Map<String, File> files = LocalLibrary.getFiles(queue);
+            boolean canStream = NetworkUtil.canStream(context);
 
             mainHandler.post(() -> {
                 int current = exoPlayer.getCurrentMediaItemIndex();
@@ -201,22 +219,45 @@ public class LocalPlayer implements Playback {
 
                     File audio = files.get(song.id);
                     Uri uri = mediaItem.localConfiguration.uri;
-                    boolean stale = audio != null ? !Uri.fromFile(audio).equals(uri) : isLocal(uri);
+                    boolean placeholder = PlaceholderMediaSourceFactory.isPlaceholder(uri);
+
+                    boolean stale;
+                    if (audio != null) {
+                        stale = !Uri.fromFile(audio).equals(uri);
+                    } else if (canStream) {
+                        stale = isLocal(uri) || placeholder;
+                    } else {
+                        stale = !placeholder;
+                    }
 
                     if (stale) {
-                        Log.i(TAG, String.format("refreshQueue: %s now %s", song.id, audio != null ? "stored" : "streamed"));
-                        exoPlayer.replaceMediaItem(i, createMediaItem(song, audio));
+                        Log.i(TAG, String.format("refreshQueue: %s now %s", song.id, audio != null ? "stored" : canStream ? "streamed" : "unavailable"));
+                        replaceMediaItem(i, placeholder, createMediaItem(song, audio, canStream));
                     }
                 }
             });
         });
     }
 
+    private void replaceMediaItem(int index, boolean placeholder, MediaItem mediaItem) {
+        if (placeholder) {
+            // a silence source accepts any media item as an update, so it has to be swapped out instead
+            exoPlayer.removeMediaItem(index);
+            exoPlayer.addMediaItem(index, mediaItem);
+        } else {
+            exoPlayer.replaceMediaItem(index, mediaItem);
+        }
+    }
+
     private static boolean isLocal(Uri uri) {
         return "file".equals(uri.getScheme());
     }
 
-    private MediaItem createMediaItem(Song song, @Nullable File audio) {
+    private MediaItem createMediaItem(Song song, @Nullable File audio, boolean canStream) {
+        if (audio == null && !canStream) {
+            return PlaceholderMediaSourceFactory.createMediaItem(song.id);
+        }
+
         Uri uri = audio != null ? Uri.fromFile(audio) : Uri.parse(MusicUtil.getTranscodeUri(song));
 
         List<String> containers = PreferenceUtil.getInstance(context).getDirectPlayCodecs().stream()
