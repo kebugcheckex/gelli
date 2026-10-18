@@ -103,7 +103,6 @@
     <string name="colored_footers">Farbige Balken</string>
     <string name="special_thanks_to">Besonderes Dankeschön an</string>
     <string name="permissions_denied">Berechtigungen verweigert.</string>
-    <string name="permission_external_storage_denied">Die Berechtigung für den Zugriff auf den externen Speicher wurde verweigert.</string>
     <string name="support_development">Unterstütze die Entwicklung</string>
     <string name="version">Version</string>
     <string name="author">Autor</string>

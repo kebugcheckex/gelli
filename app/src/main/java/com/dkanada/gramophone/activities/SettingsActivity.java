@@ -77,7 +77,6 @@ public class SettingsActivity extends AbsBaseActivity {
             final TwoStatePreference colorAppShortcuts = findPreference(PreferenceUtil.COLORED_SHORTCUTS);
             final Preference categoryPreference = findPreference(PreferenceUtil.CATEGORIES);
             final Preference nowPlayingPreference = findPreference(PreferenceUtil.NOW_PLAYING_SCREEN);
-            final Preference downloadLocationPreference = findPreference(PreferenceUtil.LOCATION_DOWNLOAD);
             final Preference showAlbumCoverPreference = findPreference(PreferenceUtil.SHOW_ALBUM_COVER);
             final Preference blurAlbumCoverPreference = findPreference(PreferenceUtil.BLUR_ALBUM_COVER);
 
@@ -95,8 +94,6 @@ public class SettingsActivity extends AbsBaseActivity {
             }
 
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-                downloadLocationPreference.setEnabled(false);
-
                 // stock Android 11 removed the album cover on lock screens
                 // supported on LineageOS so we might want to add a check at some point
                 showAlbumCoverPreference.setEnabled(false);

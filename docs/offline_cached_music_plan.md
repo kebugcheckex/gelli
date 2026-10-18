@@ -70,7 +70,7 @@ Album cover art is stored once per album under `images/`. Glide's own cache stay
 
 A song is **available locally** only when `state = COMPLETE` and the file exists. A single `LocalLibrary.isAvailable(song)` lookup replaces the path-existence check in `LocalPlayer` and the `cacheDao().isCached()` badge check in `SongAdapter`.
 
-During the transition (until legacy removal), `LocalLibrary.resolve(song)` returns the library file if available, otherwise the legacy metadata-derived file if it exists and is non-empty, otherwise nothing (stream). The badge shows for either. This keeps legacy downloads playable while the new pipeline comes online, and the non-empty check removes the zero-byte-file defect immediately.
+During the transition (Phases 1 and 2), `LocalLibrary.resolve(song)` returned the library file if available, otherwise the legacy metadata-derived file if it existed and was non-empty, otherwise nothing (stream). The badge showed for either. This kept legacy downloads playable while the new pipeline came online. Phase 2b removed the fallback, so playback and the badge now read `LocalLibrary.getFile(song)` only.
 
 ### Missing files
 
@@ -159,8 +159,8 @@ Legacy storage is retired in two steps so downloads keep working throughout:
 
 - Room migration v8 → v9 (Phase 1) is additive: it only creates `local_songs`. The `cache` table, `Song.cache`, `DownloadService` and the legacy file layout are untouched, and legacy files stay playable through the `resolve()` fallback.
 - Room migration v9 → v10 (legacy removal, after the save pipeline replaces `DownloadService`): drop the `cache` table and rebuild `songs`/`queueSongs` without `Song.cache`. Losing the persisted playback queue once during this migration is acceptable.
-- Legacy files, deleted in the same step as the v10 migration: if `location_download` is still the app's own cache directory, delete `<cacheDir>/music` and `<location_cache>/download`. If it points to a user-chosen external folder, leave the files untouched and ignore them.
-- Also in that step: remove the `location_download` preference, `FilePreference`, `MusicUtil.getFileUri`, the legacy fallback in `resolve()`, and the external storage permission request in `AbsMusicServiceActivity`.
+- Legacy files, deleted in the same step by preference migration v3 (`PreferenceUtil.Migration3`), which runs once on the first start after the upgrade: `<location_cache>/download` (the old service's temp files) is always deleted, and `<location_download>/music` only if `location_download` is still the app's own cache directory. A user-chosen external folder may hold other files, so it is left untouched and ignored. The migration then removes the `location_download` key, and the folders are deleted off the main thread.
+- Also in that step: remove the `location_download` preference, `FilePreference` and its storage-chooser dependency, `MusicUtil.getFileUri`, the legacy fallback in `resolve()` (which becomes `getFile()`), the external storage permission request in `AbsMusicServiceActivity`, and the `READ_EXTERNAL_STORAGE`/`READ_MEDIA_AUDIO` manifest permissions.
 
 ## Phases
 

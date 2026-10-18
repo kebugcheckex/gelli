@@ -90,7 +90,6 @@
     <string name="colored_footers">Оцветени кутийки за имената</string>
     <string name="special_thanks_to">Специални благодарности към</string>
     <string name="permissions_denied">Достъпът е отказан.</string>
-    <string name="permission_external_storage_denied">Достъпът до външното място за съхранение е отказан.</string>
     <string name="support_development">Подкрепете развитието</string>
     <string name="version">Версия</string>
     <string name="author">Автор</string>

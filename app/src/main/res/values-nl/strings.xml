@@ -99,7 +99,6 @@
     <string name="colored_footers">Gekleurde voetkaders</string>
     <string name="special_thanks_to">Speciale dank aan</string>
     <string name="permissions_denied">Machtiging geweigerd.</string>
-    <string name="permission_external_storage_denied">Toegang tot externe opslag geweigerd.</string>
     <string name="support_development">Ondersteun ontwikkeling</string>
     <string name="version">Versie</string>
     <string name="author">Auteur</string>

@@ -15,6 +15,8 @@ import com.dkanada.gramophone.model.Codec;
 import com.dkanada.gramophone.interfaces.base.PreferenceMigration;
 import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -85,14 +87,13 @@ public final class PreferenceUtil {
 
     public static final String LIBRARY_ORIGINAL_CAP = "library_original_cap_mb";
 
-    public static final String LOCATION_DOWNLOAD = "location_download";
     public static final String LOCATION_CACHE = "location_cache";
     public static final String IMAGE_CACHE_SIZE = "image_cache_size";
     public static final String MEDIA_CACHE_SIZE = "media_cache_size";
 
     private static final PreferenceMigration Migration1 = new PreferenceMigration(0, 1) {
         @Override
-        public void migrate(SharedPreferences preferences) {
+        public void migrate(Context context, SharedPreferences preferences) {
             String theme = preferences.getString(GENERAL_THEME, "DARK");
             String imageSize = preferences.getString(IMAGE_CACHE_SIZE, "400000000");
             String mediaSize = preferences.getString(MEDIA_CACHE_SIZE, "400000000");
@@ -105,7 +106,7 @@ public final class PreferenceUtil {
 
     private static final PreferenceMigration Migration2 = new PreferenceMigration(1, 2) {
         @Override
-        public void migrate(SharedPreferences preferences) {
+        public void migrate(Context context, SharedPreferences preferences) {
             String defaultCategories = Arrays.stream(Category.values())
                 .map(Enum::toString)
                 .collect(Collectors.joining("."));
@@ -114,9 +115,29 @@ public final class PreferenceUtil {
         }
     };
 
+    // Drops the songs saved by the old download service. A folder the user chose may hold other files, so it is left alone.
+    private static final PreferenceMigration Migration3 = new PreferenceMigration(2, 3) {
+        @Override
+        public void migrate(Context context, SharedPreferences preferences) {
+            String cacheDir = context.getCacheDir().toString();
+            String download = preferences.getString("location_download", cacheDir);
+            String cache = preferences.getString(LOCATION_CACHE, cacheDir);
+
+            List<File> dirs = new ArrayList<>();
+            dirs.add(new File(cache, "download"));
+            if (download.equals(cacheDir)) {
+                dirs.add(new File(download, "music"));
+            }
+
+            LocalLibrary.deleteLegacyFiles(dirs);
+            preferences.edit().remove("location_download").commit();
+        }
+    };
+
     private static final List<PreferenceMigration> migrations = Arrays.asList(
         Migration1,
-        Migration2
+        Migration2,
+        Migration3
     );
 
     private static PreferenceUtil instance;
@@ -130,7 +151,7 @@ public final class PreferenceUtil {
 
         for (PreferenceMigration migration : migrations) {
             if (mPreferences.getInt(VERSION, 0) == migration.startVersion) {
-                migration.migrate(mPreferences);
+                migration.migrate(context, mPreferences);
                 mPreferences.edit().putInt(VERSION, migration.endVersion).commit();
             }
         }
@@ -424,10 +445,6 @@ public final class PreferenceUtil {
     /** Songs larger than this many bytes are saved transcoded, 0 saves every song as the original. */
     public final long getLibraryOriginalCap() {
         return Long.parseLong(mPreferences.getString(LIBRARY_ORIGINAL_CAP, "15")) * 1024 * 1024;
-    }
-
-    public final String getLocationDownload() {
-        return mPreferences.getString(LOCATION_DOWNLOAD, mContext.getCacheDir().toString());
     }
 
     public final String getLocationCache() {

@@ -1,5 +1,6 @@
 package com.dkanada.gramophone.interfaces.base;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 
 public abstract class PreferenceMigration {
@@ -11,5 +12,5 @@ public abstract class PreferenceMigration {
         this.endVersion = endVersion;
     }
 
-    public abstract void migrate(SharedPreferences preferences);
+    public abstract void migrate(Context context, SharedPreferences preferences);
 }

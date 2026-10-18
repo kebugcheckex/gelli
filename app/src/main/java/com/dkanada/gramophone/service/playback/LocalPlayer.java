@@ -188,7 +188,7 @@ public class LocalPlayer implements Playback {
 
     private List<MediaItem> createMediaItems(List<Song> queue) {
         return queue.stream().map(song -> {
-            File audio = LocalLibrary.resolve(song);
+            File audio = LocalLibrary.getFile(song);
             Uri uri = audio != null ? Uri.fromFile(audio) : Uri.parse(MusicUtil.getTranscodeUri(song));
 
             List<String> containers = PreferenceUtil.getInstance(context).getDirectPlayCodecs().stream()

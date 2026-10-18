@@ -4,11 +4,6 @@
 
     <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_cache">
 
-        <com.dkanada.gramophone.views.settings.FilePreference
-            app:iconSpaceReserved="false"
-            android:key="location_download"
-            android:title="@string/pref_title_download_location" />
-
         <ListPreference
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true"

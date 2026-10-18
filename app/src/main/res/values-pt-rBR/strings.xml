@@ -102,7 +102,6 @@
     <string name="colored_footers">Rodapés coloridos</string>
     <string name="special_thanks_to">Agradecimentos especiais para</string>
     <string name="permissions_denied">Permissões negadas.</string>
-    <string name="permission_external_storage_denied">Permissão para acessar armazenamento externo negado.</string>
     <string name="support_development">Apoiar o desenvolvimento</string>
     <string name="version">Versão</string>
     <string name="author">Autor</string>

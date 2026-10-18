@@ -102,7 +102,6 @@
     <string name="colored_footers">Värilliset alatunnisteet</string>
     <string name="special_thanks_to">Erikoiskiitokset</string>
     <string name="permissions_denied">Sinulla ei ole oikeuksia tähän.</string>
-    <string name="permission_external_storage_denied">Oikeus päästä muistikortille evätty.</string>
     <string name="support_development">Tue kehitystä</string>
     <string name="version">Versio</string>
     <string name="author">Luoja</string>

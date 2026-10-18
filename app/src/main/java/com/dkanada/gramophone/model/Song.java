@@ -4,7 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -44,9 +43,6 @@ public class Song implements Parcelable {
     public int bitDepth;
     public int channels;
 
-    @ColumnInfo(defaultValue = "1")
-    public boolean cache;
-
     public Song() {
         this.id = UUID.randomUUID().toString();
     }
@@ -81,8 +77,6 @@ public class Song implements Parcelable {
         this.bitRate = source.bitRate;
         this.bitDepth = source.bitDepth;
         this.channels = source.channels;
-
-        this.cache = source.cache;
     }
 
     @Override

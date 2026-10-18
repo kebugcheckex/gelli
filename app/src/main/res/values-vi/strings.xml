@@ -93,7 +93,6 @@
     <string name="colored_footers">Màu cuối trang</string>
     <string name="special_thanks_to">Trân trọng cảm ơn</string>
     <string name="permissions_denied">Quyền hạn bị từ chối.</string>
-    <string name="permission_external_storage_denied">Quyền truy cập lưu trữ bên ngoài bị từ chối.</string>
     <string name="support_development">Hỗ trợ phát triển</string>
     <string name="version">Phiên bản</string>
     <string name="author">Tác giả</string>

@@ -99,7 +99,6 @@
     <string name="colored_footers">"Barevné zápatí "</string>
     <string name="special_thanks_to">Zvláštní poděkování</string>
     <string name="permissions_denied">"Oprávnění zamítnuta. "</string>
-    <string name="permission_external_storage_denied">"Přístup k otevření externího úložiště zamítnut. "</string>
     <string name="support_development">Podpořte vývoj</string>
     <string name="version">Verze</string>
     <string name="author">Autor</string>

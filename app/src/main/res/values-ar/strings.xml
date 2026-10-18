@@ -99,7 +99,6 @@
     <string name="colored_footers">هوامش ملونة</string>
     <string name="special_thanks_to">شكر خاص إلى</string>
     <string name="permissions_denied">تم رفض الصلاحيات.</string>
-    <string name="permission_external_storage_denied">تم رفض صلاحية الوصول إلى الذاكرة الخارجية.</string>
     <string name="support_development">دعم التطوير</string>
     <string name="version">الإصدار</string>
     <string name="author">المؤلف</string>

@@ -99,7 +99,6 @@
     <string name="colored_footers">Kolorowe stopki</string>
     <string name="special_thanks_to">Specjalne podziękowania dla</string>
     <string name="permissions_denied">Odmówiono zezwolenia</string>
-    <string name="permission_external_storage_denied">Pozwolenie na dostęp do pamięci zewnętrznej odrzucone</string>
     <string name="support_development">Wspomóż rozwój</string>
     <string name="version">Wersja</string>
     <string name="author">O autorze</string>

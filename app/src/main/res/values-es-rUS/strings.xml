@@ -99,7 +99,6 @@
     <string name="colored_footers">Pies de página coloreados</string>
     <string name="special_thanks_to">Agradecimientos especiales a</string>
     <string name="permissions_denied">Permisos denegados.</string>
-    <string name="permission_external_storage_denied">Permiso para acceder al almacenamiento externo denegado.</string>
     <string name="support_development">Apoyar el desarrollo</string>
     <string name="version">Versión</string>
     <string name="author">Autor</string>

@@ -99,7 +99,6 @@
     <string name="colored_footers">Színes lábjegyzetek</string>
     <string name="special_thanks_to">Külön köszönet</string>
     <string name="permissions_denied">Jogosultságok megtagadva.</string>
-    <string name="permission_external_storage_denied">Hozzáférés megtagadva a külső tárhelyhez.</string>
     <string name="support_development">Fejlesztés támogatás</string>
     <string name="version">Verzió</string>
     <string name="author">Készítő</string>

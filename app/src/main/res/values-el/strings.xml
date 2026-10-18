@@ -93,7 +93,6 @@
     <string name="colored_footers">Χρωματιστά υποσέλιδα</string>
     <string name="special_thanks_to">Ιδιαίτερες ευχαριστίες προς</string>
     <string name="permissions_denied">Άρνηση χορήγησης δικαιωμάτων.</string>
-    <string name="permission_external_storage_denied">Άρνηση χορήγησης δικαιώματος πρόσβασης σε εξωτερικά μέσα αποθήκευσης.</string>
     <string name="support_development">Υποστηρίξτε την ανάπτυξη της εφαρμογής</string>
     <string name="version">Έκδοση</string>
     <string name="author">Εκδότης</string>

@@ -99,7 +99,6 @@
     <string name="colored_footers">色付きフッター</string>
     <string name="special_thanks_to">スペシャルサンクス</string>
     <string name="permissions_denied">権限が拒否されました</string>
-    <string name="permission_external_storage_denied">内部ストレージへのアクセス権限が拒否されました</string>
     <string name="support_development">開発を支援</string>
     <string name="version">バージョン</string>
     <string name="author">製作者</string>

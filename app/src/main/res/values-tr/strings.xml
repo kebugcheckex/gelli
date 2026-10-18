@@ -99,7 +99,6 @@
     <string name="colored_footers">Renkli alt bilgiler</string>
     <string name="special_thanks_to">Özel teşekkür</string>
     <string name="permissions_denied">İzinler reddedildi.</string>
-    <string name="permission_external_storage_denied">Harici depolamaya erişim izin reddedildi.</string>
     <string name="support_development">Geliştirmeyi destekleyin</string>
     <string name="version">Sürüm</string>
     <string name="author">Yapımcı</string>

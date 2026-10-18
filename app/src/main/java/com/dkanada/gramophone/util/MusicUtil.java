@@ -18,7 +18,6 @@ import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.model.Song;
 
 
-import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -97,20 +96,6 @@ public class MusicUtil {
         builder.append("?api_key=").append(JellyfinSdkSession.getAccessToken());
 
         return builder.toString();
-    }
-
-    public static String getFileUri(Song song) {
-        File root = new File(PreferenceUtil.getInstance(App.getInstance()).getLocationDownload(), "music");
-
-        String path = "/" + ascii(song.artistName) + "/" + ascii(song.albumName);
-        String name = "/" + song.discNumber + "." + song.trackNumber + " - " + ascii(song.title) + "." + song.container;
-
-        return root + path + name;
-    }
-
-    @NonNull
-    public static String ascii(String string) {
-        return string == null ? "Unknown" : string.replaceAll("[\\x00-\\x1F\\x22\\x2A\\x2F\\x3A\\x3C\\x3E\\x3F\\x5C\\x7C\\x7F]", "");
     }
 
     @NonNull

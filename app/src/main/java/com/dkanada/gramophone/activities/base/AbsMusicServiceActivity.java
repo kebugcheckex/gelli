@@ -1,6 +1,5 @@
 package com.dkanada.gramophone.activities.base;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,11 +16,9 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.interfaces.MusicServiceEventListener;
 import com.dkanada.gramophone.service.MusicService;
-import com.dkanada.gramophone.util.PreferenceUtil;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbsMusicServiceActivity extends AbsBaseActivity implements MusicServiceEventListener {
@@ -190,22 +187,5 @@ public abstract class AbsMusicServiceActivity extends AbsBaseActivity implements
     @Override
     protected View getPermissionWindow() {
         return findViewById(R.id.content_container);
-    }
-
-    @Override
-    protected String getPermissionMessage() {
-        return getString(R.string.permission_external_storage_denied);
-    }
-
-    @Override
-    protected List<String> getPermissionRequest() {
-        Context context = getApplicationContext();
-        String downloadLocation = PreferenceUtil.getInstance(context).getLocationDownload();
-
-        if (downloadLocation.equals(context.getCacheDir().toString())) {
-            return new ArrayList<>();
-        }
-
-        return Arrays.asList(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
 }

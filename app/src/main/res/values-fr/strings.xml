@@ -99,7 +99,6 @@
     <string name="colored_footers">Bas des albums colorés</string>
     <string name="special_thanks_to">Un grand merci à</string>
     <string name="permissions_denied">Autorisations refusées.</string>
-    <string name="permission_external_storage_denied">Accès au stockage externe refusé.</string>
     <string name="support_development">Aider le développement</string>
     <string name="version">Version</string>
     <string name="author">Auteur</string>

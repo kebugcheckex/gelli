@@ -125,7 +125,6 @@
     <string name="pref_title_remember_shuffle">保持随机</string>
     <string name="pref_title_remember_queue">存储播放队列</string>
     <string name="pref_title_page_size">页面大小</string>
-    <string name="pref_title_download_location">下载位置</string>
     <string name="pref_title_image_cache_size">图片缓存大小</string>
     <string name="pref_title_media_cache_size">媒体缓存大小</string>
 
@@ -208,7 +207,6 @@
     <string name="playing_notification_name">正在播放通知</string>
     <string name="you_have_to_select_at_least_one_category">您必需选择至少一个类别。</string>
     <string name="permissions_denied">未能获取权限。</string>
-    <string name="permission_external_storage_denied">没有访问外部存储权限。</string>
 
     <string name="sort_order_ascending">按首字符（正序）</string>
     <string name="sort_order_descending">按首字符（倒序）</string>

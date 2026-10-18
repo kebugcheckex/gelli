@@ -93,28 +93,16 @@ object LocalLibrary {
     @JvmStatic
     fun isAvailable(song: Song): Boolean = getFile(song) != null
 
-    /**
-     * Returns the file playback should use, or null to stream. Until legacy removal this falls back to
-     * the metadata-derived path written by the old download service.
-     */
-    @JvmStatic
-    fun resolve(song: Song): File? = getFile(song) ?: getLegacyFile(song)
-
-    /** Matches [resolve], so the badge shown in lists agrees with what playback does. */
+    /** Matches [getFile], so the badge shown in lists agrees with what playback does. */
     @JvmStatic
     fun getAvailability(song: Song): Availability {
         val localSong = get(song)
         return when {
             localSong != null && getFile(localSong) != null -> Availability.STORED
-            getLegacyFile(song) != null -> Availability.STORED
             localSong?.state == LocalSong.State.MISSING -> Availability.MISSING
             else -> Availability.NONE
         }
     }
-
-    // a failed legacy download leaves an empty file behind, which must not win over streaming
-    private fun getLegacyFile(song: Song): File? =
-        File(MusicUtil.getFileUri(song)).takeIf { it.isFile && it.length() > 0 }
 
     /**
      * Queues songs for saving. Songs that are already queued, downloading or stored are left alone,
@@ -259,6 +247,18 @@ object LocalLibrary {
                 }
             } catch (err: Exception) {
                 Log.w(TAG, "verify: ${err.message}", err)
+            }
+        }.start()
+    }
+
+    /** Deletes the folders the old download service saved songs to, off the main thread. */
+    @JvmStatic
+    fun deleteLegacyFiles(dirs: List<File>) {
+        Thread {
+            for (dir in dirs) {
+                if (dir.exists() && !dir.deleteRecursively()) {
+                    Log.w(TAG, "deleteLegacyFiles: could not delete all of $dir")
+                }
             }
         }.start()
     }

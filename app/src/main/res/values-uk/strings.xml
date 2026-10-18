@@ -99,7 +99,6 @@
     <string name="colored_footers">Фарбовані колонтитули</string>
     <string name="special_thanks_to">Особлива подяка</string>
     <string name="permissions_denied">У доступі відмовлено.</string>
-    <string name="permission_external_storage_denied">Дозвіл на доступ до зовнішньої пам\'яті відмовлено.</string>
     <string name="support_development">Підтримати розробника</string>
     <string name="version">Версія</string>
     <string name="author">Автор</string>

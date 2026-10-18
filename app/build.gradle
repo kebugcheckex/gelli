@@ -109,7 +109,6 @@ dependencies {
 
     implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
     implementation 'com.github.QuadFlask:colorpicker:0.0.15'
-    implementation 'com.github.codekidX:storage-chooser:2.0.4.4'
     implementation 'me.relex:circleindicator:2.1.6'
     implementation 'com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'

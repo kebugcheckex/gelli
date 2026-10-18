@@ -102,7 +102,6 @@
     <string name="colored_footers">Bawahan berwarna</string>
     <string name="special_thanks_to">Terima kasih khusus kepada</string>
     <string name="permissions_denied">Izin ditolak</string>
-    <string name="permission_external_storage_denied">Izin untuk akses ke memori eksternal ditolak.</string>
     <string name="support_development">Dukung pengembangan</string>
     <string name="version">Versi</string>
     <string name="author">Penulis</string>

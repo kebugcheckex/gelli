@@ -99,7 +99,6 @@
     <string name="colored_footers">색칠된 앨범 카드</string>
     <string name="special_thanks_to">"특별히 감사드립니다 : "</string>
     <string name="permissions_denied">권한이 거부되었습니다.</string>
-    <string name="permission_external_storage_denied">외부 저장소 접근 권한이 거부되었습니다.</string>
     <string name="support_development">개발 지원</string>
     <string name="version">버전</string>
     <string name="author">제작자</string>

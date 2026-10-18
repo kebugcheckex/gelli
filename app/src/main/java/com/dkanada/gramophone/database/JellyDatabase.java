@@ -10,17 +10,15 @@ import com.dkanada.gramophone.model.User;
 
 @androidx.room.Database(
         entities = {
-                Cache.class,
                 LocalSong.class,
                 Song.class,
                 QueueSong.class,
                 User.class
         },
-        version = 9,
+        version = 10,
         exportSchema = false
 )
 public abstract class JellyDatabase extends RoomDatabase {
-    public abstract CacheDao cacheDao();
     public abstract LocalSongDao localSongDao();
     public abstract SongDao songDao();
     public abstract QueueSongDao queueSongDao();
@@ -127,7 +125,7 @@ public abstract class JellyDatabase extends RoomDatabase {
         }
     };
 
-    // Adds the local library table. The legacy cache table stays until the new save pipeline replaces it.
+    // Adds the local library table.
     public static final Migration Migration9 = new Migration(8, 9) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
@@ -159,6 +157,47 @@ public abstract class JellyDatabase extends RoomDatabase {
                     + "failureCount INTEGER NOT NULL,"
                     + "lastError TEXT,"
                     + "PRIMARY KEY (accountId, itemId))");
+        }
+    };
+
+    // Drops the legacy download state: the cache table and the cache column of songs. The songs table
+    // only backs the persisted queue, so both are rebuilt empty instead of copied.
+    public static final Migration Migration10 = new Migration(9, 10) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE IF EXISTS cache");
+            database.execSQL("DROP TABLE queueSongs");
+            database.execSQL("DROP TABLE songs");
+
+            database.execSQL("CREATE TABLE songs (id TEXT NOT NULL,"
+                    + "title TEXT,"
+                    + "trackNumber INTEGER NOT NULL,"
+                    + "discNumber INTEGER NOT NULL,"
+                    + "year INTEGER NOT NULL,"
+                    + "duration INTEGER NOT NULL,"
+                    + "albumId TEXT,"
+                    + "albumName TEXT,"
+                    + "artistId TEXT,"
+                    + "artistName TEXT,"
+                    + "'primary' TEXT,"
+                    + "blurHash TEXT,"
+                    + "favorite INTEGER NOT NULL,"
+                    + "path TEXT,"
+                    + "size INTEGER NOT NULL,"
+                    + "container TEXT,"
+                    + "codec TEXT,"
+                    + "supportsTranscoding INTEGER NOT NULL,"
+                    + "sampleRate INTEGER NOT NULL,"
+                    + "bitRate INTEGER NOT NULL,"
+                    + "bitDepth INTEGER NOT NULL,"
+                    + "channels INTEGER NOT NULL,"
+                    + "PRIMARY KEY (id))");
+
+            database.execSQL("CREATE TABLE queueSongs ('index' INTEGER NOT NULL,"
+                    + "queue INTEGER NOT NULL, songId TEXT,"
+                    + "PRIMARY KEY ('index', queue),"
+                    + "FOREIGN KEY (songId) REFERENCES songs(id) ON UPDATE NO ACTION ON DELETE CASCADE)");
+            database.execSQL("CREATE INDEX index_queueSongs_songId ON queueSongs (songId)");
         }
     };
 }
