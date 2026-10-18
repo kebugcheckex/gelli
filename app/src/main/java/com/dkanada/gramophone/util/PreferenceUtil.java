@@ -12,6 +12,7 @@ import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.model.Category;
 import com.dkanada.gramophone.model.Codec;
+import com.dkanada.gramophone.model.NetworkPolicy;
 import com.dkanada.gramophone.interfaces.base.PreferenceMigration;
 import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
 import com.dkanada.gramophone.service.SaveTrigger;
@@ -90,6 +91,8 @@ public final class PreferenceUtil {
     public static final String LIBRARY_ORIGINAL_CAP = "library_original_cap_mb";
     public static final String LIBRARY_SAVE_TRIGGER = "library_save_trigger";
     public static final String LIBRARY_SAVE_TRIGGER_SECONDS = "library_save_trigger_seconds";
+
+    public static final String NETWORK_SAVING = "network_saving";
 
     public static final String LOCATION_CACHE = "location_cache";
     public static final String IMAGE_CACHE_SIZE = "image_cache_size";
@@ -471,6 +474,10 @@ public final class PreferenceUtil {
     /** Listening time in milliseconds before a played song is saved, used by {@link SaveTrigger.Mode#DELAY}. */
     public final long getLibrarySaveTriggerDelay() {
         return Long.parseLong(mPreferences.getString(LIBRARY_SAVE_TRIGGER_SECONDS, "30")) * 1000;
+    }
+
+    public final NetworkPolicy getNetworkSaving() {
+        return NetworkPolicy.valueOf(mPreferences.getString(NETWORK_SAVING, NetworkPolicy.UNMETERED.name()));
     }
 
     public final String getLocationCache() {

@@ -166,6 +166,16 @@ object LocalLibrary {
         return existing?.state != LocalSong.State.COMPLETE
     }
 
+    /** Drops every song waiting to be saved and stops the save in progress. Call off the main thread. */
+    @JvmStatic
+    fun cancelSaves() {
+        val accountId = getCurrentAccountId() ?: return
+
+        // the worker discards a song whose row is gone, so deleting the rows first never leaves a song half saved
+        dao.deleteSongs(accountId, listOf(LocalSong.State.QUEUED, LocalSong.State.DOWNLOADING))
+        SaveWorker.cancel(App.getInstance())
+    }
+
     /** Playback never takes over a song the user downloaded explicitly. */
     @JvmStatic
     @VisibleForTesting

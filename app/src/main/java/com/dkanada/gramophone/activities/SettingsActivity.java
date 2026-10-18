@@ -19,6 +19,7 @@ import com.dkanada.gramophone.dialogs.preferences.CategoryPreferenceDialog;
 import com.dkanada.gramophone.dialogs.preferences.NowPlayingPreferenceDialog;
 import com.dkanada.gramophone.activities.base.AbsBaseActivity;
 import com.dkanada.gramophone.service.SaveTrigger;
+import com.dkanada.gramophone.service.SaveWorker;
 import com.dkanada.gramophone.util.PreferenceUtil;
 
 public class SettingsActivity extends AbsBaseActivity {
@@ -52,6 +53,7 @@ public class SettingsActivity extends AbsBaseActivity {
             addPreferencesFromResource(R.xml.pref_now_playing);
             addPreferencesFromResource(R.xml.pref_lock_screen);
             addPreferencesFromResource(R.xml.pref_playback);
+            addPreferencesFromResource(R.xml.pref_network);
             addPreferencesFromResource(R.xml.pref_local_library);
             addPreferencesFromResource(R.xml.pref_cache);
         }
@@ -155,6 +157,9 @@ public class SettingsActivity extends AbsBaseActivity {
                     Preference saveTriggerSeconds = findPreference(PreferenceUtil.LIBRARY_SAVE_TRIGGER_SECONDS);
 
                     saveTriggerSeconds.setEnabled(PreferenceUtil.getInstance(getActivity()).getLibrarySaveTrigger() == SaveTrigger.Mode.DELAY);
+                    break;
+                case PreferenceUtil.NETWORK_SAVING:
+                    SaveWorker.restart(requireContext());
                     break;
             }
         }

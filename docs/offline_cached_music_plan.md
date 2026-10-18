@@ -99,7 +99,8 @@ A row whose file has disappeared (deleted externally, storage removed) is not dr
 - The Room `state` column is the source of truth. Execution uses **WorkManager** (new dependency): persistence across process death, retry with backoff, network constraints, and foreground execution with a progress notification. This replaces `DownloadService`.
 - The `local_songs` rows are the queue. A single serial worker (`SaveWorker`, unique work `library_save` with `APPEND_OR_REPLACE`) drains `QUEUED` rows oldest first, so starting it is all an enqueue has to do. One worker per song was dropped because concurrent foreground workers sharing one notification conflict in WorkManager. A row left `DOWNLOADING` by process death is reset to `QUEUED` when the worker next runs, and app start restarts the worker if any rows are still queued.
 - Download into `<root>/<account>/tmp/<itemId>.part`, fsync, then rename atomically into `audio/`. Mark `COMPLETE` only after the rename. A failure deletes the `.part` file. Network errors, 408, 429 and 5xx put the row back to `QUEUED` and back off the whole queue, up to 3 attempts per song. Other errors (e.g. 404) record `FAILED` with `lastError`.
-- Cancel in the notification drops every `QUEUED`/`DOWNLOADING` row. Any other stop (constraints, system) leaves them queued.
+- Cancel in the notification drops every `QUEUED`/`DOWNLOADING` row. It goes through the app's own receiver (`SaveCancelReceiver`), which deletes the rows and then cancels the unique work, because a worker cannot tell a cancel from the notification apart from a replace (both stop it with `STOP_REASON_CANCELLED_BY_APP`). Any other stop (constraints, system, replace) leaves the rows queued.
+- Workers hold a process-wide lock while they run, so a replaced worker finishes its current read before its replacement starts on the same temp file.
 - The progress notification needs `POST_NOTIFICATIONS` on Android 13+, which the manifest does not request yet. Saving works without it, but the notification is hidden.
 - Requests are idempotent: enqueuing a song that is already `QUEUED`, `DOWNLOADING` or `COMPLETE` is a no-op, except that `EXPLICIT` upgrades the `source` of a `PLAYED` row.
 - Two entry points feed the same queue:
@@ -137,7 +138,11 @@ Settings, applied separately to streaming and to saving:
 - `network_saving`: **Any network** / **Unmetered only** (default unmetered only, which bounds the double download to unmetered networks)
 - `offline_mode`: manual switch that behaves as if there is no network. No streaming, no saving, no server calls, local library only.
 
-"Unmetered only" is evaluated with `NetworkCapabilities.NET_CAPABILITY_NOT_METERED` via `ConnectivityManager` (requires `ACCESS_NETWORK_STATE`, which the manifest does not declare yet). This covers typical Wi-Fi and Ethernet, and excludes cellular and metered hotspots. For saving, it maps directly to WorkManager's `NetworkType.UNMETERED` constraint, so queued jobs wait for an unmetered network instead of failing. Explicit downloads made on a metered network under "Unmetered only" are queued and run later.
+"Unmetered only" is evaluated with `NetworkCapabilities.NET_CAPABILITY_NOT_METERED` via `ConnectivityManager` (requires `ACCESS_NETWORK_STATE`). This covers typical Wi-Fi and Ethernet, and excludes cellular and metered hotspots. For saving, it maps directly to WorkManager's `NetworkType.UNMETERED` constraint (`CONNECTED` for any network), so queued jobs wait for an unmetered network instead of failing. Explicit downloads made on a metered network under "Unmetered only" are queued and run later.
+
+Work keeps the constraint it was enqueued with, so changing `network_saving` calls `SaveWorker.restart()`, which replaces the queued and running work (`ExistingWorkPolicy.REPLACE`) with a request built from the new setting. The rows stay queued, and a running save is interrupted and restarted under the new constraint.
+
+The settings live in a "Network" category of the settings screen, above "Local Library".
 
 **Deferred**: automatic offline detection (deciding the server is unreachable vs. the network being down vs. auth failure) and switching modes automatically. This needs its own design. Until then, automatic behavior is limited to "this network is unmetered or not".
 
@@ -213,9 +218,9 @@ Deliverable: played songs persist automatically according to the trigger.
 
 ### Phase 4: Network policy
 
-- `ACCESS_NETWORK_STATE`, a network-state helper, and streaming/saving unmetered-only settings.
-- Manual offline mode switch: suppress server calls, reporting and streaming.
-- Skip non-playable songs when building the queue.
+1. `ACCESS_NETWORK_STATE` and the "Network" settings category with `network_saving`, applied as the save worker's network constraint and to queued work when it changes. Cancel in the save notification moves to an app receiver, so restarting the worker never drops the queue.
+2. A network-state helper and `network_streaming`. Songs that are neither stored nor streamable under the policy are skipped when the queue is built, with a single toast per queue action.
+3. Manual offline mode switch: no streaming, no saving, no playback reporting or favorite toggles.
 
 Deliverable: the user controls when the app uses the network.
 

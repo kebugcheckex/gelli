@@ -1,5 +1,7 @@
 package com.dkanada.gramophone.service
 
+import androidx.work.NetworkType
+import com.dkanada.gramophone.model.NetworkPolicy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -95,5 +97,13 @@ class SaveWorkerTest {
     fun transcodeContainer_followsCodec() {
         assertEquals("mp3", SaveWorker.transcodeContainer("mp3"))
         assertEquals("aac", SaveWorker.transcodeContainer("aac"))
+    }
+
+    // --- networkType ---
+
+    @Test
+    fun networkType_followsPolicy() {
+        assertEquals(NetworkType.CONNECTED, SaveWorker.networkType(NetworkPolicy.ANY))
+        assertEquals(NetworkType.UNMETERED, SaveWorker.networkType(NetworkPolicy.UNMETERED))
     }
 }

@@ -98,6 +98,16 @@
         <item>120</item>
     </string-array>
 
+    <string-array name="pref_network_policy_titles">
+        <item>@string/network_any</item>
+        <item>@string/network_unmetered</item>
+    </string-array>
+
+    <string-array name="pref_network_policy_values">
+        <item>ANY</item>
+        <item>UNMETERED</item>
+    </string-array>
+
     <string-array name="pref_cache_size_titles">
         <item>@string/unlimited</item>
         <item>2GB</item>

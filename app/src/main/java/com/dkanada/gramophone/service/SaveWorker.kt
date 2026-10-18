@@ -18,7 +18,6 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -27,6 +26,8 @@ import com.dkanada.gramophone.R
 import com.dkanada.gramophone.activities.MainActivity
 import com.dkanada.gramophone.database.LocalSong
 import com.dkanada.gramophone.glide.JellyfinImageUrls
+import com.dkanada.gramophone.model.NetworkPolicy
+import com.dkanada.gramophone.service.receivers.SaveCancelReceiver
 import com.dkanada.gramophone.util.LocalLibrary
 import com.dkanada.gramophone.util.MusicUtil
 import com.dkanada.gramophone.util.PreferenceUtil
@@ -53,7 +54,10 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
 
     private var lastNotified = 0L
 
-    override fun doWork(): Result {
+    // a replaced worker may still be finishing a read, and both would write the same temp file
+    override fun doWork(): Result = synchronized(LOCK) { save() }
+
+    private fun save(): Result {
         val accountId = LocalLibrary.getCurrentAccountId() ?: return Result.success()
 
         // saves run one at a time, so a song still marked downloading was interrupted
@@ -95,12 +99,8 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
             }
         }
 
-        if (isStopped && stopReason == WorkInfo.STOP_REASON_CANCELLED_BY_APP) {
-            // cancelled from the notification, so drop everything that was waiting
-            dao.deleteSongs(accountId, listOf(LocalSong.State.QUEUED, LocalSong.State.DOWNLOADING))
-        } else {
-            dao.replaceState(accountId, LocalSong.State.DOWNLOADING, LocalSong.State.QUEUED)
-        }
+        // cancelling from the notification deletes the rows first, any other stop leaves the song queued
+        dao.replaceState(accountId, LocalSong.State.DOWNLOADING, LocalSong.State.QUEUED)
 
         return Result.success()
     }
@@ -264,7 +264,8 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
 
         val action = Intent(context, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val clickIntent = PendingIntent.getActivity(context, 0, action, PendingIntent.FLAG_IMMUTABLE)
-        val cancelIntent = WorkManager.getInstance(context).createCancelPendingIntent(id)
+        val cancel = Intent(context, SaveCancelReceiver::class.java)
+        val cancelIntent = PendingIntent.getBroadcast(context, 0, cancel, PendingIntent.FLAG_IMMUTABLE)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
@@ -311,6 +312,8 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         private const val CHANNEL_ID = "library_save"
         private const val NOTIFICATION_ID = 2
 
+        private val LOCK = Any()
+
         private const val MAX_ATTEMPTS = 3
         private const val TIMEOUT_MS = 30_000
         private const val BUFFER_SIZE = 64 * 1024
@@ -326,9 +329,24 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
          * appended one picks up anything it missed.
          */
         @JvmStatic
-        fun start(context: Context) {
+        fun start(context: Context) = enqueue(context, ExistingWorkPolicy.APPEND_OR_REPLACE)
+
+        /**
+         * Replaces the queued and running work, which keeps the network constraint it was created with,
+         * so a changed network setting applies right away. The queue itself is left alone.
+         */
+        @JvmStatic
+        fun restart(context: Context) = enqueue(context, ExistingWorkPolicy.REPLACE)
+
+        /** Stops saving and leaves the queue alone, see [LocalLibrary.cancelSaves] for dropping it. */
+        @JvmStatic
+        fun cancel(context: Context) {
+            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+        }
+
+        private fun enqueue(context: Context, policy: ExistingWorkPolicy) {
             val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiredNetworkType(networkType(PreferenceUtil.getInstance(context).networkSaving))
                 .build()
 
             val request = OneTimeWorkRequest.Builder(SaveWorker::class.java)
@@ -336,7 +354,15 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
 
-            WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
+            WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, policy, request)
+        }
+
+        /** Saving on an unmetered network only waits for one, rather than failing on a metered one. */
+        @JvmStatic
+        @VisibleForTesting
+        fun networkType(policy: NetworkPolicy): NetworkType = when (policy) {
+            NetworkPolicy.ANY -> NetworkType.CONNECTED
+            NetworkPolicy.UNMETERED -> NetworkType.UNMETERED
         }
 
         /** Server and network errors are retried, a client error such as a removed item is not. */
