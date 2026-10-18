@@ -83,6 +83,8 @@ public final class PreferenceUtil {
     public static final String REMEMBER_QUEUE = "remember_queue";
     public static final String GAIN_OFFSET = "gain_offset";
 
+    public static final String LIBRARY_ORIGINAL_CAP = "library_original_cap_mb";
+
     public static final String LOCATION_DOWNLOAD = "location_download";
     public static final String LOCATION_CACHE = "location_cache";
     public static final String IMAGE_CACHE_SIZE = "image_cache_size";
@@ -417,6 +419,11 @@ public final class PreferenceUtil {
 
     public void setAlbumArtistColoredFooters(final boolean value) {
         mPreferences.edit().putBoolean(ALBUM_ARTIST_COLORED_FOOTERS, value).apply();
+    }
+
+    /** Songs larger than this many bytes are saved transcoded, 0 saves every song as the original. */
+    public final long getLibraryOriginalCap() {
+        return Long.parseLong(mPreferences.getString(LIBRARY_ORIGINAL_CAP, "15")) * 1024 * 1024;
     }
 
     public final String getLocationDownload() {

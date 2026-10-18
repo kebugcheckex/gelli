@@ -2,6 +2,7 @@ package com.dkanada.gramophone.service
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -45,5 +46,54 @@ class SaveWorkerTest {
         assertEquals("bin", SaveWorker.fileExtension(null))
         assertEquals("bin", SaveWorker.fileExtension(""))
         assertEquals("bin", SaveWorker.fileExtension("../x"))
+    }
+
+    // --- estimateSize ---
+
+    @Test
+    fun estimateSize_fromBitRateAndDuration() {
+        // 320 kbps for 5 minutes is 12 MB
+        assertEquals(12_000_000L, SaveWorker.estimateSize(320_000, 300_000))
+    }
+
+    @Test
+    fun estimateSize_unknown() {
+        assertNull(SaveWorker.estimateSize(0, 300_000))
+        assertNull(SaveWorker.estimateSize(320_000, 0))
+    }
+
+    // --- transcodeBitRate ---
+
+    private val cap = 15L * 1024 * 1024
+
+    @Test
+    fun transcodeBitRate_shortTrack_usesHighestStep() {
+        assertEquals(320_000, SaveWorker.transcodeBitRate(cap, 5 * 60_000))
+    }
+
+    @Test
+    fun transcodeBitRate_picksHighestStepThatFits() {
+        // 15 MiB over 10 minutes leaves about 199 kbps
+        assertEquals(192_000, SaveWorker.transcodeBitRate(cap, 10 * 60_000))
+        // and over 20 minutes about 99 kbps
+        assertEquals(96_000, SaveWorker.transcodeBitRate(cap, 20 * 60_000))
+    }
+
+    @Test
+    fun transcodeBitRate_longTrack_usesLowestStep() {
+        assertEquals(64_000, SaveWorker.transcodeBitRate(cap, 120 * 60_000))
+    }
+
+    @Test
+    fun transcodeBitRate_unknownDuration_usesHighestStep() {
+        assertEquals(320_000, SaveWorker.transcodeBitRate(cap, 0))
+    }
+
+    // --- transcodeContainer ---
+
+    @Test
+    fun transcodeContainer_followsCodec() {
+        assertEquals("mp3", SaveWorker.transcodeContainer("mp3"))
+        assertEquals("aac", SaveWorker.transcodeContainer("aac"))
     }
 }

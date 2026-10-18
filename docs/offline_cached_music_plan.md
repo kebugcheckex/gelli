@@ -86,13 +86,11 @@ A row whose file has disappeared (deleted externally, storage removed) is not dr
 - Setting `library_original_cap_mb`, default **15 MB**.
 - If the original is at or under the cap, store it unchanged via `/Items/{id}/Download`.
 - If it is over the cap, store a progressive transcode via `/Audio/{id}/universal` with `TranscodingProtocol=http` (never HLS, so the result is a single playable file).
-- Size decision order:
-  1. `Song.size` from the server, if known.
-  2. Otherwise estimate from `Song.bitRate × duration`.
-  3. Otherwise start the original download and check `Content-Length`. If it exceeds the cap, abort and switch to transcode.
+- Size decision: the worker starts the original download and reads `Content-Length`, which is the original's exact size. If the header is missing, it estimates from the row's `bitRate × duration`. If the size exceeds the cap, it aborts and switches to transcode. `local_songs` has no column for `Song.size`, and the header makes one unnecessary, at the cost of one aborted request for large songs.
 - Transcode bitrate: `cap_bits / duration_seconds × 0.95`, clamped to a preset ladder (320 / 256 / 192 / 160 / 128 / 96 / 64 kbps), picking the highest step that fits.
-- Transcode codec follows the existing `transcode_codec` preference where the server honors it. The stored file's real container/codec is read from the response and recorded.
+- Transcode codec follows the existing `transcode_codec` preference: `mp3` is stored as MP3, `aac` as ADTS (progressive MP4 is not streamable while written). The request offers no direct-play containers, so the server must transcode into the requested container, and the row records that container/codec and the chosen bitrate. VBR encoding is disabled, and `LocalPlayer` enables constant-bitrate seeking, since neither format carries a seek index.
 - If even the lowest step exceeds the cap (very long tracks), store at the lowest step anyway. The cap selects quality and is not a hard limit.
+- The cap is a list setting (unlimited / 50 / 25 / 15 / 10 / 5 MB) in a "Local Library" category of the settings screen. Changing it affects future saves only.
 
 ### Save queue
 
@@ -175,7 +173,7 @@ Deliverable: one source of truth for what is stored, read by playback and the UI
 ### Phase 2: Save pipeline
 
 1. Add WorkManager. Implement the save worker (temp + atomic rename, foreground notification, retry, one serial worker draining the queue) storing originals only, which matches current behavior. Cover art saving. Route existing Download menu actions to the new queue through `NavigationUtil.startDownload()`. Delete `DownloadService`, `DownloadNotification` and the manifest entry.
-2. Original vs transcoded selection with the size cap. New "Local library" settings screen, starting with `library_original_cap_mb`.
+2. Original vs transcoded selection with the size cap. New "Local Library" settings category, starting with `library_original_cap_mb`.
 3. Basic "Remove from device" menu action.
 
 Deliverable: explicit downloads are reliable, metadata-complete, and removable. Legacy downloads still play through the fallback.

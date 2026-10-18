@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_local_library">
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true"
+            android:defaultValue="15"
+            android:entries="@array/pref_original_cap_titles"
+            android:entryValues="@array/pref_original_cap_values"
+            android:key="library_original_cap_mb"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_title_original_cap" />
+
+    </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

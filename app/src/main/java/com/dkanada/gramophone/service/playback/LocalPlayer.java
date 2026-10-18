@@ -30,6 +30,7 @@ import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor;
 import androidx.media3.datasource.cache.SimpleCache;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.extractor.DefaultExtractorsFactory;
 
 import java.io.File;
 import java.util.List;
@@ -103,8 +104,11 @@ public class LocalPlayer implements Playback {
             .setContentType(C.CONTENT_TYPE_MUSIC)
             .build();
 
+        // transcoded songs are saved as adts or mp3 without an index, which can only seek by assuming a constant bitrate
+        DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true);
+
         exoPlayer = new ExoPlayer.Builder(context)
-            .setMediaSourceFactory(new DefaultMediaSourceFactory(buildDataSourceFactory()))
+            .setMediaSourceFactory(new DefaultMediaSourceFactory(buildDataSourceFactory(), extractorsFactory))
             .setAudioAttributes(audioAttributes, true)
             .build();
 

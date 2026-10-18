@@ -29,6 +29,7 @@ import com.dkanada.gramophone.database.LocalSong
 import com.dkanada.gramophone.glide.JellyfinImageUrls
 import com.dkanada.gramophone.util.LocalLibrary
 import com.dkanada.gramophone.util.MusicUtil
+import com.dkanada.gramophone.util.PreferenceUtil
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -120,13 +121,35 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
 
     private fun saveAudio(song: LocalSong, remaining: Int) {
         val temp = File(LocalLibrary.getTempDir(song.accountId), "${song.itemId}.part")
-        val audio = File(LocalLibrary.getAudioDir(song.accountId), "${song.itemId}.${fileExtension(song.container)}")
-
         temp.parentFile?.mkdirs()
+
+        val cap = PreferenceUtil.getInstance(applicationContext).libraryOriginalCap
+        var connection = open(MusicUtil.getDownloadUri(song.itemId))
+
+        // the row keeps describing the server item until the save succeeds
+        var variant = LocalSong.Variant.ORIGINAL
+        var container = song.container
+        var codec = song.codec
+        var bitRate = song.bitRate
+
+        // the server reports the size of the original, otherwise estimate it from the bitrate
+        val size = contentLength(connection) ?: estimateSize(song.bitRate, song.duration)
+        if (cap > 0 && size != null && size > cap) {
+            connection.disconnect()
+
+            variant = LocalSong.Variant.TRANSCODED
+            container = transcodeContainer(PreferenceUtil.getInstance(applicationContext).transcodeCodec)
+            codec = container
+            bitRate = transcodeBitRate(cap, song.duration)
+
+            connection = open(MusicUtil.getSaveUri(song.itemId, container, bitRate))
+        }
+
+        val audio = File(LocalLibrary.getAudioDir(song.accountId), "${song.itemId}.${fileExtension(container)}")
         audio.parentFile?.mkdirs()
 
         try {
-            download(MusicUtil.getDownloadUri(song.itemId), temp) { received, total ->
+            write(connection, temp) { received, total ->
                 notify(song, remaining, received, total, false)
             }
 
@@ -136,7 +159,10 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         }
 
         song.state = LocalSong.State.COMPLETE
-        song.variant = LocalSong.Variant.ORIGINAL
+        song.variant = variant
+        song.container = container
+        song.codec = codec
+        song.bitRate = bitRate
         song.filePath = audio.absolutePath
         song.fileSize = audio.length()
         song.failureCount = 0
@@ -158,7 +184,7 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         image.parentFile?.mkdirs()
 
         try {
-            download(JellyfinImageUrls.buildPrimaryImageUrl(imageId), temp) { _, _ -> }
+            write(open(JellyfinImageUrls.buildPrimaryImageUrl(imageId)), temp) { _, _ -> }
             if (!temp.renameTo(image)) throw IOException("could not move ${temp.name} into the library")
         } catch (err: StoppedException) {
             throw err
@@ -169,7 +195,7 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         }
     }
 
-    private fun download(url: String, file: File, onProgress: (Long, Long) -> Unit) {
+    private fun open(url: String): HttpURLConnection {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.connectTimeout = TIMEOUT_MS
         connection.readTimeout = TIMEOUT_MS
@@ -177,9 +203,22 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         try {
             val code = connection.responseCode
             if (code !in 200..299) throw HttpException(code)
+        } catch (err: Exception) {
+            connection.disconnect()
+            throw err
+        }
 
-            // getContentLengthLong needs api 24
-            val total = connection.getHeaderField("Content-Length")?.toLongOrNull() ?: -1L
+        return connection
+    }
+
+    // getContentLengthLong needs api 24
+    private fun contentLength(connection: HttpURLConnection): Long? =
+        connection.getHeaderField("Content-Length")?.toLongOrNull()
+
+    /** Writes the response body to the file and disconnects. */
+    private fun write(connection: HttpURLConnection, file: File, onProgress: (Long, Long) -> Unit) {
+        try {
+            val total = contentLength(connection) ?: -1L
             var received = 0L
 
             connection.inputStream.use { input ->
@@ -272,6 +311,10 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         private const val NOTIFY_INTERVAL_MS = 500L
         private const val PROGRESS_MAX = 1000
 
+        // highest first, in bits per second
+        private val TRANSCODE_BIT_RATES = intArrayOf(320_000, 256_000, 192_000, 160_000, 128_000, 96_000, 64_000)
+        private const val TRANSCODE_HEADROOM = 0.95
+
         /**
          * Makes sure the queue is being drained. A worker that is already running finishes first, and the
          * appended one picks up anything it missed.
@@ -300,6 +343,30 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
             is IOException -> true
             else -> false
         }
+
+        /** Returns the size in bytes implied by the bitrate and duration, or null if either is unknown. */
+        @JvmStatic
+        @VisibleForTesting
+        fun estimateSize(bitRate: Int, durationMs: Long): Long? =
+            if (bitRate > 0 && durationMs > 0) bitRate.toLong() * durationMs / 8 / 1000 else null
+
+        /**
+         * Picks the highest bitrate whose file fits in the cap, with some headroom for container overhead.
+         * Tracks too long for the lowest step still get it, so the cap selects quality rather than being a hard limit.
+         */
+        @JvmStatic
+        @VisibleForTesting
+        fun transcodeBitRate(capBytes: Long, durationMs: Long): Int {
+            if (durationMs <= 0) return TRANSCODE_BIT_RATES.first()
+
+            val target = capBytes * 8 * 1000 / durationMs * TRANSCODE_HEADROOM
+            return TRANSCODE_BIT_RATES.firstOrNull { it <= target } ?: TRANSCODE_BIT_RATES.last()
+        }
+
+        /** Progressive mp4 can't be streamed while it is written, so aac is stored as adts. */
+        @JvmStatic
+        @VisibleForTesting
+        fun transcodeContainer(codec: String): String = if (codec == "mp3") "mp3" else "aac"
 
         /** Jellyfin reports some containers as a list such as "mov,mp4,m4a", so only the first entry is used. */
         @JvmStatic

@@ -60,6 +60,32 @@ public class MusicUtil {
         return builder.toString();
     }
 
+    /**
+     * A progressive transcode for saving to the local library. No direct play containers are offered,
+     * so the server always transcodes into the requested container instead of sending the original.
+     */
+    public static String getSaveUri(String itemId, String container, int bitRate) {
+        StringBuilder builder = new StringBuilder(256);
+
+        builder.append(JellyfinSdkSession.getBaseUrl());
+        builder.append("/Audio/");
+        builder.append(itemId);
+        builder.append("/universal");
+        builder.append("?UserId=").append(JellyfinSdkSession.getCurrentUserId());
+        builder.append("&DeviceId=").append(JellyfinSdkSession.getDeviceId());
+        builder.append("&MaxStreamingBitrate=").append(bitRate);
+
+        builder.append("&TranscodingContainer=").append(container);
+        builder.append("&TranscodingProtocol=http");
+        builder.append("&AudioCodec=").append(container);
+
+        // a constant bitrate keeps seeking accurate in containers without an index
+        builder.append("&EnableAudioVbrEncoding=false");
+        builder.append("&api_key=").append(JellyfinSdkSession.getAccessToken());
+
+        return builder.toString();
+    }
+
     public static String getDownloadUri(String itemId) {
         StringBuilder builder = new StringBuilder(256);
 
