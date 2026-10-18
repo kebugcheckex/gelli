@@ -27,6 +27,7 @@ import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumAdapter extends AbsMultiSelectAdapter<AlbumAdapter.ViewHolder, Album> implements FastScrollRecyclerView.SectionedAdapter {
@@ -168,11 +169,14 @@ public class AlbumAdapter extends AbsMultiSelectAdapter<AlbumAdapter.ViewHolder,
 
     @Override
     protected void onMultipleItemAction(@NonNull MenuItem menuItem, @NonNull List<Album> selection) {
+        List<String> ids = new ArrayList<>();
         for (Album album : selection) {
-            QueryUtil.getSongsByParent(album.id, media -> {
-                SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
-            });
+            ids.add(album.id);
         }
+
+        QueryUtil.getSongsByParents(ids, media -> {
+            SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
+        });
     }
 
     @NonNull

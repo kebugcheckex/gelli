@@ -33,4 +33,9 @@
         android:title="@string/action_download"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_remove_from_device"
+        android:title="@string/action_remove_from_device"
+        app:showAsAction="never" />
+
 </menu>

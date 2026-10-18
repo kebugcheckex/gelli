@@ -9,11 +9,13 @@ import android.view.View;
 
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.util.Pair;
+import androidx.fragment.app.FragmentActivity;
 
 import com.dkanada.gramophone.activities.LoginActivity;
 import com.dkanada.gramophone.activities.MainActivity;
 import com.dkanada.gramophone.activities.SelectActivity;
 import com.dkanada.gramophone.database.LocalSong;
+import com.dkanada.gramophone.dialogs.RemoveFromDeviceDialog;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Genre;
@@ -24,6 +26,7 @@ import com.dkanada.gramophone.activities.details.GenreDetailActivity;
 import com.dkanada.gramophone.activities.details.PlaylistDetailActivity;
 import com.dkanada.gramophone.model.Song;
 
+import java.util.Collections;
 import java.util.List;
 
 public class NavigationUtil {
@@ -124,5 +127,14 @@ public class NavigationUtil {
 
     public static void startDownload(Activity activity, List<Song> songs) {
         LocalLibrary.save(songs, LocalSong.Source.EXPLICIT);
+    }
+
+    /** Removing a single song needs no confirmation, since it can be downloaded again. */
+    public static void removeFromDevice(FragmentActivity activity, List<Song> songs) {
+        if (songs.size() > 1) {
+            RemoveFromDeviceDialog.create(songs).show(activity.getSupportFragmentManager(), RemoveFromDeviceDialog.TAG);
+        } else if (songs.size() == 1) {
+            RemoveFromDeviceDialog.remove(activity.getApplicationContext(), Collections.singletonList(songs.get(0).id));
+        }
     }
 }

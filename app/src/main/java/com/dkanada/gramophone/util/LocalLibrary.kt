@@ -1,6 +1,8 @@
 package com.dkanada.gramophone.util
 
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.dkanada.gramophone.App
@@ -9,6 +11,7 @@ import com.dkanada.gramophone.model.Song
 import com.dkanada.gramophone.service.SaveWorker
 import java.io.File
 import java.security.MessageDigest
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * Persistent store of songs saved on the device, see docs/offline_cached_music_plan.md.
@@ -147,14 +150,73 @@ object LocalLibrary {
         }
     }
 
-    /** Removes the stored file and the row together. */
+    /**
+     * Removes the stored files and rows of the songs off the main thread, then calls back on the main
+     * thread with the number of songs that were removed. Songs without a row are ignored, and queued
+     * or failed songs are dropped from the save queue.
+     */
     @JvmStatic
-    fun delete(song: Song) {
-        val localSong = get(song) ?: return
+    fun delete(itemIds: List<String>, callback: DeleteCallback?) {
+        val accountId = getCurrentAccountId() ?: return
+
+        Thread {
+            var removed = 0
+            try {
+                for (itemId in itemIds) {
+                    if (delete(accountId, itemId)) removed++
+                }
+            } catch (err: Exception) {
+                Log.w(TAG, "delete: ${err.message}", err)
+            }
+
+            if (removed > 0) notifyChanged()
+            mainHandler.post { callback?.onDeleted(removed) }
+        }.start()
+    }
+
+    fun interface DeleteCallback {
+        fun onDeleted(count: Int)
+    }
+
+    /** Removes the stored file and the row together, and the album cover once no song of the album is left. */
+    private fun delete(accountId: String, itemId: String): Boolean {
+        val localSong = dao.getSong(accountId, itemId) ?: return false
 
         localSong.filePath?.let { File(it).delete() }
-        File(getTempDir(localSong.accountId), "${localSong.itemId}.part").delete()
-        dao.deleteSong(localSong.accountId, localSong.itemId)
+        File(getTempDir(accountId), "$itemId.part").delete()
+        dao.deleteSong(accountId, itemId)
+
+        val albumId = localSong.albumId
+        if (albumId != null && dao.countAlbumSongs(accountId, albumId) == 0) {
+            File(getImageDir(accountId), "$albumId.jpg").delete()
+        }
+
+        return true
+    }
+
+    /** Called when songs are stored, removed or found missing, so lists can refresh their badges. */
+    fun interface Listener {
+        fun onLibraryChanged()
+    }
+
+    private val listeners = CopyOnWriteArraySet<Listener>()
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    @JvmStatic
+    fun addListener(listener: Listener) {
+        listeners.add(listener)
+    }
+
+    @JvmStatic
+    fun removeListener(listener: Listener) {
+        listeners.remove(listener)
+    }
+
+    /** Notifies listeners on the main thread, from any thread. */
+    @JvmStatic
+    fun notifyChanged() {
+        mainHandler.post { listeners.forEach { it.onLibraryChanged() } }
     }
 
     /**
@@ -178,6 +240,7 @@ object LocalLibrary {
 
         if (changed > 0) {
             Log.i(TAG, "verify: updated $changed of ${rows.size} rows")
+            notifyChanged()
         }
 
         return changed

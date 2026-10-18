@@ -196,6 +196,9 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
             case R.id.action_download:
                 NavigationUtil.startDownload(this, songs);
                 return true;
+            case R.id.action_remove_from_device:
+                NavigationUtil.removeFromDevice(this, songs);
+                return true;
         }
 
         return super.onOptionsItemSelected(item);

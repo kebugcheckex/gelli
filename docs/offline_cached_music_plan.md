@@ -104,6 +104,7 @@ A row whose file has disappeared (deleted externally, storage removed) is not dr
   - **Explicit**: existing Download actions in song/album/artist/genre/playlist menus and detail screens.
   - **Played**: the playback save trigger (below).
 - Cover art for the song's album is saved in the same job if missing.
+- `LocalLibrary` notifies listeners on the main thread whenever a save completes, songs are removed, or the consistency check changes rows. Song lists refresh their badges from it while attached.
 
 ### Save trigger for played songs
 
@@ -149,7 +150,7 @@ Settings, applied separately to streaming and to saving:
 
 Nothing is removed automatically.
 
-- Delete actions for a song, album or artist in menus and detail screens. Each removes the file and the row together.
+- "Remove from device" sits next to every Download action (song, queue and playlist menus, multi-select, album/artist/genre/playlist detail screens). Each removes the file and the row together, deletes the album cover once no song of its album is left, and drops queued songs from the save queue. Removing more than one song asks for confirmation. A song removed while it is saving fails its save without backing off the queue.
 - A storage screen with total usage, breakdown by artist/album, filters by source (explicit/played) and variant, and bulk actions (e.g. "remove songs not played in N days", "remove all").
 
 ### Legacy data

@@ -100,6 +100,9 @@ public class GenreDetailActivity extends AbsMusicContentActivity implements CabH
             case R.id.action_download:
                 NavigationUtil.startDownload(this, adapter.getDataSet());
                 return true;
+            case R.id.action_remove_from_device:
+                NavigationUtil.removeFromDevice(this, adapter.getDataSet());
+                return true;
         }
 
         return super.onOptionsItemSelected(item);

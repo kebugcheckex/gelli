@@ -29,6 +29,9 @@ public class SongsMenuHelper {
             case R.id.action_download:
                 NavigationUtil.startDownload(activity, songs);
                 return true;
+            case R.id.action_remove_from_device:
+                NavigationUtil.removeFromDevice(activity, songs);
+                return true;
         }
 
         return false;

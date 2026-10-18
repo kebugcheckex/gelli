@@ -25,6 +25,7 @@ import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlaylistAdapter extends AbsMultiSelectAdapter<PlaylistAdapter.ViewHolder, Playlist> {
@@ -125,11 +126,14 @@ public class PlaylistAdapter extends AbsMultiSelectAdapter<PlaylistAdapter.ViewH
         if (menuItem.getItemId() == R.id.action_delete_playlist) {
             DeletePlaylistDialog.create(selection).show(activity.getSupportFragmentManager(), DeletePlaylistDialog.TAG);
         } else {
+            List<String> ids = new ArrayList<>();
             for (Playlist playlist : selection) {
-                QueryUtil.getSongsByParent(playlist.id, media -> {
-                    SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
-                });
+                ids.add(playlist.id);
             }
+
+            QueryUtil.getSongsByParents(ids, media -> {
+                SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
+            });
         }
     }
 

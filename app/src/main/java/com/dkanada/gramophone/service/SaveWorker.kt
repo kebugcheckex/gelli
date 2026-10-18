@@ -114,7 +114,9 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
 
         val retry = isRetryable(err) && song.failureCount < MAX_ATTEMPTS
         song.state = if (retry) LocalSong.State.QUEUED else LocalSong.State.FAILED
-        dao.updateSong(song)
+
+        // a song removed from the device while it was saving fails here, which is no reason to back off
+        if (dao.updateSong(song) == 0) return false
 
         return retry
     }
@@ -168,8 +170,12 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         song.failureCount = 0
         song.lastError = null
 
-        // the row is gone if the queue was cancelled while this song was finishing
-        if (dao.updateSong(song) == 0) audio.delete()
+        // the row is gone if the queue was cancelled or the song removed while it was finishing
+        if (dao.updateSong(song) == 0) {
+            audio.delete()
+        } else {
+            LocalLibrary.notifyChanged()
+        }
     }
 
     /** Cover art is stored once per album. A failure here does not fail the song. */

@@ -29,6 +29,9 @@ public interface LocalSongDao {
     @Query("SELECT COUNT(*) FROM local_songs WHERE accountId = :accountId AND state IN (:states)")
     int countSongs(String accountId, List<LocalSong.State> states);
 
+    @Query("SELECT COUNT(*) FROM local_songs WHERE accountId = :accountId AND albumId = :albumId")
+    int countAlbumSongs(String accountId, String albumId);
+
     @Query("UPDATE local_songs SET state = :state WHERE accountId = :accountId AND itemId = :itemId")
     void setState(String accountId, String itemId, LocalSong.State state);
 

@@ -175,6 +175,29 @@ object QueryUtil {
         )
     }
 
+    /**
+     * Fetches the songs of several albums or playlists and calls back once with all of them, in the
+     * order of the ids, so a multi-selection acts as one list.
+     */
+    @JvmStatic
+    fun getSongsByParents(parentIds: List<String>, callback: MediaCallback<Song>) {
+        if (parentIds.isEmpty()) {
+            callback.onLoadMedia(emptyList())
+            return
+        }
+
+        // callbacks run on the main thread, so the results need no locking
+        val results = arrayOfNulls<List<Song>>(parentIds.size)
+        var remaining = parentIds.size
+
+        parentIds.forEachIndexed { index, parentId ->
+            getSongsByParent(parentId) { media ->
+                results[index] = media
+                if (--remaining == 0) callback.onLoadMedia(results.flatMap { it.orEmpty() })
+            }
+        }
+    }
+
     @JvmStatic
     fun getSongsByArtistIds(artistIds: List<String>, callback: MediaCallback<Song>) {
         fetchItems(
