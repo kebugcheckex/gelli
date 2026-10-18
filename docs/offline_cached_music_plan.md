@@ -134,7 +134,7 @@ The first version streams and downloads in parallel, so a song is fetched twice 
 
 Settings, applied separately to streaming and to saving:
 
-- `network_streaming`: **Any network** / **Unmetered only**
+- `network_streaming`: **Any network** / **Unmetered only** (default any network). With no network at all, only stored songs play.
 - `network_saving`: **Any network** / **Unmetered only** (default unmetered only, which bounds the double download to unmetered networks)
 - `offline_mode`: manual switch that behaves as if there is no network. No streaming, no saving, no server calls, local library only.
 
@@ -148,8 +148,9 @@ The settings live in a "Network" category of the settings screen, above "Local L
 
 ### Playback integration
 
-- `LocalPlayer.createMediaItems()` resolves each song through `LocalLibrary`: stored → `file://` URI (progressive), otherwise the stream URI if the network policy allows streaming right now.
-- Songs that are neither stored nor streamable under the current policy are skipped, with a single toast per queue action.
+- `LocalPlayer.createMediaItems()` resolves each song through `LocalLibrary`: stored → `file://` URI (progressive), otherwise the stream URI.
+- Songs that are neither stored nor streamable under the current policy are skipped, with a single toast per queue action. The policy is checked when songs enter the queue: `MusicPlayerRemote` filters every open, play next and enqueue through `LocalLibrary.getPlayable()` (all songs while `NetworkUtil.canStream()`, otherwise the stored ones) before they reach `QueueManager`, since `LocalPlayer` assumes its items line up with the queue by index. Opening a queue at a skipped song starts at the next playable one.
+- Songs already queued keep their stream when the network changes, and the restored queue is not filtered. Playing such a song without a network fails like any other playback error. Re-checking queued songs on network changes is deferred.
 - When a save completes for a song in the current queue (not the current item), its media item is replaced with the local one (`Player.replaceMediaItem`).
 
 `Playback.refreshQueue()` implements the replacement:

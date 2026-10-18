@@ -78,6 +78,10 @@
     <string name="battery_optimizations_message">Please disable battery optimizations for media playback while the screen is off.</string>
     <string name="added_title_to_queue">"Added 1 title to the queue."</string>
     <string name="added_x_titles_to_queue">Added %1$d titles to the queue.</string>
+    <plurals name="skipped_x_songs_not_stored">
+        <item quantity="one">Skipped %1$d song that is not on this device and can\'t be streamed on this network.</item>
+        <item quantity="other">Skipped %1$d songs that are not on this device and can\'t be streamed on this network.</item>
+    </plurals>
     <string name="downloading_x_songs">Downloading %1$d songs.</string>
     <string name="remove_x_songs_from_device"><![CDATA[Remove <b>%1$d</b> songs from the device? Only the saved files are removed, and the songs can still be streamed or downloaded again.]]></string>
     <string name="removed_x_songs_from_device">Removed %1$d songs from the device.</string>
@@ -135,6 +139,7 @@
     <string name="pref_title_original_cap">Original Size Limit</string>
     <string name="pref_title_save_trigger">Save Played Songs</string>
     <string name="pref_title_save_trigger_seconds">Listening Time</string>
+    <string name="pref_title_network_streaming">Streaming</string>
     <string name="pref_title_network_saving">Saving</string>
     <string name="pref_title_image_cache_size">Images</string>
     <string name="pref_title_gain_adjustment">Gain Adjustment</string>

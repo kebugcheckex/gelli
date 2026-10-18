@@ -15,9 +15,11 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.service.MusicService;
 import com.dkanada.gramophone.service.QueueManager;
+import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.PreferenceUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.WeakHashMap;
@@ -143,11 +145,33 @@ public class MusicPlayerRemote {
 
     public static void openQueue(final List<Song> queue, final int startPosition, final boolean startPlaying) {
         if (!tryToHandleOpenPlayingQueue(queue, startPosition) && musicService != null) {
-            if (!PreferenceUtil.getInstance(musicService).getRememberShuffle()) {
-                setShuffleMode(QueueManager.SHUFFLE_MODE_NONE);
-            }
-            musicService.openQueue(queue, startPosition, startPlaying);
+            List<Song> playable = getPlayable(queue);
+            open(playable, LocalLibrary.playablePosition(queue, playable, startPosition), startPlaying);
         }
+    }
+
+    private static void open(final List<Song> queue, final int startPosition, final boolean startPlaying) {
+        if (queue.isEmpty()) {
+            return;
+        }
+
+        if (!PreferenceUtil.getInstance(musicService).getRememberShuffle()) {
+            setShuffleMode(QueueManager.SHUFFLE_MODE_NONE);
+        }
+        musicService.openQueue(queue, startPosition, startPlaying);
+    }
+
+    // songs enter the queue only through here, so the player never has to skip a song it cannot play
+    private static List<Song> getPlayable(final List<Song> songs) {
+        List<Song> playable = LocalLibrary.getPlayable(songs);
+
+        int skipped = songs.size() - playable.size();
+        if (skipped > 0) {
+            final String toast = musicService.getResources().getQuantityString(R.plurals.skipped_x_songs_not_stored, skipped, skipped);
+            Toast.makeText(musicService, toast, Toast.LENGTH_LONG).show();
+        }
+
+        return playable;
     }
 
     public static void openAndShuffleQueue(final List<Song> queue, boolean startPlaying) {
@@ -272,69 +296,42 @@ public class MusicPlayerRemote {
     }
 
     public static boolean playNext(Song song) {
-        if (musicService != null && musicService.queueManager != null) {
-            if (getPlayingQueue().size() > 0) {
-                musicService.queueManager.addSong(getPosition() + 1, song);
-            } else {
-                List<Song> queue = new ArrayList<>();
-                queue.add(song);
-                openQueue(queue, 0, false);
-            }
-
-            Toast.makeText(musicService, musicService.getResources().getString(R.string.added_title_to_queue), Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
-        return false;
+        return playNext(Collections.singletonList(song));
     }
 
     public static boolean playNext(@NonNull List<Song> songs) {
-        if (musicService != null && musicService.queueManager != null) {
-            if (getPlayingQueue().size() > 0) {
-                musicService.queueManager.addSongs(getPosition() + 1, songs);
-            } else {
-                openQueue(songs, 0, false);
-            }
-
-            final String toast = songs.size() == 1 ? musicService.getResources().getString(R.string.added_title_to_queue) : musicService.getResources().getString(R.string.added_x_titles_to_queue, songs.size());
-            Toast.makeText(musicService, toast, Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
-        return false;
+        return addSongs(songs, true);
     }
 
     public static boolean enqueue(Song song) {
-        if (musicService != null && musicService.queueManager != null) {
-            if (getPlayingQueue().size() > 0) {
-                musicService.queueManager.addSong(song);
-            } else {
-                List<Song> queue = new ArrayList<>();
-                queue.add(song);
-                openQueue(queue, 0, false);
-            }
-
-            Toast.makeText(musicService, musicService.getResources().getString(R.string.added_title_to_queue), Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
-        return false;
+        return enqueue(Collections.singletonList(song));
     }
 
     public static boolean enqueue(@NonNull List<Song> songs) {
-        if (musicService != null && musicService.queueManager != null) {
-            if (getPlayingQueue().size() > 0) {
-                musicService.queueManager.addSongs(songs);
-            } else {
-                openQueue(songs, 0, false);
-            }
+        return addSongs(songs, false);
+    }
 
-            final String toast = songs.size() == 1 ? musicService.getResources().getString(R.string.added_title_to_queue) : musicService.getResources().getString(R.string.added_x_titles_to_queue, songs.size());
-            Toast.makeText(musicService, toast, Toast.LENGTH_SHORT).show();
+    private static boolean addSongs(@NonNull List<Song> songs, boolean next) {
+        if (musicService == null || musicService.queueManager == null) {
+            return false;
+        }
+
+        List<Song> playable = getPlayable(songs);
+        if (playable.isEmpty()) {
             return true;
         }
 
-        return false;
+        if (getPlayingQueue().isEmpty()) {
+            open(playable, 0, false);
+        } else if (next) {
+            musicService.queueManager.addSongs(getPosition() + 1, playable);
+        } else {
+            musicService.queueManager.addSongs(playable);
+        }
+
+        final String toast = playable.size() == 1 ? musicService.getResources().getString(R.string.added_title_to_queue) : musicService.getResources().getString(R.string.added_x_titles_to_queue, playable.size());
+        Toast.makeText(musicService, toast, Toast.LENGTH_SHORT).show();
+        return true;
     }
 
     public static boolean removeFromQueue(int position) {

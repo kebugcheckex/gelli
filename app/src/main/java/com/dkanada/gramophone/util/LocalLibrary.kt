@@ -107,6 +107,29 @@ object LocalLibrary {
         return files
     }
 
+    /** The songs that can play right now: all of them while streaming is allowed, otherwise only the stored ones. */
+    @JvmStatic
+    fun getPlayable(songs: List<Song>): List<Song> {
+        if (NetworkUtil.canStream(App.getInstance())) return songs
+
+        val files = getFiles(songs)
+        return songs.filter { files.containsKey(it.id) }
+    }
+
+    /**
+     * Maps a position in [songs] to [playable], which keeps the songs in order. A song that was left out
+     * maps to the next playable song, or to the last one when none follows. Returns -1 for an invalid position.
+     */
+    @JvmStatic
+    @VisibleForTesting
+    fun playablePosition(songs: List<Song>, playable: List<Song>, position: Int): Int {
+        if (position !in songs.indices || playable.isEmpty()) return -1
+
+        val ids = playable.mapTo(HashSet()) { it.id }
+        val before = songs.subList(0, position).count { it.id in ids }
+        return before.coerceAtMost(playable.size - 1)
+    }
+
     @JvmStatic
     fun isAvailable(song: Song): Boolean = getFile(song) != null
 

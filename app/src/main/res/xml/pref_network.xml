@@ -7,6 +7,17 @@
         <ListPreference
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true"
+            android:defaultValue="ANY"
+            android:entries="@array/pref_network_policy_titles"
+            android:entryValues="@array/pref_network_policy_values"
+            android:key="network_streaming"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_title_network_streaming" />
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true"
             android:defaultValue="UNMETERED"
             android:entries="@array/pref_network_policy_titles"
             android:entryValues="@array/pref_network_policy_values"
