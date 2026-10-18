@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import androidx.media3.common.AudioAttributes;
@@ -183,12 +184,8 @@ public class LocalPlayer implements Playback {
 
     private List<MediaItem> createMediaItems(List<Song> queue) {
         return queue.stream().map(song -> {
-            File audio = new File(MusicUtil.getFileUri(song));
-            Uri uri = Uri.fromFile(audio);
-
-            if (!audio.exists()) {
-                uri = Uri.parse(MusicUtil.getTranscodeUri(song));
-            }
+            File audio = LocalLibrary.resolve(song);
+            Uri uri = audio != null ? Uri.fromFile(audio) : Uri.parse(MusicUtil.getTranscodeUri(song));
 
             List<String> containers = PreferenceUtil.getInstance(context).getDirectPlayCodecs().stream()
                     .map(codec -> codec.container.toLowerCase(Locale.ROOT))
@@ -200,7 +197,7 @@ public class LocalPlayer implements Playback {
 
             MediaItem mediaItem;
 
-            if (uri.toString().contains("file://") || (containers.contains(song.container.toLowerCase(Locale.ROOT)) && codecs.contains(song.codec.toLowerCase(Locale.ROOT)) && song.bitRate <= Integer.parseInt(maxBitrate))) {
+            if (audio != null || (containers.contains(song.container.toLowerCase(Locale.ROOT)) && codecs.contains(song.codec.toLowerCase(Locale.ROOT)) && song.bitRate <= Integer.parseInt(maxBitrate))) {
                 mediaItem = new MediaItem.Builder()
                         .setUri(uri)
                         .setMediaId(song.id)

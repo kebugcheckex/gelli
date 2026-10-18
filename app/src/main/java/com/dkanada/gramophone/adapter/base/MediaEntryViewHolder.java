@@ -28,7 +28,7 @@ public class MediaEntryViewHolder extends RecyclerView.ViewHolder implements Vie
     public View menu;
 
     @Nullable
-    public View cached;
+    public ImageView cached;
 
     @Nullable
     public View separator;

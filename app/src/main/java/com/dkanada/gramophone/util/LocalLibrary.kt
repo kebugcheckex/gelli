@@ -16,6 +16,12 @@ import java.security.MessageDigest
  * files live under <root>/<account>/, where <account> is a hash of the local user id.
  */
 object LocalLibrary {
+    enum class Availability {
+        STORED,
+        MISSING,
+        NONE
+    }
+
     private const val TAG = "LocalLibrary"
 
     private const val ACCOUNT_DIR_LENGTH = 16
@@ -64,14 +70,16 @@ object LocalLibrary {
 
     /** Returns the stored file if the song is available locally, marking the row missing if its file is gone. */
     @JvmStatic
-    fun getFile(song: Song): File? {
-        val localSong = get(song) ?: return null
+    fun getFile(song: Song): File? = get(song)?.let { getFile(it) }
+
+    private fun getFile(localSong: LocalSong): File? {
         if (localSong.state != LocalSong.State.COMPLETE) return null
 
         val file = localSong.filePath?.let { File(it) }
         if (file == null || !file.isFile) {
-            Log.w(TAG, "getFile: stored file for ${song.id} is gone")
+            Log.w(TAG, "getFile: stored file for ${localSong.itemId} is gone")
             dao.setState(localSong.accountId, localSong.itemId, LocalSong.State.MISSING)
+            localSong.state = LocalSong.State.MISSING
             return null
         }
 
@@ -80,6 +88,29 @@ object LocalLibrary {
 
     @JvmStatic
     fun isAvailable(song: Song): Boolean = getFile(song) != null
+
+    /**
+     * Returns the file playback should use, or null to stream. Until legacy removal this falls back to
+     * the metadata-derived path written by DownloadService.
+     */
+    @JvmStatic
+    fun resolve(song: Song): File? = getFile(song) ?: getLegacyFile(song)
+
+    /** Matches [resolve], so the badge shown in lists agrees with what playback does. */
+    @JvmStatic
+    fun getAvailability(song: Song): Availability {
+        val localSong = get(song)
+        return when {
+            localSong != null && getFile(localSong) != null -> Availability.STORED
+            getLegacyFile(song) != null -> Availability.STORED
+            localSong?.state == LocalSong.State.MISSING -> Availability.MISSING
+            else -> Availability.NONE
+        }
+    }
+
+    // a failed legacy download leaves an empty file behind, which must not win over streaming
+    private fun getLegacyFile(song: Song): File? =
+        File(MusicUtil.getFileUri(song)).takeIf { it.isFile && it.length() > 0 }
 
     /** Removes the stored file and the row together. */
     @JvmStatic

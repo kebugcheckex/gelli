@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.base.AbsMultiSelectAdapter;
@@ -26,6 +25,7 @@ import com.dkanada.gramophone.helper.menu.SongsMenuHelper;
 import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
@@ -113,15 +113,44 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
             holder.text.setText(getSongText(song));
         }
 
+        LocalLibrary.Availability availability = LocalLibrary.getAvailability(song);
         if (holder.cached != null) {
-            if (App.getDatabase().cacheDao().isCached(song.id)) {
+            if (availability == LocalLibrary.Availability.STORED) {
+                holder.cached.setImageResource(R.drawable.ic_download_24dp);
+                holder.cached.setVisibility(View.VISIBLE);
+            } else if (availability == LocalLibrary.Availability.MISSING) {
+                holder.cached.setImageResource(R.drawable.ic_error_outline_white_24dp);
                 holder.cached.setVisibility(View.VISIBLE);
             } else {
                 holder.cached.setVisibility(View.GONE);
             }
         }
 
+        setAlpha(holder, availability == LocalLibrary.Availability.MISSING ? 0.5f : 1f);
+
         loadAlbumCover(song, holder);
+    }
+
+    protected void setAlpha(ViewHolder holder, float alpha) {
+        if (holder.image != null) {
+            holder.image.setAlpha(alpha);
+        }
+
+        if (holder.title != null) {
+            holder.title.setAlpha(alpha);
+        }
+
+        if (holder.text != null) {
+            holder.text.setAlpha(alpha);
+        }
+
+        if (holder.imageText != null) {
+            holder.imageText.setAlpha(alpha);
+        }
+
+        if (holder.paletteColorContainer != null) {
+            holder.paletteColorContainer.setAlpha(alpha);
+        }
     }
 
     private void setColors(int color, ViewHolder holder) {

@@ -77,28 +77,6 @@ public class PlayingQueueAdapter extends SongAdapter implements DraggableItemAda
         notifyDataSetChanged();
     }
 
-    protected void setAlpha(SongAdapter.ViewHolder holder, float alpha) {
-        if (holder.image != null) {
-            holder.image.setAlpha(alpha);
-        }
-
-        if (holder.title != null) {
-            holder.title.setAlpha(alpha);
-        }
-
-        if (holder.text != null) {
-            holder.text.setAlpha(alpha);
-        }
-
-        if (holder.imageText != null) {
-            holder.imageText.setAlpha(alpha);
-        }
-
-        if (holder.paletteColorContainer != null) {
-            holder.paletteColorContainer.setAlpha(alpha);
-        }
-    }
-
     @Override
     public boolean onCheckCanStartDrag(ViewHolder holder, int position, int x, int y) {
         return ViewUtil.hitTest(holder.imageText, x, y);
