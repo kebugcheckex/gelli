@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Workflow
+
+This is a personal fork of the archived upstream `dkanada/gelli`, developed with AI-assisted coding for rapid iteration.
+
+- Commit and push directly to `master`. Do not create feature branches or pull requests unless asked.
+- Backward compatibility is not a goal. Prefer the cleaner change over compatibility shims, deprecated aliases, or preserving old behavior, unless asked otherwise.
+- Versioning is informal. Bump `versionCode`/`versionName` only when cutting a release, and do not maintain a changelog unless asked.
+
 ## Build Commands
 
 ```bash

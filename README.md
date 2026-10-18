@@ -1,10 +1,18 @@
-## Note
+## Project Status
 
-This repo was forked from the original project, which is now a public archive (https://github.com/dkanada/gelli). I will continue make improvements and updates to this app.
+This is a personal fork of [dkanada/gelli](https://github.com/dkanada/gelli), which has since been archived. I maintain it mainly for my own use and develop it with AI-assisted coding so I can iterate quickly. In practice, this means:
+
+* Changes are committed straight to the `master` branch. There are no release branches or formal review process.
+* Backward compatibility is not guaranteed. Updates may change settings, cached data, or behavior without a migration path.
+* Releases are cut informally and may not follow a strict versioning scheme or come with detailed changelogs.
+
+### Contributing
+
+Issues and pull requests are welcome, but I may not respond to them promptly, or at all. If you want a feature or a fix, the fastest route is often to fork the repo and make the change yourself. AI coding tools work well for this, and `CLAUDE.md` gives an overview of the codebase to help them get started.
 
 ## Gelli
 
-This is a native music player for Android devices that connects to Jellyfin media servers. The code is based on a relatively recent version of Phonograph and was made for personal use, but contributions are welcome! Please open an issue to discuss larger changes before submitting a pull request. I am open to an improved icon if any graphic designers have a good suggestion.
+This is a native music player for Android devices that connects to Jellyfin media servers. The code is based on a relatively recent version of Phonograph and was originally made for personal use.
 
 ## Features
 
