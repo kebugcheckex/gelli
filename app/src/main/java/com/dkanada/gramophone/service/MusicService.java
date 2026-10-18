@@ -112,6 +112,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     private final AppWidgetClassic appWidgetClassic = AppWidgetClassic.getInstance();
 
     private Playback playback;
+    private SaveTrigger saveTrigger;
 
     public QueueManager queueManager;
 
@@ -155,6 +156,9 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             notifyChange(STATE_CHANGED);
 
             if (state == Player.STATE_ENDED) {
+                // clearing the queue also ends playback, which is not a completion
+                if (!queueManager.getPlayingQueue().isEmpty()) saveTrigger.onCompleted();
+
                 playingNotification.stop();
                 releaseWakeLock();
             }
@@ -178,10 +182,17 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         }
 
         @Override
+        public void onPlayingChanged(boolean playing) {
+            saveTrigger.onPlayingChanged(playing);
+        }
+
+        @Override
         public void onTrackChanged(int reason) {
             acquireWakeLock(30000);
 
             if (reason == MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+                saveTrigger.onCompleted();
+
                 if (pendingQuit) {
                     pendingQuit = false;
                     clearSleepTimer();
@@ -193,6 +204,9 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             } else if (reason == MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
                 progressHandler.sendEmptyMessage(TRACK_CHANGED);
             }
+
+            // the queue position is updated by now, so this is the song that just started
+            saveTrigger.onTrackChanged(queueManager.getCurrentSong());
 
             notifyChange(STATE_CHANGED);
             notifyChange(META_CHANGED);
@@ -243,6 +257,8 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         final PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
         wakeLock.setReferenceCounted(false);
+
+        saveTrigger = new SaveTrigger(this);
 
         playback = new LocalPlayer(this);
         playback.setListener(playbackCallbacks);
@@ -463,6 +479,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         queueHandler.removeCallbacksAndMessages(null);
         queueHandlerThread.quitSafely();
 
+        saveTrigger.release();
         playback.stop();
         mediaSession.release();
     }
@@ -712,6 +729,10 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
                 break;
             case PreferenceUtil.GAIN_OFFSET:
                 playback.setVolume(PreferenceUtil.getInstance(this).getGainOffset());
+                break;
+            case PreferenceUtil.LIBRARY_SAVE_TRIGGER:
+            case PreferenceUtil.LIBRARY_SAVE_TRIGGER_SECONDS:
+                saveTrigger.onSettingsChanged();
                 break;
         }
     }

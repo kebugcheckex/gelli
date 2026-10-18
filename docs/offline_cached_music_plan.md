@@ -115,7 +115,15 @@ Setting `library_save_trigger`:
 - **After completion**: enqueue when the track reaches its natural end.
 - **Never**: only explicit downloads are stored.
 
-The default is "After N seconds" with N = 30, so skipped songs are not stored.
+The default is "After N seconds" with N = 30, so skipped songs are not stored. N is a separate setting, `library_save_trigger_seconds` (10 / 30 / 60 / 120), enabled only for that trigger.
+
+`SaveTrigger`, owned by `MusicService`, implements this:
+
+- Listening time counts only while ExoPlayer reports `isPlaying`, so pauses, buffering and audio focus suppression are left out. Seeking does not affect it.
+- Every track transition, including a repeat of the same song, starts a new count. Each track fires at most once.
+- Completion is an `AUTO` or `REPEAT` transition, or playback ending with songs still queued. Clearing the queue also ends playback, so it doesn't count.
+- The trigger always calls `LocalLibrary.save(PLAYED)` without checking the library. `save` does nothing for songs that are already queued or stored, and starts the worker only when a song still needs saving.
+- Setting changes apply to the current track right away.
 
 The first version streams and downloads in parallel, so a song is fetched twice on its first play. This is accepted, especially on unmetered networks.
 

@@ -114,18 +114,21 @@ object LocalLibrary {
 
         Thread {
             try {
+                var pending = false
                 for (song in songs) {
-                    enqueue(accountId, song, source)
+                    if (enqueue(accountId, song, source)) pending = true
                 }
 
-                SaveWorker.start(App.getInstance())
+                // playback saves every song it plays, most of which are stored already
+                if (pending) SaveWorker.start(App.getInstance())
             } catch (err: Exception) {
                 Log.w(TAG, "save: ${err.message}", err)
             }
         }.start()
     }
 
-    private fun enqueue(accountId: String, song: Song, source: LocalSong.Source) {
+    /** Returns whether the song still has to be saved, i.e. it is not stored yet. */
+    private fun enqueue(accountId: String, song: Song, source: LocalSong.Source): Boolean {
         val existing = dao.getSong(accountId, song.id)
         when (existing?.state) {
             LocalSong.State.QUEUED, LocalSong.State.DOWNLOADING, LocalSong.State.COMPLETE -> {
@@ -136,6 +139,8 @@ object LocalLibrary {
             }
             else -> dao.insertSong(LocalSong(accountId, song, source))
         }
+
+        return existing?.state != LocalSong.State.COMPLETE
     }
 
     /**

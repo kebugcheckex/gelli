@@ -132,6 +132,8 @@
     <string name="pref_title_remember_queue">Remember Queue</string>
     <string name="pref_title_page_size">Page Size</string>
     <string name="pref_title_original_cap">Original Size Limit</string>
+    <string name="pref_title_save_trigger">Save Played Songs</string>
+    <string name="pref_title_save_trigger_seconds">Listening Time</string>
     <string name="pref_title_image_cache_size">Images</string>
     <string name="pref_title_media_cache_size">Media</string>
     <string name="pref_title_gain_adjustment">Gain Adjustment</string>
@@ -205,6 +207,10 @@
     <string name="switch_account">Switch Account</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="save_trigger_completion">After completion</string>
+    <string name="save_trigger_delay">After listening time</string>
+    <string name="save_trigger_immediately">Immediately</string>
+    <string name="save_trigger_never">Never</string>
     <string name="server">Server</string>
     <string name="unlimited">Unlimited</string>
     <string name="up_next">Up next</string>

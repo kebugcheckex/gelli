@@ -15,6 +15,28 @@
             android:positiveButtonText="@null"
             android:title="@string/pref_title_original_cap" />
 
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true"
+            android:defaultValue="DELAY"
+            android:entries="@array/pref_save_trigger_titles"
+            android:entryValues="@array/pref_save_trigger_values"
+            android:key="library_save_trigger"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_title_save_trigger" />
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true"
+            android:defaultValue="30"
+            android:entries="@array/pref_save_trigger_seconds_titles"
+            android:entryValues="@array/pref_save_trigger_seconds_values"
+            android:key="library_save_trigger_seconds"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_title_save_trigger_seconds" />
+
     </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

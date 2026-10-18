@@ -70,6 +70,34 @@
         <item>5</item>
     </string-array>
 
+    <string-array name="pref_save_trigger_titles">
+        <item>@string/save_trigger_immediately</item>
+        <item>@string/save_trigger_delay</item>
+        <item>@string/save_trigger_completion</item>
+        <item>@string/save_trigger_never</item>
+    </string-array>
+
+    <string-array name="pref_save_trigger_values">
+        <item>IMMEDIATELY</item>
+        <item>DELAY</item>
+        <item>COMPLETION</item>
+        <item>NEVER</item>
+    </string-array>
+
+    <string-array name="pref_save_trigger_seconds_titles">
+        <item>10 seconds</item>
+        <item>30 seconds</item>
+        <item>60 seconds</item>
+        <item>120 seconds</item>
+    </string-array>
+
+    <string-array name="pref_save_trigger_seconds_values">
+        <item>10</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+    </string-array>
+
     <string-array name="pref_cache_size_titles">
         <item>@string/unlimited</item>
         <item>2GB</item>

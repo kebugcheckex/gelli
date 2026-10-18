@@ -18,6 +18,7 @@ import com.dkanada.gramophone.views.shortcuts.DynamicShortcutManager;
 import com.dkanada.gramophone.dialogs.preferences.CategoryPreferenceDialog;
 import com.dkanada.gramophone.dialogs.preferences.NowPlayingPreferenceDialog;
 import com.dkanada.gramophone.activities.base.AbsBaseActivity;
+import com.dkanada.gramophone.service.SaveTrigger;
 import com.dkanada.gramophone.util.PreferenceUtil;
 
 public class SettingsActivity extends AbsBaseActivity {
@@ -120,6 +121,7 @@ public class SettingsActivity extends AbsBaseActivity {
 
             onSharedPreferenceChanged(preferences, PreferenceUtil.NOW_PLAYING_SCREEN);
             onSharedPreferenceChanged(preferences, PreferenceUtil.CLASSIC_NOTIFICATION);
+            onSharedPreferenceChanged(preferences, PreferenceUtil.LIBRARY_SAVE_TRIGGER);
         }
 
         @Override
@@ -148,6 +150,11 @@ public class SettingsActivity extends AbsBaseActivity {
 
                     colorNotification.setEnabled(sharedPreferences.getBoolean(key, false));
                     colorNotification.setChecked(colorNotification.isEnabled());
+                    break;
+                case PreferenceUtil.LIBRARY_SAVE_TRIGGER:
+                    Preference saveTriggerSeconds = findPreference(PreferenceUtil.LIBRARY_SAVE_TRIGGER_SECONDS);
+
+                    saveTriggerSeconds.setEnabled(PreferenceUtil.getInstance(getActivity()).getLibrarySaveTrigger() == SaveTrigger.Mode.DELAY);
                     break;
             }
         }

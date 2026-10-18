@@ -14,6 +14,7 @@ import com.dkanada.gramophone.model.Category;
 import com.dkanada.gramophone.model.Codec;
 import com.dkanada.gramophone.interfaces.base.PreferenceMigration;
 import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
+import com.dkanada.gramophone.service.SaveTrigger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -86,6 +87,8 @@ public final class PreferenceUtil {
     public static final String GAIN_OFFSET = "gain_offset";
 
     public static final String LIBRARY_ORIGINAL_CAP = "library_original_cap_mb";
+    public static final String LIBRARY_SAVE_TRIGGER = "library_save_trigger";
+    public static final String LIBRARY_SAVE_TRIGGER_SECONDS = "library_save_trigger_seconds";
 
     public static final String LOCATION_CACHE = "location_cache";
     public static final String IMAGE_CACHE_SIZE = "image_cache_size";
@@ -445,6 +448,15 @@ public final class PreferenceUtil {
     /** Songs larger than this many bytes are saved transcoded, 0 saves every song as the original. */
     public final long getLibraryOriginalCap() {
         return Long.parseLong(mPreferences.getString(LIBRARY_ORIGINAL_CAP, "15")) * 1024 * 1024;
+    }
+
+    public final SaveTrigger.Mode getLibrarySaveTrigger() {
+        return SaveTrigger.Mode.valueOf(mPreferences.getString(LIBRARY_SAVE_TRIGGER, SaveTrigger.Mode.DELAY.name()));
+    }
+
+    /** Listening time in milliseconds before a played song is saved, used by {@link SaveTrigger.Mode#DELAY}. */
+    public final long getLibrarySaveTriggerDelay() {
+        return Long.parseLong(mPreferences.getString(LIBRARY_SAVE_TRIGGER_SECONDS, "30")) * 1000;
     }
 
     public final String getLocationCache() {

@@ -75,6 +75,12 @@ public class LocalPlayer implements Playback {
         }
 
         @Override
+        public void onIsPlayingChanged(boolean isPlaying) {
+            Log.i(TAG, String.format("onIsPlayingChanged: %b", isPlaying));
+            if (listener != null) listener.onPlayingChanged(isPlaying);
+        }
+
+        @Override
         public void onMediaItemTransition(MediaItem mediaItem, int reason) {
             Log.i(TAG, String.format("onMediaItemTransition: %s %d", mediaItem, reason));
             if (listener != null) listener.onTrackChanged(reason);
