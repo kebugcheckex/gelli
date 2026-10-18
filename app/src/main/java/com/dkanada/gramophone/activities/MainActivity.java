@@ -19,6 +19,7 @@ import com.afollestad.materialcab.attached.AttachedCab;
 import com.afollestad.materialcab.attached.AttachedCabKt;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.interfaces.CabHolder;
+import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.ThemeUtil;
@@ -56,6 +57,7 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
         super.onCreate(savedInstanceState);
 
         setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
+        LocalLibrary.verifyAsync();
     }
 
     @Override

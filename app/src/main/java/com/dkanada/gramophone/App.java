@@ -54,6 +54,7 @@ public class App extends Application {
                 .addMigrations(JellyDatabase.Migration6)
                 .addMigrations(JellyDatabase.Migration7)
                 .addMigrations(JellyDatabase.Migration8)
+                .addMigrations(JellyDatabase.Migration9)
                 .build();
     }
 

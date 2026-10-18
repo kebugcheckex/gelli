@@ -11,15 +11,17 @@ import com.dkanada.gramophone.model.User;
 @androidx.room.Database(
         entities = {
                 Cache.class,
+                LocalSong.class,
                 Song.class,
                 QueueSong.class,
                 User.class
         },
-        version = 8,
+        version = 9,
         exportSchema = false
 )
 public abstract class JellyDatabase extends RoomDatabase {
     public abstract CacheDao cacheDao();
+    public abstract LocalSongDao localSongDao();
     public abstract SongDao songDao();
     public abstract QueueSongDao queueSongDao();
     public abstract UserDao userDao();
@@ -122,6 +124,41 @@ public abstract class JellyDatabase extends RoomDatabase {
                     + "bitDepth INTEGER NOT NULL,"
                     + "channels INTEGER NOT NULL,"
                     + "cache INTEGER NOT NULL DEFAULT 1)");
+        }
+    };
+
+    // Adds the local library table. The legacy cache table stays until the new save pipeline replaces it.
+    public static final Migration Migration9 = new Migration(8, 9) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE local_songs (accountId TEXT NOT NULL,"
+                    + "itemId TEXT NOT NULL,"
+                    + "title TEXT,"
+                    + "trackNumber INTEGER NOT NULL,"
+                    + "discNumber INTEGER NOT NULL,"
+                    + "year INTEGER NOT NULL,"
+                    + "duration INTEGER NOT NULL,"
+                    + "albumId TEXT,"
+                    + "albumName TEXT,"
+                    + "artistId TEXT,"
+                    + "artistName TEXT,"
+                    + "imageTag TEXT,"
+                    + "blurHash TEXT,"
+                    + "favorite INTEGER NOT NULL,"
+                    + "state TEXT NOT NULL,"
+                    + "source TEXT NOT NULL,"
+                    + "variant TEXT,"
+                    + "filePath TEXT,"
+                    + "fileSize INTEGER NOT NULL,"
+                    + "container TEXT,"
+                    + "codec TEXT,"
+                    + "bitRate INTEGER NOT NULL,"
+                    + "serverDateModified INTEGER NOT NULL,"
+                    + "addedAt INTEGER NOT NULL,"
+                    + "lastPlayedAt INTEGER NOT NULL,"
+                    + "failureCount INTEGER NOT NULL,"
+                    + "lastError TEXT,"
+                    + "PRIMARY KEY (accountId, itemId))");
         }
     };
 }

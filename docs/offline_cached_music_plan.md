@@ -79,7 +79,7 @@ A row whose file has disappeared (deleted externally, storage removed) is not dr
 - A consistency check (on startup, and whenever a lookup finds the file gone) moves `COMPLETE` rows with no file to `MISSING`.
 - `MISSING` songs stay in lists but are shown greyed out with a missing indicator, in both online and offline views.
 - Trying to play a `MISSING` song re-queues it for saving (subject to the saving network policy). Meanwhile playback streams it if the streaming policy allows. Otherwise it is skipped like any other unplayable song.
-- A successful re-download returns the row to `COMPLETE`.
+- A successful re-download returns the row to `COMPLETE`. So does the consistency check if the file reappears (e.g. remounted storage), since `filePath` is absolute.
 
 ### Original vs transcoded file
 
