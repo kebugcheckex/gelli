@@ -6,6 +6,7 @@ import androidx.annotation.VisibleForTesting
 import com.dkanada.gramophone.App
 import com.dkanada.gramophone.database.LocalSong
 import com.dkanada.gramophone.model.Song
+import com.dkanada.gramophone.service.SaveWorker
 import java.io.File
 import java.security.MessageDigest
 
@@ -91,7 +92,7 @@ object LocalLibrary {
 
     /**
      * Returns the file playback should use, or null to stream. Until legacy removal this falls back to
-     * the metadata-derived path written by DownloadService.
+     * the metadata-derived path written by the old download service.
      */
     @JvmStatic
     fun resolve(song: Song): File? = getFile(song) ?: getLegacyFile(song)
@@ -111,6 +112,40 @@ object LocalLibrary {
     // a failed legacy download leaves an empty file behind, which must not win over streaming
     private fun getLegacyFile(song: Song): File? =
         File(MusicUtil.getFileUri(song)).takeIf { it.isFile && it.length() > 0 }
+
+    /**
+     * Queues songs for saving. Songs that are already queued, downloading or stored are left alone,
+     * except that an explicit request takes over a song that was only queued by playback.
+     */
+    @JvmStatic
+    fun save(songs: List<Song>, source: LocalSong.Source) {
+        val accountId = getCurrentAccountId() ?: return
+
+        Thread {
+            try {
+                for (song in songs) {
+                    enqueue(accountId, song, source)
+                }
+
+                SaveWorker.start(App.getInstance())
+            } catch (err: Exception) {
+                Log.w(TAG, "save: ${err.message}", err)
+            }
+        }.start()
+    }
+
+    private fun enqueue(accountId: String, song: Song, source: LocalSong.Source) {
+        val existing = dao.getSong(accountId, song.id)
+        when (existing?.state) {
+            LocalSong.State.QUEUED, LocalSong.State.DOWNLOADING, LocalSong.State.COMPLETE -> {
+                if (source == LocalSong.Source.EXPLICIT && existing.source == LocalSong.Source.PLAYED) {
+                    existing.source = LocalSong.Source.EXPLICIT
+                    dao.updateSong(existing)
+                }
+            }
+            else -> dao.insertSong(LocalSong(accountId, song, source))
+        }
+    }
 
     /** Removes the stored file and the row together. */
     @JvmStatic
@@ -148,11 +183,17 @@ object LocalLibrary {
         return changed
     }
 
+    /** Runs the consistency check and restarts saving for rows left queued, e.g. by an account switch. */
     @JvmStatic
     fun verifyAsync() {
         Thread {
             try {
                 verify()
+
+                val accountId = getCurrentAccountId() ?: return@Thread
+                if (dao.countSongs(accountId, listOf(LocalSong.State.QUEUED, LocalSong.State.DOWNLOADING)) > 0) {
+                    SaveWorker.start(App.getInstance())
+                }
             } catch (err: Exception) {
                 Log.w(TAG, "verify: ${err.message}", err)
             }

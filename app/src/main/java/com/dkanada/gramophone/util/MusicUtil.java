@@ -60,12 +60,12 @@ public class MusicUtil {
         return builder.toString();
     }
 
-    public static String getDownloadUri(Song song) {
+    public static String getDownloadUri(String itemId) {
         StringBuilder builder = new StringBuilder(256);
 
         builder.append(JellyfinSdkSession.getBaseUrl());
         builder.append("/Items/");
-        builder.append(song.id);
+        builder.append(itemId);
         builder.append("/Download");
 
         builder.append("?api_key=").append(JellyfinSdkSession.getAccessToken());

@@ -97,7 +97,10 @@ A row whose file has disappeared (deleted externally, storage removed) is not dr
 ### Save queue
 
 - The Room `state` column is the source of truth. Execution uses **WorkManager** (new dependency): persistence across process death, retry with backoff, network constraints, and foreground execution with a progress notification. This replaces `DownloadService`.
-- Download into `<root>/<account>/tmp/<itemId>.part`, fsync, then rename atomically into `audio/`. Mark `COMPLETE` only after the rename. A failure deletes the `.part` file and records `FAILED`.
+- The `local_songs` rows are the queue. A single serial worker (`SaveWorker`, unique work `library_save` with `APPEND_OR_REPLACE`) drains `QUEUED` rows oldest first, so starting it is all an enqueue has to do. One worker per song was dropped because concurrent foreground workers sharing one notification conflict in WorkManager. A row left `DOWNLOADING` by process death is reset to `QUEUED` when the worker next runs, and app start restarts the worker if any rows are still queued.
+- Download into `<root>/<account>/tmp/<itemId>.part`, fsync, then rename atomically into `audio/`. Mark `COMPLETE` only after the rename. A failure deletes the `.part` file. Network errors, 408, 429 and 5xx put the row back to `QUEUED` and back off the whole queue, up to 3 attempts per song. Other errors (e.g. 404) record `FAILED` with `lastError`.
+- Cancel in the notification drops every `QUEUED`/`DOWNLOADING` row. Any other stop (constraints, system) leaves them queued.
+- The progress notification needs `POST_NOTIFICATIONS` on Android 13+, which the manifest does not request yet. Saving works without it, but the notification is hidden.
 - Requests are idempotent: enqueuing a song that is already `QUEUED`, `DOWNLOADING` or `COMPLETE` is a no-op, except that `EXPLICIT` upgrades the `source` of a `PLAYED` row.
 - Two entry points feed the same queue:
   - **Explicit**: existing Download actions in song/album/artist/genre/playlist menus and detail screens.
@@ -171,7 +174,7 @@ Deliverable: one source of truth for what is stored, read by playback and the UI
 
 ### Phase 2: Save pipeline
 
-1. Add WorkManager. Implement the save worker (temp + atomic rename, foreground notification, retry, unique work per song) storing originals only, which matches current behavior. Cover art saving. Route existing Download menu actions to the new queue through `NavigationUtil.startDownload()`. Delete `DownloadService`, `DownloadNotification` and the manifest entry.
+1. Add WorkManager. Implement the save worker (temp + atomic rename, foreground notification, retry, one serial worker draining the queue) storing originals only, which matches current behavior. Cover art saving. Route existing Download menu actions to the new queue through `NavigationUtil.startDownload()`. Delete `DownloadService`, `DownloadNotification` and the manifest entry.
 2. Original vs transcoded selection with the size cap. New "Local library" settings screen, starting with `library_original_cap_mb`.
 3. Basic "Remove from device" menu action.
 

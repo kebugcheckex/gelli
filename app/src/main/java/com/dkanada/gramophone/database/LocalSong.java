@@ -98,6 +98,11 @@ public class LocalSong {
         this.blurHash = song.blurHash;
         this.favorite = song.favorite;
 
+        // the server item, until the save worker records what it actually stored
+        this.container = song.container;
+        this.codec = song.codec;
+        this.bitRate = song.bitRate;
+
         this.addedAt = System.currentTimeMillis();
     }
 }

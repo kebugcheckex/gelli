@@ -13,6 +13,7 @@ import androidx.core.util.Pair;
 import com.dkanada.gramophone.activities.LoginActivity;
 import com.dkanada.gramophone.activities.MainActivity;
 import com.dkanada.gramophone.activities.SelectActivity;
+import com.dkanada.gramophone.database.LocalSong;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Genre;
@@ -22,9 +23,7 @@ import com.dkanada.gramophone.activities.details.ArtistDetailActivity;
 import com.dkanada.gramophone.activities.details.GenreDetailActivity;
 import com.dkanada.gramophone.activities.details.PlaylistDetailActivity;
 import com.dkanada.gramophone.model.Song;
-import com.dkanada.gramophone.service.DownloadService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationUtil {
@@ -124,11 +123,6 @@ public class NavigationUtil {
     }
 
     public static void startDownload(Activity activity, List<Song> songs) {
-        Intent intent = new Intent(activity, DownloadService.class);
-
-        intent.putExtra(DownloadService.EXTRA_SONGS, new ArrayList<>(songs));
-        intent.setAction(DownloadService.ACTION_START);
-
-        activity.startService(intent);
+        LocalLibrary.save(songs, LocalSong.Source.EXPLICIT);
     }
 }
