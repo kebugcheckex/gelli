@@ -21,14 +21,6 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
-import androidx.media3.database.StandaloneDatabaseProvider;
-import androidx.media3.datasource.DataSource;
-import androidx.media3.datasource.DefaultDataSource;
-import androidx.media3.datasource.FileDataSource;
-import androidx.media3.datasource.cache.CacheDataSink;
-import androidx.media3.datasource.cache.CacheDataSource;
-import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor;
-import androidx.media3.datasource.cache.SimpleCache;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.extractor.DefaultExtractorsFactory;
@@ -49,7 +41,6 @@ public class LocalPlayer implements Playback {
 
     private final Context context;
     private final ExoPlayer exoPlayer;
-    private final SimpleCache simpleCache;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private PlaybackListener listener;
@@ -116,19 +107,12 @@ public class LocalPlayer implements Playback {
         DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true);
 
         exoPlayer = new ExoPlayer.Builder(context)
-            .setMediaSourceFactory(new DefaultMediaSourceFactory(buildDataSourceFactory(), extractorsFactory))
+            .setMediaSourceFactory(new DefaultMediaSourceFactory(context, extractorsFactory))
             .setAudioAttributes(audioAttributes, true)
             .build();
 
         exoPlayer.addListener(eventListener);
         exoPlayer.prepare();
-
-        long cacheSize = PreferenceUtil.getInstance(context).getMediaCacheSize();
-        LeastRecentlyUsedCacheEvictor recentlyUsedCache = new LeastRecentlyUsedCacheEvictor(cacheSize);
-        StandaloneDatabaseProvider databaseProvider = new StandaloneDatabaseProvider(context);
-
-        File cacheDirectory = new File(PreferenceUtil.getInstance(context).getLocationCache(), "exoplayer");
-        simpleCache = new SimpleCache(cacheDirectory, recentlyUsedCache, databaseProvider);
     }
 
     // Run a runnable on the main thread. If already on main, run synchronously.
@@ -266,17 +250,6 @@ public class LocalPlayer implements Playback {
         });
     }
 
-    private DataSource.Factory buildDataSourceFactory() {
-        return () -> new CacheDataSource(
-                simpleCache,
-                new DefaultDataSource.Factory(context).createDataSource(),
-                new FileDataSource(),
-                new CacheDataSink(simpleCache, 10 * 1024 * 1024),
-                CacheDataSource.FLAG_BLOCK_ON_CACHE,
-                null
-        );
-    }
-
     @Override
     public void setListener(PlaybackListener listener) {
         this.listener = listener;
@@ -321,10 +294,7 @@ public class LocalPlayer implements Playback {
 
     @Override
     public void stop() {
-        postToMain(() -> {
-            exoPlayer.release();
-            simpleCache.release();
-        });
+        postToMain(exoPlayer::release);
     }
 
     @Override

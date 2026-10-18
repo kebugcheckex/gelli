@@ -135,7 +135,6 @@
     <string name="pref_title_save_trigger">Save Played Songs</string>
     <string name="pref_title_save_trigger_seconds">Listening Time</string>
     <string name="pref_title_image_cache_size">Images</string>
-    <string name="pref_title_media_cache_size">Media</string>
     <string name="pref_title_gain_adjustment">Gain Adjustment</string>
 
     <string name="pref_summary_primary_color">The primary theme color for control elements.</string>

@@ -126,7 +126,6 @@
     <string name="pref_title_remember_queue">存储播放队列</string>
     <string name="pref_title_page_size">页面大小</string>
     <string name="pref_title_image_cache_size">图片缓存大小</string>
-    <string name="pref_title_media_cache_size">媒体缓存大小</string>
 
     <string name="pref_title_gain_adjustment">增益调节</string>
     <string name="pref_summary_primary_color">主题主色调，默认为靛蓝色。</string>

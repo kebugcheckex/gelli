@@ -19,6 +19,7 @@ import com.dkanada.gramophone.service.SaveTrigger;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,18 +93,17 @@ public final class PreferenceUtil {
 
     public static final String LOCATION_CACHE = "location_cache";
     public static final String IMAGE_CACHE_SIZE = "image_cache_size";
-    public static final String MEDIA_CACHE_SIZE = "media_cache_size";
 
     private static final PreferenceMigration Migration1 = new PreferenceMigration(0, 1) {
         @Override
         public void migrate(Context context, SharedPreferences preferences) {
             String theme = preferences.getString(GENERAL_THEME, "DARK");
             String imageSize = preferences.getString(IMAGE_CACHE_SIZE, "400000000");
-            String mediaSize = preferences.getString(MEDIA_CACHE_SIZE, "400000000");
+            String mediaSize = preferences.getString("media_cache_size", "400000000");
 
             preferences.edit().putString(GENERAL_THEME, Theme.valueOf(theme.toUpperCase()).toString()).commit();
             preferences.edit().putString(IMAGE_CACHE_SIZE, imageSize.substring(0, imageSize.length() - 6)).commit();
-            preferences.edit().putString(MEDIA_CACHE_SIZE, mediaSize.substring(0, imageSize.length() - 6)).commit();
+            preferences.edit().putString("media_cache_size", mediaSize.substring(0, imageSize.length() - 6)).commit();
         }
     };
 
@@ -137,10 +137,24 @@ public final class PreferenceUtil {
         }
     };
 
+    // Drops the Media3 streaming cache, since played songs are now kept by the local library.
+    private static final PreferenceMigration Migration4 = new PreferenceMigration(3, 4) {
+        @Override
+        public void migrate(Context context, SharedPreferences preferences) {
+            String cache = preferences.getString(LOCATION_CACHE, context.getCacheDir().toString());
+
+            LocalLibrary.deleteLegacyFiles(Collections.singletonList(new File(cache, "exoplayer")));
+            // the cache index lived in the database of StandaloneDatabaseProvider
+            context.deleteDatabase("exoplayer_internal.db");
+            preferences.edit().remove("media_cache_size").commit();
+        }
+    };
+
     private static final List<PreferenceMigration> migrations = Arrays.asList(
         Migration1,
         Migration2,
-        Migration3
+        Migration3,
+        Migration4
     );
 
     private static PreferenceUtil instance;
@@ -465,10 +479,6 @@ public final class PreferenceUtil {
 
     public final long getImageCacheSize() {
         return Long.parseLong(mPreferences.getString(IMAGE_CACHE_SIZE, "400")) * 100000;
-    }
-
-    public final long getMediaCacheSize() {
-        return Long.parseLong(mPreferences.getString(MEDIA_CACHE_SIZE, "400")) * 100000;
     }
 
     public List<Category> getCategories() {

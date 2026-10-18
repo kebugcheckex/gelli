@@ -154,7 +154,7 @@ Settings, applied separately to streaming and to saving:
 - The current item is left alone, so a song keeps playing from wherever it started. Items whose media id no longer matches the queue are skipped, since the queue may have changed in the meantime.
 - A local item is replaced when its file path changes. A streamed item is replaced only when the song becomes stored, and its stream URI is never rebuilt, so a refresh doesn't restart buffering of the next song.
 - Playback reporting and favorite toggles are suppressed in offline mode. Queuing them for later sync is deferred.
-- The Media3 `SimpleCache` is reduced to a small buffer (or removed) since played songs are persisted by the library.
+- The Media3 `SimpleCache` is removed, since played songs are persisted by the library. Streams play straight from the network through `DefaultMediaSourceFactory`. The "Media" cache size setting goes with it. Preference migration v4 (`PreferenceUtil.Migration4`) deletes `<location_cache>/exoplayer`, the cache index database `exoplayer_internal.db` and the `media_cache_size` key. The `media3-datasource` and `media3-database` dependencies are dropped, since nothing uses them directly any more.
 
 ### Offline app state and browsing
 
@@ -207,7 +207,7 @@ Deliverable: the local library is the only storage. Legacy downloads are gone, a
 - Save trigger setting and listening-time tracking in `MusicService`.
 - Replace queued media items when their save completes.
 - Re-queue `MISSING` songs when the user tries to play them.
-- Shrink or remove the Media3 streaming cache.
+- Remove the Media3 streaming cache.
 
 Deliverable: played songs persist automatically according to the trigger.
 

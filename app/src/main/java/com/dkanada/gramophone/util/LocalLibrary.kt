@@ -309,7 +309,7 @@ object LocalLibrary {
         }.start()
     }
 
-    /** Deletes the folders the old download service saved songs to, off the main thread. */
+    /** Deletes folders left behind by retired storage (old downloads, the streaming cache), off the main thread. */
     @JvmStatic
     fun deleteLegacyFiles(dirs: List<File>) {
         Thread {

@@ -15,17 +15,6 @@
             android:positiveButtonText="@null"
             android:title="@string/pref_title_image_cache_size" />
 
-        <ListPreference
-            app:iconSpaceReserved="false"
-            app:useSimpleSummaryProvider="true"
-            android:defaultValue="400"
-            android:entries="@array/pref_cache_size_titles"
-            android:entryValues="@array/pref_cache_size_values"
-            android:key="media_cache_size"
-            android:negativeButtonText="@null"
-            android:positiveButtonText="@null"
-            android:title="@string/pref_title_media_cache_size" />
-
     </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
 
 </androidx.preference.PreferenceScreen>
