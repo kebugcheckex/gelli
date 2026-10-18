@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
@@ -35,6 +36,7 @@ import androidx.media3.extractor.DefaultExtractorsFactory;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -168,7 +170,10 @@ public class LocalPlayer implements Playback {
     @Override
     public void setQueue(List<Song> queue, int position, int progress, boolean resetCurrentSong) {
         executorService.submit(() -> {
-            List<MediaItem> mediaItems = createMediaItems(queue);
+            Map<String, File> files = LocalLibrary.getFiles(queue);
+            List<MediaItem> mediaItems = queue.stream()
+                    .map(song -> createMediaItem(song, files.get(song.id)))
+                    .collect(Collectors.toList());
 
             mainHandler.post(() -> {
                 if (resetCurrentSong) {
@@ -192,36 +197,64 @@ public class LocalPlayer implements Playback {
         });
     }
 
-    private List<MediaItem> createMediaItems(List<Song> queue) {
-        return queue.stream().map(song -> {
-            File audio = LocalLibrary.getFile(song);
-            Uri uri = audio != null ? Uri.fromFile(audio) : Uri.parse(MusicUtil.getTranscodeUri(song));
+    // Points queued songs at their stored file once saved, and back at the stream once removed.
+    // The current song keeps playing from wherever it started.
+    @Override
+    public void refreshQueue(List<Song> queue) {
+        executorService.submit(() -> {
+            Map<String, File> files = LocalLibrary.getFiles(queue);
 
-            List<String> containers = PreferenceUtil.getInstance(context).getDirectPlayCodecs().stream()
-                    .map(codec -> codec.container.toLowerCase(Locale.ROOT))
-                    .collect(Collectors.toList());
-            List<String> codecs = PreferenceUtil.getInstance(context).getDirectPlayCodecs().stream()
-                    .map(codec -> codec.codec.toLowerCase(Locale.ROOT))
-                    .collect(Collectors.toList());
-            String maxBitrate = PreferenceUtil.getInstance(context).getMaximumBitrate();
+            mainHandler.post(() -> {
+                int current = exoPlayer.getCurrentMediaItemIndex();
+                int count = Math.min(queue.size(), exoPlayer.getMediaItemCount());
 
-            MediaItem mediaItem;
+                for (int i = 0; i < count; i++) {
+                    Song song = queue.get(i);
+                    MediaItem mediaItem = exoPlayer.getMediaItemAt(i);
 
-            if (audio != null || (containers.contains(song.container.toLowerCase(Locale.ROOT)) && codecs.contains(song.codec.toLowerCase(Locale.ROOT)) && song.bitRate <= Integer.parseInt(maxBitrate))) {
-                mediaItem = new MediaItem.Builder()
-                        .setUri(uri)
-                        .setMediaId(song.id)
-                        .build();
-            } else {
-                mediaItem = new MediaItem.Builder()
-                        .setUri(uri)
-                        .setMediaId(song.id)
-                        .setMimeType(MimeTypes.APPLICATION_M3U8)
-                        .build();
-            }
+                    // the queue may have changed since, so only touch items that still hold the same song
+                    if (i == current || !mediaItem.mediaId.equals(song.id)) continue;
 
-            return mediaItem;
-        }).collect(Collectors.toList());
+                    File audio = files.get(song.id);
+                    Uri uri = mediaItem.localConfiguration.uri;
+                    boolean stale = audio != null ? !Uri.fromFile(audio).equals(uri) : isLocal(uri);
+
+                    if (stale) {
+                        Log.i(TAG, String.format("refreshQueue: %s now %s", song.id, audio != null ? "stored" : "streamed"));
+                        exoPlayer.replaceMediaItem(i, createMediaItem(song, audio));
+                    }
+                }
+            });
+        });
+    }
+
+    private static boolean isLocal(Uri uri) {
+        return "file".equals(uri.getScheme());
+    }
+
+    private MediaItem createMediaItem(Song song, @Nullable File audio) {
+        Uri uri = audio != null ? Uri.fromFile(audio) : Uri.parse(MusicUtil.getTranscodeUri(song));
+
+        List<String> containers = PreferenceUtil.getInstance(context).getDirectPlayCodecs().stream()
+                .map(codec -> codec.container.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toList());
+        List<String> codecs = PreferenceUtil.getInstance(context).getDirectPlayCodecs().stream()
+                .map(codec -> codec.codec.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toList());
+        String maxBitrate = PreferenceUtil.getInstance(context).getMaximumBitrate();
+
+        if (audio != null || (containers.contains(song.container.toLowerCase(Locale.ROOT)) && codecs.contains(song.codec.toLowerCase(Locale.ROOT)) && song.bitRate <= Integer.parseInt(maxBitrate))) {
+            return new MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaId(song.id)
+                    .build();
+        }
+
+        return new MediaItem.Builder()
+                .setUri(uri)
+                .setMediaId(song.id)
+                .setMimeType(MimeTypes.APPLICATION_M3U8)
+                .build();
     }
 
     @Override

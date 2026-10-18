@@ -22,6 +22,9 @@ public interface LocalSongDao {
     @Query("SELECT * FROM local_songs WHERE accountId = :accountId AND state IN (:states)")
     List<LocalSong> getSongs(String accountId, List<LocalSong.State> states);
 
+    @Query("SELECT * FROM local_songs WHERE accountId = :accountId AND itemId IN (:itemIds)")
+    List<LocalSong> getSongsByIds(String accountId, List<String> itemIds);
+
     // rowid keeps the order songs were requested in when they share a timestamp
     @Query("SELECT * FROM local_songs WHERE accountId = :accountId AND state = :state ORDER BY addedAt, rowid LIMIT 1")
     LocalSong getNextSong(String accountId, LocalSong.State state);

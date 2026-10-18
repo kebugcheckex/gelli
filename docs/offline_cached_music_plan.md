@@ -81,6 +81,8 @@ A row whose file has disappeared (deleted externally, storage removed) is not dr
 - Trying to play a `MISSING` song re-queues it for saving (subject to the saving network policy). Meanwhile playback streams it if the streaming policy allows. Otherwise it is skipped like any other unplayable song.
 - A successful re-download returns the row to `COMPLETE`. So does the consistency check if the file reappears (e.g. remounted storage), since `filePath` is absolute.
 
+`LocalLibrary.restoreMissing()` implements the re-queue. `MusicService` calls it on every track change, regardless of the save trigger, so a missing song comes back on its first play even with the trigger set to Never. Re-queuing a `MISSING` or `FAILED` row rebuilds it from the server item, since the old row may describe a transcode. It keeps the original `addedAt`, and an `EXPLICIT` source is never downgraded to `PLAYED`.
+
 ### Original vs transcoded file
 
 - Setting `library_original_cap_mb`, default **15 MB**.
@@ -144,6 +146,13 @@ Settings, applied separately to streaming and to saving:
 - `LocalPlayer.createMediaItems()` resolves each song through `LocalLibrary`: stored → `file://` URI (progressive), otherwise the stream URI if the network policy allows streaming right now.
 - Songs that are neither stored nor streamable under the current policy are skipped, with a single toast per queue action.
 - When a save completes for a song in the current queue (not the current item), its media item is replaced with the local one (`Player.replaceMediaItem`).
+
+`Playback.refreshQueue()` implements the replacement:
+
+- `MusicService` calls it whenever `LocalLibrary` notifies a change, and on every track change. The second call catches files deleted outside the app, which don't notify.
+- It looks up the whole queue with one query per 500 songs (`LocalLibrary.getFiles()`), then swaps each item both ways. A newly stored song switches to its file, and a removed or missing song switches back to the stream.
+- The current item is left alone, so a song keeps playing from wherever it started. Items whose media id no longer matches the queue are skipped, since the queue may have changed in the meantime.
+- A local item is replaced when its file path changes. A streamed item is replaced only when the song becomes stored, and its stream URI is never rebuilt, so a refresh doesn't restart buffering of the next song.
 - Playback reporting and favorite toggles are suppressed in offline mode. Queuing them for later sync is deferred.
 - The Media3 `SimpleCache` is reduced to a small buffer (or removed) since played songs are persisted by the library.
 

@@ -29,6 +29,7 @@ object LocalLibrary {
     private const val TAG = "LocalLibrary"
 
     private const val ACCOUNT_DIR_LENGTH = 16
+    private const val QUERY_CHUNK_SIZE = 500
 
     private val dao get() = App.getDatabase().localSongDao()
 
@@ -90,6 +91,22 @@ object LocalLibrary {
         return file
     }
 
+    /** Like [getFile] for many songs with one query per chunk, keyed by item id. Songs that are not stored are left out. */
+    @JvmStatic
+    fun getFiles(songs: List<Song>): Map<String, File> {
+        val accountId = getCurrentAccountId() ?: return emptyMap()
+
+        val files = HashMap<String, File>()
+        // older sqlite versions allow at most 999 variables per statement
+        for (itemIds in songs.map { it.id }.distinct().chunked(QUERY_CHUNK_SIZE)) {
+            for (localSong in dao.getSongsByIds(accountId, itemIds)) {
+                getFile(localSong)?.let { files[localSong.itemId] = it }
+            }
+        }
+
+        return files
+    }
+
     @JvmStatic
     fun isAvailable(song: Song): Boolean = getFile(song) != null
 
@@ -131,16 +148,52 @@ object LocalLibrary {
     private fun enqueue(accountId: String, song: Song, source: LocalSong.Source): Boolean {
         val existing = dao.getSong(accountId, song.id)
         when (existing?.state) {
+            null -> dao.insertSong(LocalSong(accountId, song, source))
             LocalSong.State.QUEUED, LocalSong.State.DOWNLOADING, LocalSong.State.COMPLETE -> {
                 if (source == LocalSong.Source.EXPLICIT && existing.source == LocalSong.Source.PLAYED) {
                     existing.source = LocalSong.Source.EXPLICIT
                     dao.updateSong(existing)
                 }
             }
-            else -> dao.insertSong(LocalSong(accountId, song, source))
+            LocalSong.State.FAILED, LocalSong.State.MISSING -> {
+                // start over from the server item, since the row may describe a transcode stored earlier
+                val row = LocalSong(accountId, song, mergedSource(existing.source, source))
+                row.addedAt = existing.addedAt
+                dao.insertSong(row)
+            }
         }
 
         return existing?.state != LocalSong.State.COMPLETE
+    }
+
+    /** Playback never takes over a song the user downloaded explicitly. */
+    @JvmStatic
+    @VisibleForTesting
+    fun mergedSource(existing: LocalSong.Source, requested: LocalSong.Source): LocalSong.Source =
+        if (existing == LocalSong.Source.EXPLICIT) existing else requested
+
+    /**
+     * Queues the song again if its stored file is gone, keeping why it was saved. Called when the song
+     * is played, so a missing song comes back without waiting for the save trigger.
+     */
+    @JvmStatic
+    fun restoreMissing(song: Song) {
+        val accountId = getCurrentAccountId() ?: return
+
+        Thread {
+            try {
+                val localSong = dao.getSong(accountId, song.id) ?: return@Thread
+
+                // getFile marks a complete row whose file just disappeared as missing
+                if (getFile(localSong) != null || localSong.state != LocalSong.State.MISSING) return@Thread
+
+                enqueue(accountId, song, LocalSong.Source.PLAYED)
+                SaveWorker.start(App.getInstance())
+                notifyChanged()
+            } catch (err: Exception) {
+                Log.w(TAG, "restoreMissing: ${err.message}", err)
+            }
+        }.start()
     }
 
     /**

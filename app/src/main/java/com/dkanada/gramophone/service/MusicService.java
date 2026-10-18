@@ -41,6 +41,7 @@ import com.dkanada.gramophone.glide.BlurTransformation;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.service.notifications.PlayingNotification;
 import com.dkanada.gramophone.service.notifications.PlayingNotificationMarshmallow;
 import com.dkanada.gramophone.service.notifications.PlayingNotificationNougat;
@@ -133,7 +134,8 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     public final QueueManager.QueueCallbacks queueCallbacks = new QueueManager.QueueCallbacks() {
         @Override
         public void onQueueChanged() {
-            playback.setQueue(queueManager.getPlayingQueue(), queueManager.getPosition(), queueManager.getRestoredProgress(), queueManager.isResetCurrentSong());
+            // playback resolves the songs off the main thread while the queue may keep changing
+            playback.setQueue(new ArrayList<>(queueManager.getPlayingQueue()), queueManager.getPosition(), queueManager.getRestoredProgress(), queueManager.isResetCurrentSong());
             saveState();
             notifyChange(QUEUE_CHANGED);
         }
@@ -149,6 +151,9 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             notifyChange(SHUFFLE_MODE_CHANGED);
         }
     };
+
+    // queued songs switch to their stored file once saved, and back to streaming once removed
+    private final LocalLibrary.Listener libraryListener = this::refreshQueue;
 
     private final PlaybackListener playbackCallbacks = new PlaybackListener() {
         @Override
@@ -206,7 +211,12 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             }
 
             // the queue position is updated by now, so this is the song that just started
-            saveTrigger.onTrackChanged(queueManager.getCurrentSong());
+            Song song = queueManager.getCurrentSong();
+            saveTrigger.onTrackChanged(song);
+            if (song != null) LocalLibrary.restoreMissing(song);
+
+            // files deleted outside the app don't notify the library, so check the queue on every track
+            refreshQueue();
 
             notifyChange(STATE_CHANGED);
             notifyChange(META_CHANGED);
@@ -265,6 +275,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         playback.setVolume(PreferenceUtil.getInstance(this).getGainOffset());
 
         queueManager = new QueueManager(this, queueCallbacks);
+        LocalLibrary.addListener(libraryListener);
 
         progressHandlerThread = new HandlerThread(ProgressHandler.class.getName());
         progressHandlerThread.start();
@@ -479,9 +490,14 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         queueHandler.removeCallbacksAndMessages(null);
         queueHandlerThread.quitSafely();
 
+        LocalLibrary.removeListener(libraryListener);
         saveTrigger.release();
         playback.stop();
         mediaSession.release();
+    }
+
+    private void refreshQueue() {
+        playback.refreshQueue(new ArrayList<>(queueManager.getPlayingQueue()));
     }
 
     public boolean isPlaying() {

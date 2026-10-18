@@ -1,5 +1,6 @@
 package com.dkanada.gramophone.util
 
+import com.dkanada.gramophone.database.LocalSong.Source
 import com.dkanada.gramophone.database.LocalSong.State
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -64,5 +65,23 @@ class LocalLibraryTest {
             assertEquals(state, LocalLibrary.verifiedState(state, fileExists = false))
             assertEquals(state, LocalLibrary.verifiedState(state, fileExists = true))
         }
+    }
+
+    // --- mergedSource ---
+
+    @Test
+    fun mergedSource_explicitIsKeptOverPlayed() {
+        assertEquals(Source.EXPLICIT, LocalLibrary.mergedSource(Source.EXPLICIT, Source.PLAYED))
+    }
+
+    @Test
+    fun mergedSource_explicitTakesOverPlayed() {
+        assertEquals(Source.EXPLICIT, LocalLibrary.mergedSource(Source.PLAYED, Source.EXPLICIT))
+    }
+
+    @Test
+    fun mergedSource_sameSourceUnchanged() {
+        assertEquals(Source.PLAYED, LocalLibrary.mergedSource(Source.PLAYED, Source.PLAYED))
+        assertEquals(Source.EXPLICIT, LocalLibrary.mergedSource(Source.EXPLICIT, Source.EXPLICIT))
     }
 }

@@ -8,6 +8,9 @@ import java.util.List;
 public interface Playback {
     void setQueue(List<Song> queue, int position, int progress, boolean resetCurrentSong);
 
+    // re-resolves queued songs against the local library, the queue must match the one last set
+    void refreshQueue(List<Song> queue);
+
     void playSongAt(int position);
 
     void setListener(PlaybackListener listener);
