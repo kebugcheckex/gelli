@@ -53,9 +53,9 @@ public class MusicUtil {
         // preferred codec when transcoding
         // ToDo: Think about removing this. The server doesn't seem to respect it anyways
         builder.append("&AudioCodec=").append(preferenceUtil.getTranscodeCodec());
-        builder.append("&api_key=").append(JellyfinSdkSession.getAccessToken());
+        builder.append("&ApiKey=").append(JellyfinSdkSession.getAccessToken());
 
-        Log.i(MusicUtil.class.getName(), "playing audio: " + builder);
+        Log.i(MusicUtil.class.getName(), "playing audio item: " + song.id);
         return builder.toString();
     }
 
@@ -80,7 +80,7 @@ public class MusicUtil {
 
         // a constant bitrate keeps seeking accurate in containers without an index
         builder.append("&EnableAudioVbrEncoding=false");
-        builder.append("&api_key=").append(JellyfinSdkSession.getAccessToken());
+        builder.append("&ApiKey=").append(JellyfinSdkSession.getAccessToken());
 
         return builder.toString();
     }
@@ -93,7 +93,7 @@ public class MusicUtil {
         builder.append(itemId);
         builder.append("/Download");
 
-        builder.append("?api_key=").append(JellyfinSdkSession.getAccessToken());
+        builder.append("?ApiKey=").append(JellyfinSdkSession.getAccessToken());
 
         return builder.toString();
     }
