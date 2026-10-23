@@ -11,18 +11,33 @@ import com.dkanada.gramophone.model.User;
 @androidx.room.Database(
         entities = {
                 LocalSong.class,
+                SongInventory.class,
+                InventorySong.class,
                 Song.class,
                 QueueSong.class,
                 User.class
         },
-        version = 10,
+        version = 11,
         exportSchema = false
 )
 public abstract class JellyDatabase extends RoomDatabase {
     public abstract LocalSongDao localSongDao();
+    public abstract SongInventoryDao songInventoryDao();
     public abstract SongDao songDao();
     public abstract QueueSongDao queueSongDao();
     public abstract UserDao userDao();
+
+    public static final Migration Migration11 = new Migration(10, 11) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE song_inventories (accountId TEXT NOT NULL,"
+                    + "checkedAt INTEGER NOT NULL, PRIMARY KEY (accountId))");
+            database.execSQL("CREATE TABLE inventory_songs (accountId TEXT NOT NULL,"
+                    + "itemId TEXT NOT NULL, PRIMARY KEY (accountId, itemId),"
+                    + "FOREIGN KEY (accountId) REFERENCES song_inventories(accountId)"
+                    + " ON UPDATE NO ACTION ON DELETE CASCADE)");
+        }
+    };
 
     public static final Migration Migration2 = new Migration(1, 2) {
         @Override

@@ -95,6 +95,12 @@ object JellyfinSdkSession {
         buildJellyfin(context).createApi(baseUrl = normalized)
     }
 
+    internal fun createApiForUser(user: User) = normalizeBaseUrl(user.server)?.let { server ->
+        val token = user.token?.takeIf { it.isNotBlank() } ?: return@let null
+        val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
+        buildJellyfin(context).createApi(baseUrl = server, accessToken = token)
+    }
+
     private fun buildJellyfin(context: Context) = createJellyfin {
         clientInfo = ClientInfo(
             name = context.getString(R.string.app_name),

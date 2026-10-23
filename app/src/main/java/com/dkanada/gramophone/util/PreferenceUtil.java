@@ -543,6 +543,6 @@ public final class PreferenceUtil {
     }
 
     public void setUser(String user) {
-        mPreferences.edit().putString(USER, user).apply();
+        ServerSongInventory.changeAccount(() -> mPreferences.edit().putString(USER, user).apply());
     }
 }
