@@ -38,6 +38,9 @@ public interface LocalSongDao {
     @Query("UPDATE local_songs SET state = :state WHERE accountId = :accountId AND itemId = :itemId")
     void setState(String accountId, String itemId, LocalSong.State state);
 
+    @Query("UPDATE local_songs SET state = :to WHERE accountId = :accountId AND itemId = :itemId AND state = :from")
+    int changeState(String accountId, String itemId, LocalSong.State from, LocalSong.State to);
+
     @Query("UPDATE local_songs SET state = :to WHERE accountId = :accountId AND state = :from")
     void replaceState(String accountId, LocalSong.State from, LocalSong.State to);
 

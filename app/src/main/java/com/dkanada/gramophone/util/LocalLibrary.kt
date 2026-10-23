@@ -5,10 +5,13 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import androidx.annotation.WorkerThread
 import com.dkanada.gramophone.App
 import com.dkanada.gramophone.database.LocalSong
 import com.dkanada.gramophone.model.Song
 import com.dkanada.gramophone.service.SaveWorker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.CopyOnWriteArraySet
@@ -73,22 +76,58 @@ object LocalLibrary {
         return dao.getSong(accountId, song.id)
     }
 
-    /** Returns the stored file if the song is available locally, marking the row missing if its file is gone. */
+    /** Returns a playable stored file, marking the row missing if its file is gone, empty or unreadable. */
     @JvmStatic
     fun getFile(song: Song): File? = get(song)?.let { getFile(it) }
 
     private fun getFile(localSong: LocalSong): File? {
         if (localSong.state != LocalSong.State.COMPLETE) return null
 
-        val file = localSong.filePath?.let { File(it) }
-        if (file == null || !file.isFile) {
-            Log.w(TAG, "getFile: stored file for ${localSong.itemId} is gone")
-            dao.setState(localSong.accountId, localSong.itemId, LocalSong.State.MISSING)
+        val file = playableLocalFile(localSong.filePath?.let(::File))
+        if (file == null) {
+            Log.w(TAG, "getFile: stored file for ${localSong.itemId} is unavailable")
+            dao.changeState(localSong.accountId, localSong.itemId, LocalSong.State.COMPLETE, LocalSong.State.MISSING)
             localSong.state = LocalSong.State.MISSING
             return null
         }
 
         return file
+    }
+
+    /**
+     * Loads a local-only summary for the supplied account, regardless of the selected account or
+     * browsing library. Database reads and file checks always run on IO, including reconciliation.
+     */
+    suspend fun getSummary(accountId: String): LocalLibrarySummary = withContext(Dispatchers.IO) {
+        verify(accountId)
+        val rows = dao.getSongs(accountId, listOf(LocalSong.State.COMPLETE, LocalSong.State.MISSING))
+        val context = App.getInstance()
+        val internalRoot = context.filesDir
+        val accountDirectory = accountDirName(accountId)
+        val directories = buildList {
+            add(File(internalRoot, "library/$accountDirectory/audio"))
+            context.getExternalFilesDir(null)?.let { add(File(it, "library/$accountDirectory/audio")) }
+            // getRoot() falls back to internal storage when external storage is unavailable.
+            // Retain prior locations from saved paths so that fallback doesn't hide their usage.
+            for (row in rows) {
+                val directory = row.filePath?.let(::File)?.parentFile ?: continue
+                if (directory.name == "audio" && directory.parentFile?.name == accountDirectory) {
+                    add(directory)
+                }
+            }
+        }
+        LocalLibrarySummaryReader.read(accountId, rows, directories) { directory ->
+            if (directory.absolutePath.startsWith(internalRoot.absolutePath + File.separator)) {
+                true
+            } else {
+                val state = try {
+                    Environment.getExternalStorageState(directory)
+                } catch (_: IllegalArgumentException) {
+                    Environment.MEDIA_UNKNOWN
+                }
+                state == Environment.MEDIA_MOUNTED || state == Environment.MEDIA_MOUNTED_READ_ONLY
+            }
+        }
     }
 
     /** Like [getFile] for many songs with one query per chunk, keyed by item id. Songs that are not stored are left out. */
@@ -284,17 +323,21 @@ object LocalLibrary {
      * number of rows whose state changed.
      */
     @JvmStatic
+    @WorkerThread
     fun verify(): Int {
         val accountId = getCurrentAccountId() ?: return 0
+        return verify(accountId)
+    }
+
+    private fun verify(accountId: String): Int {
         val rows = dao.getSongs(accountId, listOf(LocalSong.State.COMPLETE, LocalSong.State.MISSING))
 
         var changed = 0
         for (row in rows) {
-            val exists = row.filePath?.let { File(it).isFile } ?: false
-            val state = verifiedState(row.state, exists)
+            val state = verifiedState(row.state, playableLocalFile(row.filePath?.let(::File)) != null)
             if (state != row.state) {
-                dao.setState(row.accountId, row.itemId, state)
-                changed++
+                // Do not overwrite a row that was removed or re-queued during the file check.
+                changed += dao.changeState(row.accountId, row.itemId, row.state, state)
             }
         }
 
