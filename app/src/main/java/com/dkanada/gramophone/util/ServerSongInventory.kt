@@ -6,6 +6,7 @@ import com.dkanada.gramophone.mapper.SdkMapperUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.api.client.extensions.itemsApi
+import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
@@ -48,7 +49,13 @@ object ServerSongInventory {
         val userId = QueryUtil.toUuidOrNull(user.jellyfinUserId)
         checkNotNull(userId) { "Invalid account user ID" }
 
-        return loadSongIds(userId) { request ->
+        return loadSongIds(userId, views = {
+            // CollectionFolder queries can return no rows even when the user has music libraries.
+            // Include libraries hidden from the home screen: this inventory covers all accessible music.
+            val result by api.userViewsApi.getUserViews(
+                userId = userId, includeExternalContent = false, includeHidden = true)
+            result
+        }) { request ->
             val result by api.itemsApi.getItems(request)
             result
         }
@@ -56,29 +63,33 @@ object ServerSongInventory {
 
     internal suspend fun loadSongIds(
         userId: UUID,
+        views: suspend () -> BaseItemDtoQueryResult,
         fetch: suspend (GetItemsRequest) -> BaseItemDtoQueryResult
     ): Set<String> {
-        suspend fun <T> pages(parentId: UUID?, libraries: Boolean, map: (BaseItemDto) -> T): List<T> =
+        suspend fun <T> pages(parentId: UUID, map: (BaseItemDto) -> T): List<T> =
             loadInventoryPages(PAGE_SIZE) { start, limit ->
-                val result = fetch(request(userId, parentId, libraries, start, limit))
+                val result = fetch(request(userId, parentId, start, limit))
                 InventoryPage(result.items.map(map), result.totalRecordCount, result.startIndex)
             }
 
-        val libraries = pages(null, true) { it }.filter { it.collectionType == CollectionType.MUSIC }
+        // UserViews has no pagination; an incomplete response must not replace a good snapshot.
+        val result = views()
+        check(result.startIndex == 0 && result.totalRecordCount == result.items.size) { "Incomplete library views" }
+        val libraries = result.items.filter { it.collectionType == CollectionType.MUSIC }
             .distinctBy { it.id }
         val ids = mutableSetOf<String>()
         for (library in libraries) {
-            ids.addAll(pages(library.id, false) { SdkMapperUtil.uuidToId(it.id) })
+            ids.addAll(pages(library.id) { SdkMapperUtil.uuidToId(it.id) })
         }
         return ids
     }
 
-    internal fun request(userId: UUID, parentId: UUID?, libraries: Boolean, start: Int, limit: Int) =
+    internal fun request(userId: UUID, parentId: UUID, start: Int, limit: Int) =
         GetItemsRequest(
             userId = userId,
             parentId = parentId,
-            includeItemTypes = listOf(if (libraries) BaseItemKind.COLLECTION_FOLDER else BaseItemKind.AUDIO),
-            recursive = !libraries,
+            includeItemTypes = listOf(BaseItemKind.AUDIO),
+            recursive = true,
             startIndex = start,
             limit = limit,
             enableTotalRecordCount = true,

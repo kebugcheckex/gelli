@@ -17,30 +17,26 @@ class ServerSongInventoryTest {
         val requests = mutableListOf<UUID?>()
         QueryUtil.currentLibrary = QueryUtil.Library(id(99).toString(), "Other", "music")
         try {
-            val ids = ServerSongInventory.loadSongIds(id(10)) { request ->
+            val ids = ServerSongInventory.loadSongIds(id(10), views = {
+                BaseItemDtoQueryResult(listOf(music, books, otherMusic, music), 4, 0)
+            }) { request ->
                 assertEquals(id(10), request.userId)
                 assertEquals(true, request.enableTotalRecordCount)
                 assertEquals(listOf(ItemSortBy.SORT_NAME), request.sortBy)
                 assertEquals(listOf(SortOrder.ASCENDING), request.sortOrder)
                 requests.add(request.parentId)
-                if (request.parentId == null) {
-                    assertEquals(false, request.recursive)
-                    assertEquals(listOf(BaseItemKind.COLLECTION_FOLDER), request.includeItemTypes)
-                    BaseItemDtoQueryResult(listOf(music, books, otherMusic, music), 4, 0)
+                assertEquals(true, request.recursive)
+                assertEquals(listOf(BaseItemKind.AUDIO), request.includeItemTypes)
+                val start = request.startIndex!!
+                if (request.parentId == music.id) {
+                    // Server may return fewer items than requested; continue to the reported total.
+                    BaseItemDtoQueryResult(listOf(BaseItemDto(id = id(20 + start), type = BaseItemKind.AUDIO)), 2, start)
                 } else {
-                    assertEquals(true, request.recursive)
-                    assertEquals(listOf(BaseItemKind.AUDIO), request.includeItemTypes)
-                    val start = request.startIndex!!
-                    if (request.parentId == music.id) {
-                        // Server may return fewer items than requested; continue to the reported total.
-                        BaseItemDtoQueryResult(listOf(BaseItemDto(id = id(20 + start), type = BaseItemKind.AUDIO)), 2, start)
-                    } else {
-                        BaseItemDtoQueryResult(listOf(BaseItemDto(id = id(20), type = BaseItemKind.AUDIO)), 1, 0)
-                    }
+                    BaseItemDtoQueryResult(listOf(BaseItemDto(id = id(20), type = BaseItemKind.AUDIO)), 1, 0)
                 }
             }
             assertEquals(setOf(id(20), id(21)).map { it.toString().replace("-", "") }.toSet(), ids)
-            assertEquals(listOf(null, music.id, music.id, otherMusic.id), requests)
+            assertEquals(listOf(music.id, music.id, otherMusic.id), requests)
         } finally {
             QueryUtil.currentLibrary = null
         }
@@ -48,22 +44,35 @@ class ServerSongInventoryTest {
 
     @Test
     fun noMusicLibrariesIsASuccessfulEmptyInventory() = runBlocking {
-        val ids = ServerSongInventory.loadSongIds(id(10)) {
+        val ids = ServerSongInventory.loadSongIds(id(10), views = {
             BaseItemDtoQueryResult(listOf(BaseItemDto(id = id(1), type = BaseItemKind.COLLECTION_FOLDER,
                 collectionType = CollectionType.BOOKS)), 1, 0)
-        }
+        }) { error("Must not fetch non-music views") }
         assertTrue(ids.isEmpty())
     }
 
     @Test
     fun emptyMusicLibraryIsASuccessfulEmptyInventory() = runBlocking {
-        val ids = ServerSongInventory.loadSongIds(id(10)) {
-            if (it.parentId == null) {
-                BaseItemDtoQueryResult(listOf(BaseItemDto(id = id(1), type = BaseItemKind.COLLECTION_FOLDER,
-                    collectionType = CollectionType.MUSIC)), 1, 0)
-            } else BaseItemDtoQueryResult(emptyList(), 0, 0)
-        }
+        val ids = ServerSongInventory.loadSongIds(id(10), views = {
+            BaseItemDtoQueryResult(listOf(BaseItemDto(id = id(1), type = BaseItemKind.COLLECTION_FOLDER,
+                collectionType = CollectionType.MUSIC)), 1, 0)
+        }) { BaseItemDtoQueryResult(emptyList(), 0, 0) }
         assertTrue(ids.isEmpty())
+    }
+
+    @Test
+    fun incompleteOrMisindexedLibraryViewsAreRejected() = runBlocking {
+        for (response in listOf(BaseItemDtoQueryResult(emptyList(), 1, 0),
+            BaseItemDtoQueryResult(emptyList(), 0, 1))) {
+            try {
+                ServerSongInventory.loadSongIds(id(10), views = { response }) {
+                    throw AssertionError("Must not fetch songs from incomplete views")
+                }
+                fail("Expected incomplete views to fail")
+            } catch (_: IllegalStateException) {
+                // The refresher retains the previous complete snapshot.
+            }
+        }
     }
 
     @Test

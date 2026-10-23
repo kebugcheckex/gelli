@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="downloads_storage_title">Downloads &amp; storage</string>
+    <string name="downloads_storage_summary">See how much music is available offline and the space used by saved audio.</string>
+    <string name="downloads_scope">Current account · All music libraries</string>
+    <string name="downloads_no_account">Select an account to see your downloads.</string>
+    <string name="downloads_refresh">Refresh</string>
+    <string name="downloads_checking_local">Checking saved songs…</string>
+    <string name="downloads_available">Available offline</string>
+    <string name="downloads_percentage">%1$s%% available offline</string>
+    <string name="downloads_below_one" formatted="false">&lt;1% available offline</string>
+    <string name="downloads_below_one_accessibility">Less than 1 percent available offline</string>
+    <string name="downloads_empty_library">No songs in your music libraries</string>
+    <string name="downloads_includes_saves">Includes downloads and songs saved while listening.</string>
+    <string name="downloads_checked">Library checked %1$s</string>
+    <string name="downloads_checking_server">Checking music libraries…</string>
+    <string name="downloads_offline_snapshot">Offline · Showing the last successful library check.</string>
+    <string name="downloads_offline_unknown">Offline · Connect to your server to check the library total.</string>
+    <string name="downloads_refresh_failed_snapshot">Couldn\'t refresh the library. Showing the last successful check.</string>
+    <string name="downloads_refresh_failed_unknown">Couldn\'t check the library total. Try Refresh when your server is available.</string>
+    <string name="downloads_inventory_unknown">Refresh to check the library total.</string>
+    <string name="downloads_local_failed">Couldn\'t check saved songs. Try Refresh.</string>
+    <string name="downloads_audio_title">Saved audio</string>
+    <string name="downloads_audio_usage">%1$s on this device</string>
+    <string name="downloads_checking_storage">Checking storage…</string>
+    <string name="downloads_storage_unknown">Storage usage unavailable</string>
+    <string name="downloads_audio_scope">Audio files for this account. Artwork and temporary files are not included.</string>
+    <string name="downloads_storage_unavailable">Some saved files or storage may be unavailable.</string>
+    <plurals name="downloads_saved_count">
+        <item quantity="one">%1$s song saved</item>
+        <item quantity="other">%1$s songs saved</item>
+    </plurals>
+    <plurals name="downloads_coverage_count">
+        <item quantity="one">%1$s of %2$s song</item>
+        <item quantity="other">%1$s of %2$s songs</item>
+    </plurals>
+    <plurals name="downloads_outside_inventory">
+        <item quantity="one">%1$s saved song is outside this library inventory.</item>
+        <item quantity="other">%1$s saved songs are outside this library inventory.</item>
+    </plurals>
+</resources>

@@ -4,6 +4,12 @@
 
     <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_local_library">
 
+        <Preference
+            app:iconSpaceReserved="false"
+            android:key="downloads_storage"
+            android:title="@string/downloads_storage_title"
+            android:summary="@string/downloads_storage_summary" />
+
         <ListPreference
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true"

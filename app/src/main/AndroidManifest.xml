@@ -51,6 +51,9 @@
             android:name=".activities.SettingsActivity"
             android:label="@string/action_settings" />
         <activity
+            android:name=".activities.DownloadsActivity"
+            android:label="@string/downloads_storage_title" />
+        <activity
             android:name=".activities.AboutActivity"
             android:label="@string/action_about" />
         <activity

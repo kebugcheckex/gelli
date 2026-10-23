@@ -1,5 +1,6 @@
 package com.dkanada.gramophone.activities;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -76,6 +77,10 @@ public class SettingsActivity extends AbsBaseActivity {
 
         @SuppressWarnings("ConstantConditions")
         private void invalidateSettings() {
+            findPreference("downloads_storage").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(requireContext(), DownloadsActivity.class));
+                return true;
+            });
             final TwoStatePreference classicNotification = findPreference(PreferenceUtil.CLASSIC_NOTIFICATION);
             final TwoStatePreference coloredNotification = findPreference(PreferenceUtil.COLORED_NOTIFICATION);
             final TwoStatePreference colorAppShortcuts = findPreference(PreferenceUtil.COLORED_SHORTCUTS);
