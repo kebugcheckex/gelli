@@ -1,6 +1,9 @@
 package com.dkanada.gramophone.util
 
 import android.util.Log
+import android.widget.Toast
+import com.dkanada.gramophone.App
+import com.dkanada.gramophone.R
 import com.dkanada.gramophone.model.Song
 import kotlinx.coroutines.runBlocking
 import org.jellyfin.sdk.api.client.exception.ApiClientException
@@ -11,6 +14,11 @@ object UserLibraryUtil {
 
     @JvmStatic
     fun toggleFavorite(song: Song) {
+        if (NetworkUtil.isOffline(App.getInstance())) {
+            Toast.makeText(App.getInstance(), R.string.favorites_unavailable_offline, Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val api = JellyfinSdkSession.createApiOrNull() ?: return
         val itemId = QueryUtil.toUuidOrNull(song.id) ?: return
         val userId = QueryUtil.toUuidOrNull(JellyfinSdkSession.getCurrentUserId())

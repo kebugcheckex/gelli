@@ -92,6 +92,7 @@ public final class PreferenceUtil {
     public static final String LIBRARY_SAVE_TRIGGER = "library_save_trigger";
     public static final String LIBRARY_SAVE_TRIGGER_SECONDS = "library_save_trigger_seconds";
 
+    public static final String OFFLINE_MODE = "offline_mode";
     public static final String NETWORK_STREAMING = "network_streaming";
     public static final String NETWORK_SAVING = "network_saving";
 
@@ -475,6 +476,10 @@ public final class PreferenceUtil {
     /** Listening time in milliseconds before a played song is saved, used by {@link SaveTrigger.Mode#DELAY}. */
     public final long getLibrarySaveTriggerDelay() {
         return Long.parseLong(mPreferences.getString(LIBRARY_SAVE_TRIGGER_SECONDS, "30")) * 1000;
+    }
+
+    public final boolean getOfflineMode() {
+        return mPreferences.getBoolean(OFFLINE_MODE, false);
     }
 
     public final NetworkPolicy getNetworkStreaming() {

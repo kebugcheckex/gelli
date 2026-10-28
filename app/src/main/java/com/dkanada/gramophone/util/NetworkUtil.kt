@@ -12,7 +12,10 @@ import androidx.annotation.VisibleForTesting
 import com.dkanada.gramophone.model.NetworkPolicy
 import java.util.concurrent.CopyOnWriteArraySet
 
-/** Answers whether the network settings allow the app to use the current network, and reports when that may change. */
+/**
+ * Answers whether the network settings allow the app to use the current network, and reports when that may change.
+ * Offline mode allows no network at all, whatever is connected.
+ */
 object NetworkUtil {
     /** Streaming needs a network that the streaming setting allows, so with no network at all only stored songs play. */
     @JvmStatic
@@ -20,9 +23,15 @@ object NetworkUtil {
 
     @JvmStatic
     fun isAllowed(context: Context, policy: NetworkPolicy): Boolean {
+        if (isOffline(context)) return false
+
         val (connected, unmetered) = getState(context)
         return isAllowed(policy, connected, unmetered)
     }
+
+    /** Offline mode also stops saving, playback reporting and favorite changes, which don't go through [isAllowed]. */
+    @JvmStatic
+    fun isOffline(context: Context): Boolean = PreferenceUtil.getInstance(context).offlineMode
 
     @JvmStatic
     @VisibleForTesting

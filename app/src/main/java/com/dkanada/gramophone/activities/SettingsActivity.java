@@ -164,6 +164,10 @@ public class SettingsActivity extends AbsBaseActivity {
 
                     saveTriggerSeconds.setEnabled(PreferenceUtil.getInstance(getActivity()).getLibrarySaveTrigger() == SaveTrigger.Mode.DELAY);
                     break;
+                case PreferenceUtil.OFFLINE_MODE:
+                    NetworkUtil.notifyChanged();
+                    SaveWorker.restart(requireContext());
+                    break;
                 case PreferenceUtil.NETWORK_STREAMING:
                     NetworkUtil.notifyChanged();
                     break;

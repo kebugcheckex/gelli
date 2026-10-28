@@ -156,8 +156,16 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     // queued songs switch to their stored file once saved, and back to streaming once removed
     private final LocalLibrary.Listener libraryListener = this::refreshQueue;
 
-    // and to a placeholder while they can't be streamed, so playback never waits on a stream that will fail
-    private final NetworkUtil.Listener networkListener = this::refreshQueue;
+    // and to a placeholder while they can't be streamed, so playback never waits on a stream that will fail.
+    // A song streaming when that happens is left for the next stored one, e.g. when offline mode is turned on.
+    private final NetworkUtil.Listener networkListener = () -> {
+        refreshQueue();
+
+        Song song = queueManager.getCurrentSong();
+        if (song != null && playback.isPlaying() && !LocalLibrary.isPlayable(song) && skipUnplayable()) {
+            progressHandler.sendEmptyMessage(TRACK_CHANGED);
+        }
+    };
 
     private final PlaybackListener playbackCallbacks = new PlaybackListener() {
         @Override

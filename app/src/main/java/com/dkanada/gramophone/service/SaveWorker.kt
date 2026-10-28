@@ -30,6 +30,7 @@ import com.dkanada.gramophone.model.NetworkPolicy
 import com.dkanada.gramophone.service.receivers.SaveCancelReceiver
 import com.dkanada.gramophone.util.LocalLibrary
 import com.dkanada.gramophone.util.MusicUtil
+import com.dkanada.gramophone.util.NetworkUtil
 import com.dkanada.gramophone.util.PreferenceUtil
 import java.io.File
 import java.io.FileOutputStream
@@ -344,7 +345,13 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
         }
 
+        // offline mode leaves the queue waiting, turning it off restarts the worker
         private fun enqueue(context: Context, policy: ExistingWorkPolicy) {
+            if (NetworkUtil.isOffline(context)) {
+                cancel(context)
+                return
+            }
+
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(networkType(PreferenceUtil.getInstance(context).networkSaving))
                 .build()
