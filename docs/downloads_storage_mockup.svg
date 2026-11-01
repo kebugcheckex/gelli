@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1320" height="1120" viewBox="0 0 1320 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Gelli: Downloads and storage design proposal</title>
+  <desc id="desc">Three proposed mobile screens. The first shows 26 percent offline coverage and 6.4 GB of storage. The second shows a storage cleanup selection and review action. The third shows later artist-level coverage. All data is illustrative.</desc>
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Arial, sans-serif; fill: #202335; }
+      .page-title { font-size: 30px; font-weight: 650; }
+      .subtitle { font-size: 16px; fill: #596173; }
+      .phase { font-size: 13px; fill: #3f51b5; font-weight: 700; letter-spacing: 1px; }
+      .phone-title { font-size: 20px; font-weight: 600; fill: #fff; }
+      .label { font-size: 14px; fill: #5a6072; }
+      .body { font-size: 15px; }
+      .small { font-size: 13px; fill: #5a6072; }
+      .section { font-size: 17px; font-weight: 650; }
+      .action { font-size: 14px; font-weight: 650; fill: #3f51b5; }
+      .white { fill: #fff; }
+      .rule { stroke: #e3e5ec; }
+      .card { fill: #fff; stroke: #e3e5ec; }
+      .note { font-size: 15px; fill: #596173; }
+    </style>
+    <g id="back" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 0 0 9l9 9M0 9h18"/></g>
+    <g id="check"><rect width="20" height="20" rx="3" fill="#3f51b5"/><path d="m5 10 3 3 7-7" fill="none" stroke="#fff" stroke-width="2"/></g>
+    <g id="unchecked"><rect x="1" y="1" width="18" height="18" rx="3" fill="none" stroke="#8990a0" stroke-width="2"/></g>
+  </defs>
+  <rect width="1320" height="1120" fill="#eef0f6"/>
+  <text x="42" y="54" class="page-title">Your music, available offline.</text>
+  <text x="42" y="84" class="subtitle">Gelli · UI proposal · Illustrative data · Current account, across all music libraries</text>
+
+  <g transform="translate(42 118)">
+    <text y="0" class="phase">01 / FIRST VERSION</text>
+    <rect y="18" width="388" height="840" rx="24" fill="#f8f9fc" stroke="#ccd1df"/>
+    <path d="M24 18h340q24 0 24 24v74H0V42q0-24 24-24" fill="#3f51b5"/>
+    <text x="22" y="43" font-size="12" class="white">9:41</text>
+    <use xlink:href="#back" x="20" y="73"/>
+    <text x="54" y="89" class="phone-title">Downloads &amp; storage</text>
+    <path d="M355 75a9 9 0 1 0 2 11m-2-11v7h-7" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="20" y="147" class="small">Current account · All music libraries</text>
+
+    <rect x="16" y="164" width="356" height="245" rx="14" class="card"/>
+    <text x="36" y="195" class="section">Available offline</text>
+    <text x="34" y="263" font-size="62" font-weight="650">26<tspan font-size="33">%</tspan></text>
+    <text x="36" y="293" class="body">1,248 of 4,800 songs</text>
+    <rect x="36" y="310" width="316" height="8" rx="4" fill="#ece7ed"/>
+    <rect x="36" y="310" width="82.16" height="8" rx="4" fill="#d50050"/>
+    <text x="36" y="346" class="small">Includes downloads and songs</text>
+    <text x="36" y="364" class="small">saved while listening</text>
+    <text x="36" y="389" font-size="12" fill="#6b7080">Library checked today, 10:42</text>
+
+    <rect x="16" y="425" width="356" height="242" rx="14" class="card"/>
+    <text x="36" y="457" class="section">On this device</text>
+    <text x="36" y="501" font-size="34" font-weight="650">6.4 GB</text>
+    <text x="36" y="524" class="small">Used by this account</text>
+    <rect x="36" y="542" width="301" height="10" rx="4" fill="#3f51b5"/>
+    <rect x="339" y="542" width="9" height="10" fill="#aab3de"/>
+    <rect x="350" y="542" width="4" height="10" fill="#b7bdc9"/>
+    <circle cx="40" cy="577" r="4" fill="#3f51b5"/>
+    <text x="52" y="582" class="small">Music</text><text x="352" y="582" text-anchor="end" class="small">6.1 GB</text>
+    <circle cx="40" cy="601" r="4" fill="#aab3de"/>
+    <text x="52" y="606" class="small">Artwork</text><text x="352" y="606" text-anchor="end" class="small">0.2 GB</text>
+    <circle cx="40" cy="625" r="4" fill="#b7bdc9"/>
+    <text x="52" y="630" class="small">Temporary files</text><text x="352" y="630" text-anchor="end" class="small">0.1 GB</text>
+    <text x="36" y="653" font-size="12" fill="#5a6072">18.2 GB free on this storage volume</text>
+
+    <rect x="17" y="681" width="354" height="46" rx="9" fill="none" stroke="#a5abc4" stroke-dasharray="4 4"/>
+    <text x="36" y="709" class="action">Manage storage</text><text x="352" y="709" class="small" text-anchor="end">Phase 2 →</text>
+    <text x="20" y="759" class="small">24 songs waiting for an unmetered network</text>
+    <text x="20" y="782" class="small">3 songs need attention</text>
+    <text x="20" y="827" class="action">Download settings →</text>
+    <text x="0" y="891" class="note">Start with coverage and actual space used.</text>
+    <text x="0" y="914" class="note">Dashed action appears when phase 2 ships.</text>
+  </g>
+
+  <g transform="translate(466 118)">
+    <text y="0" class="phase">02 / SPACE MANAGEMENT</text>
+    <rect y="18" width="388" height="840" rx="24" fill="#f8f9fc" stroke="#ccd1df"/>
+    <path d="M24 18h340q24 0 24 24v74H0V42q0-24 24-24" fill="#3f51b5"/>
+    <text x="22" y="43" font-size="12" class="white">9:41</text>
+    <use xlink:href="#back" x="20" y="73"/>
+    <text x="54" y="89" class="phone-title">Manage storage</text>
+    <text x="20" y="147" class="small">Current account · 6.4 GB on device</text>
+    <text x="20" y="180" class="section">Review saved songs</text>
+    <rect x="16" y="199" width="356" height="46" rx="8" class="card"/>
+    <text x="30" y="228" class="body">Saved while listening</text><text x="348" y="227" class="label">⌄</text>
+    <rect x="16" y="255" width="356" height="46" rx="8" class="card"/>
+    <text x="30" y="284" class="body">Not played in 90 days</text><text x="348" y="283" class="label">⌄</text>
+    <text x="20" y="331" class="small">186 selected · 248 matching songs</text>
+    <text x="20" y="356" class="action">Select all matching</text><text x="368" y="356" text-anchor="end" class="small">Largest first ↓</text>
+    <line x1="16" y1="375" x2="372" y2="375" class="rule"/>
+
+    <use xlink:href="#check" x="20" y="400"/>
+    <text x="55" y="410" class="section">Evening Light</text><text x="368" y="410" text-anchor="end" class="body">12 MB</text>
+    <text x="55" y="433" class="small">Northbound · 4 months ago</text>
+    <line x1="55" y1="450" x2="372" y2="450" class="rule"/>
+    <use xlink:href="#check" x="20" y="475"/>
+    <text x="55" y="485" class="section">Slow Motion</text><text x="368" y="485" text-anchor="end" class="body">11 MB</text>
+    <text x="55" y="508" class="small">Mira Vale · 5 months ago</text>
+    <line x1="55" y1="525" x2="372" y2="525" class="rule"/>
+    <use xlink:href="#unchecked" x="20" y="550"/>
+    <text x="55" y="560" class="section">Open Water</text><text x="368" y="560" text-anchor="end" class="body">10 MB</text>
+    <text x="55" y="583" class="small">The Lowlands · 3 months ago</text>
+    <line x1="55" y1="600" x2="372" y2="600" class="rule"/>
+    <use xlink:href="#check" x="20" y="625"/>
+    <text x="55" y="635" class="section">Home Again</text><text x="368" y="635" text-anchor="end" class="body">10 MB</text>
+    <text x="55" y="658" class="small">Northbound · 6 months ago</text>
+    <text x="20" y="708" class="small">Songs downloaded by you are excluded</text>
+    <text x="20" y="727" class="small">by the current filter.</text>
+    <path d="M0 757h388" class="rule"/>
+    <rect x="16" y="773" width="356" height="62" rx="10" fill="#3f51b5"/>
+    <text x="194" y="798" text-anchor="middle" font-size="16" font-weight="650" class="white">Review removal</text>
+    <text x="194" y="819" text-anchor="middle" font-size="13" class="white">186 songs · about 940 MB</text>
+    <text x="0" y="891" class="note">Filter, select, then review before removal.</text>
+    <text x="0" y="914" class="note">Show files actually removed and space freed.</text>
+  </g>
+
+  <g transform="translate(890 118)">
+    <text y="0" class="phase">03 / ARTIST COVERAGE</text>
+    <rect y="18" width="388" height="840" rx="24" fill="#f8f9fc" stroke="#ccd1df"/>
+    <path d="M24 18h340q24 0 24 24v74H0V42q0-24 24-24" fill="#3f51b5"/>
+    <text x="22" y="43" font-size="12" class="white">9:41</text>
+    <use xlink:href="#back" x="20" y="73"/>
+    <text x="54" y="89" class="phone-title">By artist</text>
+    <text x="20" y="147" class="small">Current account · All music libraries</text>
+    <rect x="16" y="165" width="356" height="75" rx="12" fill="#e9ecfa"/>
+    <text x="32" y="195" class="section">26% available offline</text>
+    <text x="32" y="219" class="small">1,248 of 4,800 songs across your library</text>
+    <text x="20" y="275" class="section">Artists</text><text x="368" y="275" class="action" text-anchor="end">Name A–Z ↓</text>
+
+    <rect x="16" y="296" width="356" height="130" rx="12" class="card"/>
+    <circle cx="49" cy="331" r="17" fill="#e4e8f8"/><text x="49" y="336" text-anchor="middle" font-size="12" fill="#3f51b5">MV</text>
+    <text x="78" y="337" class="section">Mira Vale</text><text x="350" y="337" text-anchor="end" class="label">›</text>
+    <text x="32" y="367" class="body">72 of 120 songs · 60% offline</text>
+    <rect x="32" y="382" width="324" height="6" rx="3" fill="#ece7ed"/><rect x="32" y="382" width="194.4" height="6" rx="3" fill="#d50050"/>
+    <text x="32" y="410" class="small">360 MB on device</text>
+
+    <rect x="16" y="440" width="356" height="130" rx="12" class="card"/>
+    <circle cx="49" cy="475" r="17" fill="#e4e8f8"/><text x="49" y="480" text-anchor="middle" font-size="12" fill="#3f51b5">NB</text>
+    <text x="78" y="481" class="section">Northbound</text><text x="350" y="481" text-anchor="end" class="label">›</text>
+    <text x="32" y="511" class="body">84 of 84 songs · 100% offline</text>
+    <rect x="32" y="526" width="324" height="6" rx="3" fill="#d50050"/>
+    <text x="32" y="554" class="small">420 MB on device</text>
+
+    <rect x="16" y="584" width="356" height="130" rx="12" class="card"/>
+    <circle cx="49" cy="619" r="17" fill="#e4e8f8"/><text x="49" y="624" text-anchor="middle" font-size="12" fill="#3f51b5">TL</text>
+    <text x="78" y="625" class="section">The Lowlands</text><text x="350" y="625" text-anchor="end" class="label">›</text>
+    <text x="32" y="655" class="body">0 of 56 songs · 0% offline</text>
+    <rect x="32" y="670" width="324" height="6" rx="3" fill="#ece7ed"/>
+    <text x="32" y="698" class="small">No songs saved on this device</text>
+    <text x="20" y="759" class="small">Tap an artist for albums and download actions.</text>
+    <text x="20" y="827" class="small">Library checked today, 10:42</text>
+    <text x="0" y="891" class="note">Repeat the same count-and-bar pattern.</text>
+    <text x="0" y="914" class="note">Artist details hold the download actions.</text>
+  </g>
+  <line x1="42" y1="1067" x2="1278" y2="1067" stroke="#d5d9e5"/>
+  <text x="42" y="1096" class="small">Coverage counts playable songs, including automatic saves. Queued and missing files never increase the percentage.</text>
+</svg>

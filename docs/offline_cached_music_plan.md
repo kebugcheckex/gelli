@@ -68,7 +68,7 @@ New Room entity `local_songs` (primary key `(accountId, itemId)`):
 
 Album cover art is stored once per album under `images/`. Glide's own cache stays a real, evictable cache for browsing.
 
-A song is **available locally** only when `state = COMPLETE` and the file exists. A single `LocalLibrary.isAvailable(song)` lookup replaces the path-existence check in `LocalPlayer` and the `cacheDao().isCached()` badge check in `SongAdapter`.
+A song is **available locally** only when `state = COMPLETE` and its audio file is a readable, nonempty regular file. Playback, consistency checks, and the coverage summary share this validation. A single `LocalLibrary.isAvailable(song)` lookup replaces the path-existence check in `LocalPlayer` and the `cacheDao().isCached()` badge check in `SongAdapter`.
 
 During the transition (Phases 1 and 2), `LocalLibrary.resolve(song)` returned the library file if available, otherwise the legacy metadata-derived file if it existed and was non-empty, otherwise nothing (stream). The badge showed for either. This kept legacy downloads playable while the new pipeline came online. Phase 2b removed the fallback, so playback and the badge now read `LocalLibrary.getFile(song)` only.
 
@@ -237,7 +237,23 @@ Deliverable: with offline mode on, the app is fully usable against the local lib
 
 ### Phase 6: Storage management
 
-- Storage screen with usage breakdown and bulk cleanup actions.
+**Status as of October 22, 2026: initial coverage overview implemented; full storage management remains planned.** See the [Downloads & storage design and implementation progress](downloads_storage_design.md) for the detailed scope, validation, and next steps.
+
+Completed in the first three implementation commits:
+
+- `77718759`: account-scoped local summaries with verified playable song IDs/counts and measured audio usage; shared readable/nonempty-file validation.
+- `711dd190`: Room v11 account inventory snapshots, complete paginated server refreshes, successful-check timestamps, failure preservation, and coverage based on matching local/server song IDs.
+- `c54d96f4`: **Settings > Local Library > Downloads & storage**, with coverage/counts/progress, saved songs outside the inventory, last library check, audio usage, loading/offline/unknown/error states, refresh controls, and local updates. Library discovery uses Jellyfin user views so accessible music libraries are found reliably.
+
+The latest debug build and 34 targeted tests passed. Lint has existing findings elsewhere, with none in the files changed for the overview. The corrected build is installed on the **Pixel 7**, preserving app data. The user owns UI validation from this point onward; final visual/accessibility acceptance is pending.
+
+Next work, continuing one commit at a time without a fixed commit limit:
+
+- Address the user's overview UI feedback.
+- Add artwork/temporary-file breakdown, volume free space, and waiting/downloading/failed status with complete queue-state notifications.
+- Add drawer access and a Download settings link; integrate access during offline startup. Offline handling within the overview does not complete Phase 5 offline browsing or startup behavior.
+- Harden deletion-failure handling before building a filtered storage list, selection, removal review, and bulk cleanup with measured results.
+- Add per-artist coverage after complete album-artist membership and cached totals are available.
 
 Deliverable: explicit, convenient control over disk usage.
 
