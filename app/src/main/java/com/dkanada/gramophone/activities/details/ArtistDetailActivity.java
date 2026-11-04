@@ -34,6 +34,7 @@ import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
+import com.dkanada.gramophone.util.ViewUtil;
 
 import java.util.List;
 import java.util.Objects;
@@ -116,6 +117,7 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
 
         binding.songs.setLayoutManager(new GridLayoutManager(this, 1));
         binding.songs.setAdapter(songAdapter);
+        ViewUtil.capContentWidth(binding.songs);
 
         binding.scrollView.setRecyclerView(binding.songs);
     }

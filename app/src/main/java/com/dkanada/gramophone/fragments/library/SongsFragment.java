@@ -1,12 +1,12 @@
 package com.dkanada.gramophone.fragments.library;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.song.ShuffleButtonSongAdapter;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
+import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
@@ -16,13 +16,7 @@ import com.dkanada.gramophone.util.QueryUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<SongAdapter, GridLayoutManager> {
-    @NonNull
-    @Override
-    protected GridLayoutManager createLayoutManager() {
-        return new GridLayoutManager(getActivity(), getGridSize());
-    }
-
+public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<SongAdapter> {
     @NonNull
     @Override
     protected SongAdapter createAdapter() {
@@ -33,7 +27,7 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
         List<Song> dataSet = getAdapter() == null ? new ArrayList<>() : getAdapter().getDataSet();
         SongAdapter adapter;
 
-        if (getGridSize() <= getMaxGridSizeForList()) {
+        if (!getLibraryLayout().isGrid()) {
             adapter = new ShuffleButtonSongAdapter(
                     getLibraryFragment().getMainActivity(),
                     dataSet,
@@ -50,6 +44,12 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
         }
 
         return adapter;
+    }
+
+    @Override
+    protected boolean isFullSpanItem(int position) {
+        // the shuffle button stays a single full-width row when the list uses two columns
+        return position == 0 && getAdapter() instanceof ShuffleButtonSongAdapter;
     }
 
     @Override
@@ -105,23 +105,13 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
     }
 
     @Override
-    protected int loadGridSize() {
-        return PreferenceUtil.getInstance(getActivity()).getSongGridSize(requireActivity());
+    protected LibraryLayout loadLibraryLayout() {
+        return PreferenceUtil.getInstance(getActivity()).getSongLayout();
     }
 
     @Override
-    protected void saveGridSize(int gridSize) {
-        PreferenceUtil.getInstance(getActivity()).setSongGridSize(gridSize);
-    }
-
-    @Override
-    protected int loadGridSizeLand() {
-        return PreferenceUtil.getInstance(getActivity()).getSongGridSizeLand(requireActivity());
-    }
-
-    @Override
-    protected void saveGridSizeLand(int gridSize) {
-        PreferenceUtil.getInstance(getActivity()).setSongGridSizeLand(gridSize);
+    protected void saveLibraryLayout(LibraryLayout libraryLayout) {
+        PreferenceUtil.getInstance(getActivity()).setSongLayout(libraryLayout);
     }
 
     @Override
@@ -137,11 +127,5 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
     @Override
     public void setUsePalette(boolean usePalette) {
         getAdapter().usePalette(usePalette);
-    }
-
-    @Override
-    protected void setGridSize(int gridSize) {
-        getLayoutManager().setSpanCount(gridSize);
-        getAdapter().notifyDataSetChanged();
     }
 }

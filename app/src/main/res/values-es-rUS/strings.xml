@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Ir al álbum</string>
     <string name="no_results">Sin resultados</string>
     <string name="action_remove_from_playlist">Eliminar de la lista de reproducción</string>
-    <string name="action_grid_size">Tamaño de la cuadrícula</string>
     <string name="delete_playlist_x"><![CDATA[¿Borrar la lista de reproducción <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[¿Borrar <b>%1$d</b> listas de reproducción?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[¿Eliminar la canción </b>%1$s<b> de la lista de reproducción?]]></string>

@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Accesaţi albumul</string>
     <string name="no_results">Niciun rezultat</string>
     <string name="action_remove_from_playlist">Ștergeți din lista de redare.</string>
-    <string name="action_grid_size">Mărimea grilei</string>
     <string name="delete_playlist_x"><![CDATA[Doriți să ștergeți lista de redare <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Ştergeți <b>%1$d</b> liste?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Ştergeți melodia <b>%1$s</b> din listă?]]></string>

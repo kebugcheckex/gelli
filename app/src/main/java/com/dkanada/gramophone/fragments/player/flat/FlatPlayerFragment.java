@@ -37,7 +37,6 @@ import com.dkanada.gramophone.fragments.player.AbsPlayerFragment;
 import com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment;
 import com.dkanada.gramophone.util.ImageUtil;
 import com.dkanada.gramophone.util.MusicUtil;
-import com.dkanada.gramophone.util.Util;
 import com.dkanada.gramophone.util.ViewUtil;
 import com.dkanada.gramophone.views.WidthFitSquareLayout;
 import com.google.android.material.color.MaterialColors;
@@ -65,7 +64,9 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentFlatPlayerBinding.inflate(inflater);
 
-        if (Util.isLandscape(getResources())) {
+        // layout-land puts the cover beside the controls when the window is wider than it is tall,
+        // so pick the implementation that matches the layout that was actually inflated
+        if (binding.coverContainer != null) {
             impl = new LandscapeImpl(this, binding);
         } else {
             impl = new PortraitImpl(this, binding);

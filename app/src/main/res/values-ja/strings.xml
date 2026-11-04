@@ -37,7 +37,6 @@
     <string name="action_go_to_album">アルバムを表示</string>
     <string name="no_results">該当なし</string>
     <string name="action_remove_from_playlist">プレイリストから除去</string>
-    <string name="action_grid_size">グリッドサイズ</string>
     <string name="delete_playlist_x"><![CDATA[<b>%1$s</b> を削除してもよろしいですか？]]></string>
     <string name="delete_x_playlists"><![CDATA[選択された<b>%1$d</b>つのプレイリストを削除してもよろしいですか？]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[プレイリストから <b>%1$s</b> を除去してもよろしいですか？]]></string>

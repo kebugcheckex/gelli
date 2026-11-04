@@ -37,7 +37,6 @@
     <string name="action_go_to_album">앨범으로 가기</string>
     <string name="no_results">결과 없음</string>
     <string name="action_remove_from_playlist">재생 목록에서 제거</string>
-    <string name="action_grid_size">격자 크기</string>
     <string name="delete_playlist_x"><![CDATA[재생 목록 <b>%1$s</b>을(를) 삭제하시겠습니까?]]></string>
     <string name="delete_x_playlists"><![CDATA[재생 목록 <b>%1$d</b>개를 삭제하시겠습니까?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[노래 <b>%1$s</b>을(를) 재생 목록에서 제거하시겠습니까?]]></string>

@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -24,6 +25,7 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.MusicLibraryPagerAdapter;
 import com.dkanada.gramophone.dialogs.CreatePlaylistDialog;
+import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.activities.SearchActivity;
@@ -151,8 +153,7 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         if (currentFragment instanceof AbsLibraryPagerRecyclerViewCustomGridSizeFragment && currentFragment.isAdded()) {
             AbsLibraryPagerRecyclerViewCustomGridSizeFragment absLibraryRecyclerViewCustomGridSizeFragment = (AbsLibraryPagerRecyclerViewCustomGridSizeFragment) currentFragment;
 
-            MenuItem gridSizeItem = menu.findItem(R.id.action_grid_size);
-            setUpGridSizeMenu(absLibraryRecyclerViewCustomGridSizeFragment, gridSizeItem.getSubMenu());
+            setUpLayoutMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_layout).getSubMenu());
 
             menu.findItem(R.id.action_colored_footers).setChecked(absLibraryRecyclerViewCustomGridSizeFragment.usePalette());
             menu.findItem(R.id.action_colored_footers).setEnabled(absLibraryRecyclerViewCustomGridSizeFragment.canUsePalette());
@@ -160,7 +161,7 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
             setUpSortMethodMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_sort_method).getSubMenu());
             setUpSortOrderMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_sort_order).getSubMenu());
         } else {
-            menu.removeItem(R.id.action_grid_size);
+            menu.removeItem(R.id.action_layout);
             menu.removeItem(R.id.action_colored_footers);
             menu.removeItem(R.id.action_sort_method);
             menu.removeItem(R.id.action_sort_order);
@@ -178,7 +179,7 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
                 return true;
             }
 
-            if (handleGridSizeMenuItem(absLibraryRecyclerViewCustomGridSizeFragment, item)) {
+            if (handleLayoutMenuItem(absLibraryRecyclerViewCustomGridSizeFragment, item)) {
                 return true;
             }
 
@@ -207,92 +208,35 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         return super.onOptionsItemSelected(item);
     }
 
-    private void setUpGridSizeMenu(@NonNull AbsLibraryPagerRecyclerViewCustomGridSizeFragment fragment, @NonNull SubMenu gridSizeMenu) {
-        switch (fragment.getGridSize()) {
-            case 1:
-                gridSizeMenu.findItem(R.id.action_grid_size_1).setChecked(true);
-                break;
-            case 2:
-                gridSizeMenu.findItem(R.id.action_grid_size_2).setChecked(true);
-                break;
-            case 3:
-                gridSizeMenu.findItem(R.id.action_grid_size_3).setChecked(true);
-                break;
-            case 4:
-                gridSizeMenu.findItem(R.id.action_grid_size_4).setChecked(true);
-                break;
-            case 5:
-                gridSizeMenu.findItem(R.id.action_grid_size_5).setChecked(true);
-                break;
-            case 6:
-                gridSizeMenu.findItem(R.id.action_grid_size_6).setChecked(true);
-                break;
-            case 7:
-                gridSizeMenu.findItem(R.id.action_grid_size_7).setChecked(true);
-                break;
-            case 8:
-                gridSizeMenu.findItem(R.id.action_grid_size_8).setChecked(true);
-                break;
-        }
-
-        int maxGridSize = fragment.getMaxGridSize();
-        if (maxGridSize < 8) {
-            gridSizeMenu.findItem(R.id.action_grid_size_8).setVisible(false);
-        }
-        if (maxGridSize < 7) {
-            gridSizeMenu.findItem(R.id.action_grid_size_7).setVisible(false);
-        }
-        if (maxGridSize < 6) {
-            gridSizeMenu.findItem(R.id.action_grid_size_6).setVisible(false);
-        }
-        if (maxGridSize < 5) {
-            gridSizeMenu.findItem(R.id.action_grid_size_5).setVisible(false);
-        }
-        if (maxGridSize < 4) {
-            gridSizeMenu.findItem(R.id.action_grid_size_4).setVisible(false);
-        }
-        if (maxGridSize < 3) {
-            gridSizeMenu.findItem(R.id.action_grid_size_3).setVisible(false);
-        }
+    private void setUpLayoutMenu(@NonNull AbsLibraryPagerRecyclerViewCustomGridSizeFragment fragment, @NonNull SubMenu layoutMenu) {
+        layoutMenu.findItem(getLayoutMenuItemId(fragment.getLibraryLayout())).setChecked(true);
     }
 
-    private boolean handleGridSizeMenuItem(@NonNull AbsLibraryPagerRecyclerViewCustomGridSizeFragment fragment, @NonNull MenuItem item) {
-        int gridSize = 0;
-        switch (item.getItemId()) {
-            case R.id.action_grid_size_1:
-                gridSize = 1;
-                break;
-            case R.id.action_grid_size_2:
-                gridSize = 2;
-                break;
-            case R.id.action_grid_size_3:
-                gridSize = 3;
-                break;
-            case R.id.action_grid_size_4:
-                gridSize = 4;
-                break;
-            case R.id.action_grid_size_5:
-                gridSize = 5;
-                break;
-            case R.id.action_grid_size_6:
-                gridSize = 6;
-                break;
-            case R.id.action_grid_size_7:
-                gridSize = 7;
-                break;
-            case R.id.action_grid_size_8:
-                gridSize = 8;
-                break;
-        }
-
-        if (gridSize > 0) {
-            item.setChecked(true);
-            fragment.setAndSaveGridSize(gridSize);
-            binding.toolbar.getMenu().findItem(R.id.action_colored_footers).setEnabled(fragment.canUsePalette());
-            return true;
+    private boolean handleLayoutMenuItem(@NonNull AbsLibraryPagerRecyclerViewCustomGridSizeFragment fragment, @NonNull MenuItem item) {
+        for (LibraryLayout layout : LibraryLayout.values()) {
+            if (getLayoutMenuItemId(layout) == item.getItemId()) {
+                item.setChecked(true);
+                fragment.setAndSaveLibraryLayout(layout);
+                binding.toolbar.getMenu().findItem(R.id.action_colored_footers).setEnabled(fragment.canUsePalette());
+                return true;
+            }
         }
 
         return false;
+    }
+
+    @IdRes
+    private static int getLayoutMenuItemId(@NonNull LibraryLayout layout) {
+        switch (layout) {
+            case GRID_SMALL:
+                return R.id.action_layout_grid_small;
+            case GRID_MEDIUM:
+                return R.id.action_layout_grid_medium;
+            case GRID_LARGE:
+                return R.id.action_layout_grid_large;
+            default:
+                return R.id.action_layout_list;
+        }
     }
 
     private void setUpSortMethodMenu(@NonNull AbsLibraryPagerRecyclerViewCustomGridSizeFragment fragment, @NonNull SubMenu sortMethodMenu) {

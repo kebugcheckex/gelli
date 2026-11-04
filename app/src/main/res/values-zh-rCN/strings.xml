@@ -33,7 +33,6 @@
     <string name="action_go_to_artist">查看歌手</string>
     <string name="action_go_to_album">查看专辑</string>
     <string name="action_remove_from_playlist">从歌单删除</string>
-    <string name="action_grid_size">网格尺寸</string>
     <string name="action_shuffle_all">随机播放所有歌曲</string>
     <string name="action_shuffle">随机播放</string>
     <string name="action_shuffle_album">随机播放此专辑</string>
@@ -151,14 +150,6 @@
     <string name="last_added">最近添加</string>
     <string name="my_top_tracks">最喜爱的歌曲</string>
 
-    <string name="grid_size_1" translatable="false">1</string>
-    <string name="grid_size_2" translatable="false">2</string>
-    <string name="grid_size_3" translatable="false">3</string>
-    <string name="grid_size_4" translatable="false">4</string>
-    <string name="grid_size_5" translatable="false">5</string>
-    <string name="grid_size_6" translatable="false">6</string>
-    <string name="grid_size_7" translatable="false">7</string>
-    <string name="grid_size_8" translatable="false">8</string>
 
     <string name="support_development">支持开发者</string>
     <string name="version">版本</string>

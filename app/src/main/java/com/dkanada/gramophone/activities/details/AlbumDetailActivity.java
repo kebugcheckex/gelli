@@ -32,6 +32,7 @@ import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.QueryUtil;
+import com.dkanada.gramophone.util.ViewUtil;
 
 import java.util.List;
 import java.util.Objects;
@@ -165,6 +166,7 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
         adapter = new AlbumSongAdapter(this, album.songs, R.layout.item_list, false, this);
         binding.list.setLayoutManager(new GridLayoutManager(this, 1));
         binding.list.setAdapter(adapter);
+        ViewUtil.capContentWidth(binding.list);
     }
 
     @Override

@@ -3,8 +3,6 @@ package com.dkanada.gramophone.util;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
@@ -22,6 +20,12 @@ import androidx.annotation.Nullable;
 import com.dkanada.gramophone.R;
 
 public class Util {
+    /**
+     * Window width where the expanded window size class starts. Layout decisions use the current
+     * window width, never the orientation or the device's smallest width.
+     */
+    public static final int EXPANDED_WIDTH_DP = 840;
+
     public static int getActionBarSize(@NonNull Context context) {
         TypedValue typedValue = new TypedValue();
         int[] textSizeAttr = new int[]{R.attr.actionBarSize};
@@ -59,14 +63,6 @@ public class Util {
                 inputMethodManager.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
             }
         }
-    }
-
-    public static boolean isTablet(@NonNull final Resources resources) {
-        return resources.getConfiguration().smallestScreenWidthDp >= 600;
-    }
-
-    public static boolean isLandscape(@NonNull final Resources resources) {
-        return resources.getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
     }
 
     public static int resolveDimensionPixelSize(@NonNull Context context, @AttrRes int dimenAttr) {

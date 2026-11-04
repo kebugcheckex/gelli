@@ -23,6 +23,7 @@ import com.dkanada.gramophone.service.SaveTrigger;
 import com.dkanada.gramophone.service.SaveWorker;
 import com.dkanada.gramophone.util.NetworkUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
+import com.dkanada.gramophone.util.ViewUtil;
 
 public class SettingsActivity extends AbsBaseActivity {
     private ActivitySettingsBinding binding;
@@ -64,6 +65,7 @@ public class SettingsActivity extends AbsBaseActivity {
         public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
             getListView().setPadding(0, 0, 0, 0);
+            ViewUtil.capContentWidth(getListView());
             setDivider(null);
             invalidateSettings();
             PreferenceUtil.getInstance(getActivity()).registerOnSharedPreferenceChangedListener(this);

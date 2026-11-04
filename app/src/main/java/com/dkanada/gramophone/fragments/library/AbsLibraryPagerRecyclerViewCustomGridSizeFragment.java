@@ -5,15 +5,22 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dkanada.gramophone.R;
+import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.util.Util;
 
-public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extends RecyclerView.Adapter, L extends RecyclerView.LayoutManager> extends AbsLibraryPagerRecyclerViewFragment<A, L> {
-    private int gridSize;
+/**
+ * A library tab that can show its items as a list or as a grid. The column count is derived from the
+ * width the list actually has, never from the orientation: a grid fits as many cells of the chosen size
+ * as the width allows, and a list uses two columns once the width reaches the expanded size class.
+ */
+public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extends RecyclerView.Adapter> extends AbsLibraryPagerRecyclerViewFragment<A, GridLayoutManager> {
+    private LibraryLayout libraryLayout;
     private SortMethod sortMethod;
     private SortOrder sortOrder;
 
@@ -21,24 +28,12 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     private boolean usePalette;
     private int currentLayoutRes;
 
-    public final int getGridSize() {
-        if (gridSize == 0) {
-            if (isLandscape()) {
-                gridSize = loadGridSizeLand();
-            } else {
-                gridSize = loadGridSize();
-            }
+    public final LibraryLayout getLibraryLayout() {
+        if (libraryLayout == null) {
+            libraryLayout = loadLibraryLayout();
         }
 
-        return gridSize;
-    }
-
-    public int getMaxGridSize() {
-        if (isLandscape()) {
-            return getResources().getInteger(R.integer.max_columns_land);
-        } else {
-            return getResources().getInteger(R.integer.max_columns);
-        }
+        return libraryLayout;
     }
 
     public final boolean usePalette() {
@@ -66,21 +61,17 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
         return sortOrder;
     }
 
-    public void setAndSaveGridSize(final int gridSize) {
+    public void setAndSaveLibraryLayout(@NonNull final LibraryLayout libraryLayout) {
         int oldLayoutRes = getItemLayoutRes();
-        this.gridSize = gridSize;
-        if (isLandscape()) {
-            saveGridSizeLand(gridSize);
-        } else {
-            saveGridSize(gridSize);
-        }
+        this.libraryLayout = libraryLayout;
+        saveLibraryLayout(libraryLayout);
 
-        // only recreate the adapter and layout manager if the layout currentLayoutRes has changed
+        // only recreate the adapter and layout manager if the item layout has changed
         if (oldLayoutRes != getItemLayoutRes()) {
-            invalidateLayoutManager();
             invalidateAdapter();
+            invalidateLayoutManager();
         } else {
-            setGridSize(gridSize);
+            updateSpanCount();
         }
     }
 
@@ -109,12 +100,34 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     }
 
     @LayoutRes
-    protected int getItemLayoutRes() {
-        if (getGridSize() > getMaxGridSizeForList()) {
-            return R.layout.item_grid;
-        }
+    protected final int getItemLayoutRes() {
+        return getLibraryLayout().isGrid() ? R.layout.item_grid : getListItemLayoutRes();
+    }
 
+    @LayoutRes
+    protected int getListItemLayoutRes() {
         return R.layout.item_list;
+    }
+
+    /**
+     * Items that span the whole row regardless of the column count, such as a header.
+     */
+    protected boolean isFullSpanItem(int position) {
+        return false;
+    }
+
+    @NonNull
+    @Override
+    protected GridLayoutManager createLayoutManager() {
+        final GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), getSpanCount(getAvailableWidth()));
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return isFullSpanItem(position) ? layoutManager.getSpanCount() : 1;
+            }
+        });
+
+        return layoutManager;
     }
 
     protected final void notifyLayoutResChanged(@LayoutRes int res) {
@@ -130,6 +143,44 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         applyRecyclerViewPaddingForLayoutRes(getRecyclerView(), currentLayoutRes);
+
+        // the window or the space around the list can change size without recreating the fragment
+        getRecyclerView().addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (right - left != oldRight - oldLeft) {
+                v.post(this::updateSpanCount);
+            }
+        });
+    }
+
+    private void updateSpanCount() {
+        if (getView() == null || getLayoutManager() == null) return;
+
+        int spanCount = getSpanCount(getAvailableWidth());
+        if (spanCount != getLayoutManager().getSpanCount()) {
+            getLayoutManager().setSpanCount(spanCount);
+            getAdapter().notifyDataSetChanged();
+        }
+    }
+
+    private int getAvailableWidth() {
+        RecyclerView recyclerView = getView() != null ? getRecyclerView() : null;
+        if (recyclerView != null && recyclerView.getWidth() > 0) {
+            return recyclerView.getWidth() - recyclerView.getPaddingLeft() - recyclerView.getPaddingRight();
+        }
+
+        // not laid out yet, so estimate from the window width
+        return Math.round(getResources().getConfiguration().screenWidthDp * getResources().getDisplayMetrics().density);
+    }
+
+    private int getSpanCount(int availableWidth) {
+        LibraryLayout layout = getLibraryLayout();
+        if (!layout.isGrid()) {
+            float density = getResources().getDisplayMetrics().density;
+            return availableWidth / density >= Util.EXPANDED_WIDTH_DP ? 2 : 1;
+        }
+
+        int cellWidth = getResources().getDimensionPixelSize(layout.getCellWidth());
+        return Math.max(1, availableWidth / cellWidth);
     }
 
     protected void applyRecyclerViewPaddingForLayoutRes(@NonNull RecyclerView recyclerView, @LayoutRes int res) {
@@ -143,21 +194,15 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
         recyclerView.setPadding(padding, padding, padding, padding);
     }
 
-    protected abstract int loadGridSize();
+    protected abstract LibraryLayout loadLibraryLayout();
 
-    protected abstract void saveGridSize(int gridColumns);
-
-    protected abstract int loadGridSizeLand();
-
-    protected abstract void saveGridSizeLand(int gridColumns);
+    protected abstract void saveLibraryLayout(LibraryLayout libraryLayout);
 
     protected abstract void saveUsePalette(boolean usePalette);
 
     protected abstract boolean loadUsePalette();
 
     protected abstract void setUsePalette(boolean usePalette);
-
-    protected abstract void setGridSize(int gridSize);
 
     protected abstract SortMethod loadSortMethod();
 
@@ -170,16 +215,4 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     protected abstract void saveSortOrder(SortOrder sortOrder);
 
     protected abstract void setSortOrder(SortOrder sortOrder);
-
-    protected int getMaxGridSizeForList() {
-        if (isLandscape()) {
-            return requireActivity().getResources().getInteger(R.integer.default_list_columns_land);
-        }
-
-        return requireActivity().getResources().getInteger(R.integer.default_list_columns);
-    }
-
-    protected final boolean isLandscape() {
-        return Util.isLandscape(getResources());
-    }
 }

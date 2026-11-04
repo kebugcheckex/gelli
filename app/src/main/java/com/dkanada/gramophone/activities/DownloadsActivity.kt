@@ -22,6 +22,7 @@ import com.dkanada.gramophone.util.LocalLibrary
 import com.dkanada.gramophone.util.NetworkUtil
 import com.dkanada.gramophone.util.OfflineCoverage
 import com.dkanada.gramophone.util.PreferenceUtil
+import com.dkanada.gramophone.util.ViewUtil
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.NumberFormat
@@ -37,6 +38,7 @@ class DownloadsActivity : AbsBaseActivity(), LocalLibrary.Listener, NetworkUtil.
         super.onCreate(savedInstanceState)
         binding = ActivityDownloadsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        ViewUtil.capContentWidth(binding.scrollView)
         binding.toolbar.setBackgroundColor(preferences.primaryColor)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

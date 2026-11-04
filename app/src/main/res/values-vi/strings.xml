@@ -36,7 +36,6 @@
     <string name="action_go_to_album">Đi đến album</string>
     <string name="no_results">Không có kết quả</string>
     <string name="action_remove_from_playlist">Xóa khỏi danh sách nhạc</string>
-    <string name="action_grid_size">Kích thước lưới</string>
     <string name="delete_playlist_x"><![CDATA[Xóa danh sách nhạc <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Xóa danh sách nhạc <b>%1$d</b>? ]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Xóa bài hát <b>%1$s</b> từ danh sách nhạc này?]]></string>

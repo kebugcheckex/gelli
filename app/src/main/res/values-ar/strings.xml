@@ -37,7 +37,6 @@
     <string name="action_go_to_album">الذهاب إلى الألبوم</string>
     <string name="no_results">لا توجد نتائج</string>
     <string name="action_remove_from_playlist">إزالة من قائمة التشغيل</string>
-    <string name="action_grid_size">حجم الشبكة</string>
     <string name="delete_playlist_x"><![CDATA[حذف قائمة التشغيل <b>%1$s</b>؟]]></string>
     <string name="delete_x_playlists"><![CDATA[حذف <b>%1$d</b> قوائم تشغيل؟]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[إزالة الأغنية <b>%1$s</b> من قائمة التشغيل؟]]></string>

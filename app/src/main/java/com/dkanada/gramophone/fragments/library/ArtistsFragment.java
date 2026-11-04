@@ -2,12 +2,12 @@ package com.dkanada.gramophone.fragments.library;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.artist.ArtistAdapter;
 import com.dkanada.gramophone.model.Artist;
+import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.interfaces.MediaCallback;
@@ -17,15 +17,9 @@ import com.dkanada.gramophone.util.QueryUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<ArtistAdapter, GridLayoutManager> {
+public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<ArtistAdapter> {
     protected boolean isAlbumArtists() {
         return false;
-    }
-
-    @NonNull
-    @Override
-    protected GridLayoutManager createLayoutManager() {
-        return new GridLayoutManager(getActivity(), getGridSize());
     }
 
     @NonNull
@@ -65,11 +59,8 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
     }
 
     @LayoutRes
-    protected int getItemLayoutRes() {
-        if (getGridSize() > getMaxGridSizeForList()) {
-            return R.layout.item_grid;
-        }
-
+    @Override
+    protected int getListItemLayoutRes() {
         return R.layout.item_list_single_row;
     }
 
@@ -114,34 +105,18 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
     }
 
     @Override
-    protected int loadGridSize() {
+    protected LibraryLayout loadLibraryLayout() {
         PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
-        return isAlbumArtists() ? preferences.getAlbumArtistsGridSize(requireActivity()) : preferences.getArtistGridSize(requireActivity());
+        return isAlbumArtists() ? preferences.getAlbumArtistsLayout() : preferences.getArtistLayout();
     }
 
     @Override
-    protected void saveGridSize(int gridSize) {
+    protected void saveLibraryLayout(LibraryLayout libraryLayout) {
         PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
         if (isAlbumArtists()) {
-            preferences.setAlbumArtistsGridSize(gridSize);
+            preferences.setAlbumArtistsLayout(libraryLayout);
         } else {
-            preferences.setArtistGridSize(gridSize);
-        }
-    }
-
-    @Override
-    protected int loadGridSizeLand() {
-        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
-        return isAlbumArtists() ? preferences.getAlbumArtistsGridSizeLand(requireActivity()) : preferences.getArtistGridSizeLand(requireActivity());
-    }
-
-    @Override
-    protected void saveGridSizeLand(int gridSize) {
-        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
-        if (isAlbumArtists()) {
-            preferences.setAlbumArtistsGridSizeLand(gridSize);
-        } else {
-            preferences.setArtistGridSizeLand(gridSize);
+            preferences.setArtistLayout(libraryLayout);
         }
     }
 
@@ -164,11 +139,5 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
     @Override
     protected void setUsePalette(boolean usePalette) {
         getAdapter().usePalette(usePalette);
-    }
-
-    @Override
-    protected void setGridSize(int gridSize) {
-        getLayoutManager().setSpanCount(gridSize);
-        getAdapter().notifyDataSetChanged();
     }
 }

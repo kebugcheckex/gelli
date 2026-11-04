@@ -12,6 +12,7 @@ import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.model.Category;
 import com.dkanada.gramophone.model.Codec;
+import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.NetworkPolicy;
 import com.dkanada.gramophone.interfaces.base.PreferenceMigration;
 import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
@@ -52,17 +53,10 @@ public final class PreferenceUtil {
     public static final String ARTIST_SORT_ORDER = "artist_sort_order";
     public static final String ALBUM_ARTISTS_SORT_ORDER = "album_artists_sort_order";
 
-    public static final String ALBUM_GRID_SIZE = "album_grid_size";
-    public static final String ALBUM_GRID_SIZE_LAND = "album_grid_size_land";
-
-    public static final String SONG_GRID_SIZE = "song_grid_size";
-    public static final String SONG_GRID_SIZE_LAND = "song_grid_size_land";
-
-    public static final String ARTIST_GRID_SIZE = "artist_grid_size";
-    public static final String ARTIST_GRID_SIZE_LAND = "artist_grid_size_land";
-
-    public static final String ALBUM_ARTISTS_GRID_SIZE = "album_artists_grid_size";
-    public static final String ALBUM_ARTISTS_GRID_SIZE_LAND = "album_artists_grid_size_land";
+    public static final String ALBUM_LAYOUT = "album_layout";
+    public static final String SONG_LAYOUT = "song_layout";
+    public static final String ARTIST_LAYOUT = "artist_layout";
+    public static final String ALBUM_ARTISTS_LAYOUT = "album_artists_layout";
 
     public static final String ALBUM_COLORED_FOOTERS = "album_colored_footers";
     public static final String SONG_COLORED_FOOTERS = "song_colored_footers";
@@ -406,68 +400,40 @@ public final class PreferenceUtil {
         mPreferences.edit().putBoolean(SLEEP_TIMER_FINISH_SONG, value).apply();
     }
 
-    public final int getAlbumGridSize(Context context) {
-        return mPreferences.getInt(ALBUM_GRID_SIZE, context.getResources().getInteger(R.integer.default_grid_columns));
+    public final LibraryLayout getAlbumLayout() {
+        return getLibraryLayout(ALBUM_LAYOUT, LibraryLayout.GRID_MEDIUM);
     }
 
-    public void setAlbumGridSize(final int gridSize) {
-        mPreferences.edit().putInt(ALBUM_GRID_SIZE, gridSize).apply();
+    public void setAlbumLayout(LibraryLayout layout) {
+        mPreferences.edit().putString(ALBUM_LAYOUT, layout.toString()).apply();
     }
 
-    public final int getSongGridSize(Context context) {
-        return mPreferences.getInt(SONG_GRID_SIZE, context.getResources().getInteger(R.integer.default_list_columns));
+    public final LibraryLayout getSongLayout() {
+        return getLibraryLayout(SONG_LAYOUT, LibraryLayout.LIST);
     }
 
-    public void setSongGridSize(final int gridSize) {
-        mPreferences.edit().putInt(SONG_GRID_SIZE, gridSize).apply();
+    public void setSongLayout(LibraryLayout layout) {
+        mPreferences.edit().putString(SONG_LAYOUT, layout.toString()).apply();
     }
 
-    public final int getArtistGridSize(Context context) {
-        return mPreferences.getInt(ARTIST_GRID_SIZE, context.getResources().getInteger(R.integer.default_list_columns));
+    public final LibraryLayout getArtistLayout() {
+        return getLibraryLayout(ARTIST_LAYOUT, LibraryLayout.LIST);
     }
 
-    public void setArtistGridSize(final int gridSize) {
-        mPreferences.edit().putInt(ARTIST_GRID_SIZE, gridSize).apply();
+    public void setArtistLayout(LibraryLayout layout) {
+        mPreferences.edit().putString(ARTIST_LAYOUT, layout.toString()).apply();
     }
 
-    public final int getAlbumArtistsGridSize(Context context) {
-        return mPreferences.getInt(ALBUM_ARTISTS_GRID_SIZE, context.getResources().getInteger(R.integer.default_list_columns));
+    public final LibraryLayout getAlbumArtistsLayout() {
+        return getLibraryLayout(ALBUM_ARTISTS_LAYOUT, LibraryLayout.LIST);
     }
 
-    public void setAlbumArtistsGridSize(final int gridSize) {
-        mPreferences.edit().putInt(ALBUM_ARTISTS_GRID_SIZE, gridSize).apply();
+    public void setAlbumArtistsLayout(LibraryLayout layout) {
+        mPreferences.edit().putString(ALBUM_ARTISTS_LAYOUT, layout.toString()).apply();
     }
 
-    public final int getAlbumGridSizeLand(Context context) {
-        return mPreferences.getInt(ALBUM_GRID_SIZE_LAND, context.getResources().getInteger(R.integer.default_grid_columns_land));
-    }
-
-    public void setAlbumGridSizeLand(final int gridSize) {
-        mPreferences.edit().putInt(ALBUM_GRID_SIZE_LAND, gridSize).apply();
-    }
-
-    public final int getSongGridSizeLand(Context context) {
-        return mPreferences.getInt(SONG_GRID_SIZE_LAND, context.getResources().getInteger(R.integer.default_list_columns_land));
-    }
-
-    public void setSongGridSizeLand(final int gridSize) {
-        mPreferences.edit().putInt(SONG_GRID_SIZE_LAND, gridSize).apply();
-    }
-
-    public final int getArtistGridSizeLand(Context context) {
-        return mPreferences.getInt(ARTIST_GRID_SIZE_LAND, context.getResources().getInteger(R.integer.default_list_columns_land));
-    }
-
-    public void setArtistGridSizeLand(final int gridSize) {
-        mPreferences.edit().putInt(ARTIST_GRID_SIZE_LAND, gridSize).apply();
-    }
-
-    public final int getAlbumArtistsGridSizeLand(Context context) {
-        return mPreferences.getInt(ALBUM_ARTISTS_GRID_SIZE_LAND, context.getResources().getInteger(R.integer.default_list_columns_land));
-    }
-
-    public void setAlbumArtistsGridSizeLand(final int gridSize) {
-        mPreferences.edit().putInt(ALBUM_ARTISTS_GRID_SIZE_LAND, gridSize).apply();
+    private LibraryLayout getLibraryLayout(String key, LibraryLayout fallback) {
+        return LibraryLayout.valueOf(mPreferences.getString(key, fallback.toString()));
     }
 
     public final boolean getAlbumColoredFooters() {

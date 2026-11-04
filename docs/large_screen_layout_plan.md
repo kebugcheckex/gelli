@@ -1,6 +1,6 @@
 # Large-screen layout
 
-Plan only. Written November 4, 2026. No implementation has started.
+Written November 4, 2026. Phase 1 is implemented and needs checking on a device. Phases 2–4 have not started.
 
 ## Goal
 
@@ -46,6 +46,14 @@ Most of the stretched look comes from this phase, and it's the smallest change.
 5. **Replace `Util.isLandscape()` checks.** Each remaining call site asks a size question ("is there room for side-by-side?"). Replace each one with a width or aspect check, and remove `Util.isTablet()`.
 
 Done when: the grid looks the same density on a phone, in split-screen, and on a 12" tablet; rotating keeps the same cell size; no layout decision reads `orientation`.
+
+### As implemented
+
+- **One layout menu instead of two controls.** Each grid-capable tab (Albums, Songs, Artists, Album Artists) stores one `LibraryLayout` preference: `LIST`, `GRID_SMALL`, `GRID_MEDIUM`, or `GRID_LARGE`. The overflow menu's **Layout** submenu offers those four. Albums default to a medium grid, and the other tabs default to a list. The cell widths are the `grid_cell_*` dimens.
+- **Column count comes from the measured width.** The span is first estimated from `screenWidthDp`, then recomputed from the RecyclerView's real width whenever that width changes. Phase 2 needs this because the content area becomes narrower than the window. In two-column list mode, the Songs shuffle row spans both columns.
+- **Content-width cap.** `ViewUtil.capContentWidth()` grows a scrolling view's horizontal padding so its content stays within `max_content_width` (840dp), centered. The margins can still be scrolled. It's applied to the Genres and Playlists tabs, the album, artist, genre, and playlist tracklists, Search, Settings, About, and Downloads.
+- **Player layout.** `FlatPlayerFragment` and `CardPlayerFragment` now pick `LandscapeImpl` based on whether the inflated layout has `cover_container`, not on `orientation`. The side-by-side layout itself still comes from `layout-land`. On Android N and later, that qualifier follows the window's aspect ratio, including in multi-window, so it answers "is the window wider than it is tall?". Phase 2's `pane` argument still has to override it.
+- **Not changed:** `values-sw600dp/dimens.xml` (taller detail headers) and `values-land/` (shorter headers in wide, short windows). Phase 3 reworks those headers anyway.
 
 ## Phase 2: Persistent now-playing pane at expanded width
 

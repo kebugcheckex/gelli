@@ -76,6 +76,7 @@ public class PlaylistDetailActivity extends AbsMusicContentActivity implements C
     private void setUpRecyclerView() {
         ViewUtil.setUpFastScrollRecyclerViewColor(this, binding.recyclerView, PreferenceUtil.getInstance(this).getAccentColor());
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        ViewUtil.capContentWidth(binding.recyclerView);
 
         recyclerViewDragDropManager = new RecyclerViewDragDropManager();
         final GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();

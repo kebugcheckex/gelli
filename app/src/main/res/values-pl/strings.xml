@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Przejdź do albumu</string>
     <string name="no_results">Brak wyników</string>
     <string name="action_remove_from_playlist">Usuń z listy odtwarzania</string>
-    <string name="action_grid_size">Rozmiar siatki</string>
     <string name="delete_playlist_x"><![CDATA[Usunąć listę odtwarzania <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Usunąć <b>%1$d</b> listy odtwarzania?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Usunąć <b>%1$s</b> z listy odtwarzania?]]></string>

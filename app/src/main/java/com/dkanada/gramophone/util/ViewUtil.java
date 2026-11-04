@@ -18,6 +18,7 @@ import android.view.animation.PathInterpolator;
 import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 
 import com.dkanada.gramophone.R;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
@@ -89,5 +90,24 @@ public class ViewUtil {
     public static float convertPixelsToDp(float px, Resources resources) {
         DisplayMetrics metrics = resources.getDisplayMetrics();
         return px / metrics.density;
+    }
+
+    /**
+     * Centers the content of a full-width scrolling view in a column no wider than
+     * {@code max_content_width} by growing its horizontal padding. The view keeps its full-width
+     * background and can still be scrolled from the margins. Works for any width the view gets,
+     * including split-screen and a content area that is narrower than the window.
+     */
+    public static void capContentWidth(@NonNull View view) {
+        final int maxWidth = view.getResources().getDimensionPixelSize(R.dimen.max_content_width);
+        final int baseLeft = view.getPaddingLeft();
+        final int baseRight = view.getPaddingRight();
+
+        view.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int inset = Math.max(0, (right - left - baseLeft - baseRight - maxWidth) / 2);
+            if (v.getPaddingLeft() != baseLeft + inset || v.getPaddingRight() != baseRight + inset) {
+                v.setPadding(baseLeft + inset, v.getPaddingTop(), baseRight + inset, v.getPaddingBottom());
+            }
+        });
     }
 }

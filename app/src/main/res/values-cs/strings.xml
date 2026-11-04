@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Přejít do alba</string>
     <string name="no_results">Žádné výsledky</string>
     <string name="action_remove_from_playlist">Odstranit z playlistu</string>
-    <string name="action_grid_size">Velikost mřížky</string>
     <string name="delete_playlist_x"><![CDATA[Vymazat playlist <b>%1$s</b> ?]]></string>
     <string name="delete_x_playlists"><![CDATA[Smazat <b>%1$d</b> playlistů?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Odstranit skladbu <b>%1$s</b> z playlistu?]]></string>

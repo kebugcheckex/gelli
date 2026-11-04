@@ -15,46 +15,30 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_grid_size"
-        android:title="@string/action_grid_size">
+        android:id="@+id/action_layout"
+        android:title="@string/action_layout">
 
         <menu>
 
             <group
-                android:id="@+id/group_grid_size"
+                android:id="@+id/group_layout"
                 android:checkableBehavior="single">
 
                 <item
-                    android:id="@+id/action_grid_size_1"
-                    android:title="@string/grid_size_1" />
+                    android:id="@+id/action_layout_list"
+                    android:title="@string/layout_list" />
 
                 <item
-                    android:id="@+id/action_grid_size_2"
-                    android:title="@string/grid_size_2" />
+                    android:id="@+id/action_layout_grid_small"
+                    android:title="@string/layout_grid_small" />
 
                 <item
-                    android:id="@+id/action_grid_size_3"
-                    android:title="@string/grid_size_3" />
+                    android:id="@+id/action_layout_grid_medium"
+                    android:title="@string/layout_grid_medium" />
 
                 <item
-                    android:id="@+id/action_grid_size_4"
-                    android:title="@string/grid_size_4" />
-
-                <item
-                    android:id="@+id/action_grid_size_5"
-                    android:title="@string/grid_size_5" />
-
-                <item
-                    android:id="@+id/action_grid_size_6"
-                    android:title="@string/grid_size_6" />
-
-                <item
-                    android:id="@+id/action_grid_size_7"
-                    android:title="@string/grid_size_7" />
-
-                <item
-                    android:id="@+id/action_grid_size_8"
-                    android:title="@string/grid_size_8" />
+                    android:id="@+id/action_layout_grid_large"
+                    android:title="@string/layout_grid_large" />
 
             </group>
 

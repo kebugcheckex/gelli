@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Перейти к альбому</string>
     <string name="no_results">Нет результатов</string>
     <string name="action_remove_from_playlist">Удалить из плейлиста</string>
-    <string name="action_grid_size">Размер сетки</string>
     <string name="delete_playlist_x"><![CDATA[Вы хотите удалить плейлист <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Удалить <b>%1$d</b> плейлиста?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Удалить песню <b>%1$s</b> из плейлиста?]]></string>

@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Ugrás az albumhoz</string>
     <string name="no_results">Nincs találat</string>
     <string name="action_remove_from_playlist">Eltávolítás a lejátszási listából</string>
-    <string name="action_grid_size">Rácsméret</string>
     <string name="delete_playlist_x"><![CDATA[Biztosan törli a(z) <b>%1$s</b> lejátszási listát?]]></string>
     <string name="delete_x_playlists"><![CDATA[Biztosan töröl <b>%1$d</b> lejátszási listát?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Biztosan eltávolítja a(z) <b>%1$s</b> dalt a lejátszási listából?]]></string>

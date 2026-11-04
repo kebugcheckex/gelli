@@ -1,5 +1,8 @@
 package com.dkanada.gramophone.fragments.library;
 
+import android.os.Bundle;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -9,11 +12,18 @@ import com.dkanada.gramophone.adapter.GenreAdapter;
 import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
+import com.dkanada.gramophone.util.ViewUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GenresFragment extends AbsLibraryPagerRecyclerViewFragment<GenreAdapter, LinearLayoutManager> {
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ViewUtil.capContentWidth(getRecyclerView());
+    }
+
     @NonNull
     @Override
     protected LinearLayoutManager createLayoutManager() {

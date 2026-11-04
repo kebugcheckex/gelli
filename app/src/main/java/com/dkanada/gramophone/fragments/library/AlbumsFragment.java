@@ -1,12 +1,12 @@
 package com.dkanada.gramophone.fragments.library;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.album.AlbumAdapter;
 import com.dkanada.gramophone.model.Album;
+import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.util.PreferenceUtil;
@@ -15,13 +15,7 @@ import com.dkanada.gramophone.util.QueryUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<AlbumAdapter, GridLayoutManager> {
-    @NonNull
-    @Override
-    protected GridLayoutManager createLayoutManager() {
-        return new GridLayoutManager(getActivity(), getGridSize());
-    }
-
+public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<AlbumAdapter> {
     @NonNull
     @Override
     protected AlbumAdapter createAdapter() {
@@ -91,29 +85,13 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
     }
 
     @Override
-    protected void setGridSize(int gridSize) {
-        getLayoutManager().setSpanCount(gridSize);
-        getAdapter().notifyDataSetChanged();
+    protected LibraryLayout loadLibraryLayout() {
+        return PreferenceUtil.getInstance(getActivity()).getAlbumLayout();
     }
 
     @Override
-    protected int loadGridSize() {
-        return PreferenceUtil.getInstance(getActivity()).getAlbumGridSize(requireActivity());
-    }
-
-    @Override
-    protected void saveGridSize(int gridSize) {
-        PreferenceUtil.getInstance(getActivity()).setAlbumGridSize(gridSize);
-    }
-
-    @Override
-    protected int loadGridSizeLand() {
-        return PreferenceUtil.getInstance(getActivity()).getAlbumGridSizeLand(requireActivity());
-    }
-
-    @Override
-    protected void saveGridSizeLand(int gridSize) {
-        PreferenceUtil.getInstance(getActivity()).setAlbumGridSizeLand(gridSize);
+    protected void saveLibraryLayout(LibraryLayout libraryLayout) {
+        PreferenceUtil.getInstance(getActivity()).setAlbumLayout(libraryLayout);
     }
 
     @Override

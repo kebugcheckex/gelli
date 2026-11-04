@@ -37,7 +37,6 @@
     <string name="action_go_to_album">מעבר לאלבום</string>
     <string name="no_results">אין תוצאות</string>
     <string name="action_remove_from_playlist">הסר מרשימת ההשמעה</string>
-    <string name="action_grid_size">גודל הרשת</string>
     <string name="delete_playlist_x"><![CDATA[האם ברצונך למחוק את רשימת השמיעה <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[האם ברצונך למחוק  <b>%1$d</b> רשימות השמיעה?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[למחוק את השיר <b>%1$s</b> מרשימת ההשמעה?]]></string>

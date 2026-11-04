@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Albüme git</string>
     <string name="no_results">Sonuç bulunamadı</string>
     <string name="action_remove_from_playlist">Çalma listesinden kaldır</string>
-    <string name="action_grid_size">Kılavuz boyutu</string>
     <string name="delete_playlist_x"><![CDATA[<b>%1$s</b> çalma listesini sil?]]></string>
     <string name="delete_x_playlists"><![CDATA[<b>%1$d</b> çalma listelerini silmek istiyor musunuz?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Çalma listesinden <b>%1$s</b> şarkıyı kaldırmak istiyor musunuz?]]></string>

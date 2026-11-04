@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Vai all\'album</string>
     <string name="no_results">Nessun risultato</string>
     <string name="action_remove_from_playlist">Rimuovi dalla playlist</string>
-    <string name="action_grid_size">Dimensione griglia</string>
     <string name="delete_playlist_x"><![CDATA[Eliminare la playlist <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Eliminare <b>%1$d</b> playlist?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Rimuovere il brano <b>%1$s</b> dalla playlist?]]></string>

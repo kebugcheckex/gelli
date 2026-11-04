@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Ga naar album</string>
     <string name="no_results">Geen resultaten</string>
     <string name="action_remove_from_playlist">Verwijderen uit afspeellijst</string>
-    <string name="action_grid_size">Rastergrootte</string>
     <string name="delete_playlist_x"><![CDATA[Afspeellijst <b>%1$s</b> verwijderen?]]></string>
     <string name="delete_x_playlists"><![CDATA[<b>%1$d</b> afspeellijsten verwijderen?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Het nummer <b>%1$s</b> verwijderen uit de afspeellijst?]]></string>

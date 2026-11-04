@@ -23,6 +23,7 @@ import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.Util;
+import com.dkanada.gramophone.util.ViewUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,7 @@ public class SearchActivity extends AbsMusicContentActivity implements SearchVie
         });
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        ViewUtil.capContentWidth(binding.recyclerView);
         binding.recyclerView.setAdapter(adapter);
         binding.recyclerView.setOnTouchListener((v, event) -> {
             hideSoftKeyboard();

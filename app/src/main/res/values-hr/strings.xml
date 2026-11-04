@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Idi na album</string>
     <string name="no_results">Nema rezultata</string>
     <string name="action_remove_from_playlist">Ukloni s popisa naslova</string>
-    <string name="action_grid_size">Veličina mreže</string>
     <string name="delete_playlist_x"><![CDATA[Izbrisati popis naslova <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Izbrisati <b>%1$d</b> popisa naslova?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Ukloniti pjesmu <b>%1$s</b> s popisa naslova?]]></string>

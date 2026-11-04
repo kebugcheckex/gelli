@@ -69,4 +69,12 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
 
     <dimen name="card_on_app_bar_side_padding">8dp</dimen>
 
+    <!-- target cell widths for the library grid layouts, the column count follows the available width -->
+    <dimen name="grid_cell_small">128dp</dimen>
+    <dimen name="grid_cell_medium">168dp</dimen>
+    <dimen name="grid_cell_large">216dp</dimen>
+
+    <!-- single-column content is centered in a column no wider than this -->
+    <dimen name="max_content_width">840dp</dimen>
+
 </resources>

@@ -16,6 +16,7 @@ import com.dkanada.gramophone.databinding.CardSpecialThanksBinding;
 import com.dkanada.gramophone.databinding.CardSupportDevelopmentBinding;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.activities.base.AbsBaseActivity;
+import com.dkanada.gramophone.util.ViewUtil;
 
 public class AboutActivity extends AbsBaseActivity implements View.OnClickListener {
     private ActivityAboutBinding binding;
@@ -52,6 +53,7 @@ public class AboutActivity extends AbsBaseActivity implements View.OnClickListen
 
         binding = ActivityAboutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        ViewUtil.capContentWidth(binding.scrollView);
 
         aboutBinding = CardAboutAppBinding.bind(findViewById(R.id.about_layout));
         authorBinding = CardAuthorBinding.bind(findViewById(R.id.author_layout));

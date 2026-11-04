@@ -34,7 +34,6 @@
     <string name="action_go_to_artist">Go to artist</string>
     <string name="action_go_to_album">Go to album</string>
     <string name="action_remove_from_playlist">Remove from playlist</string>
-    <string name="action_grid_size">Grid size</string>
     <string name="action_shuffle_all">Shuffle all</string>
     <string name="action_shuffle">Shuffle</string>
     <string name="action_shuffle_album">Shuffle album</string>
@@ -103,6 +102,11 @@
     <string name="select_all_title">Select all</string>
 
     <string name="action_sort_order">Sort order</string>
+    <string name="action_layout">Layout</string>
+    <string name="layout_list">List</string>
+    <string name="layout_grid_small">Small grid</string>
+    <string name="layout_grid_medium">Medium grid</string>
+    <string name="layout_grid_large">Large grid</string>
     <string name="action_sort_method">Sort method</string>
     <string name="colored_footers">Colored footers</string>
 
@@ -173,14 +177,6 @@
     <string name="last_added">Recent</string>
     <string name="my_top_tracks">Top</string>
 
-    <string name="grid_size_1" translatable="false">1</string>
-    <string name="grid_size_2" translatable="false">2</string>
-    <string name="grid_size_3" translatable="false">3</string>
-    <string name="grid_size_4" translatable="false">4</string>
-    <string name="grid_size_5" translatable="false">5</string>
-    <string name="grid_size_6" translatable="false">6</string>
-    <string name="grid_size_7" translatable="false">7</string>
-    <string name="grid_size_8" translatable="false">8</string>
 
     <string name="support_development">Support Development</string>
     <string name="version">Version</string>

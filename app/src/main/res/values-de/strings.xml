@@ -36,7 +36,6 @@
     <string name="action_go_to_album">Gehe zum Album</string>
     <string name="no_results">Keine Ergebnisse</string>
     <string name="action_remove_from_playlist">Aus Wiedergabeliste entfernen</string>
-    <string name="action_grid_size">Rastergröße</string>
     <string name="delete_playlist_x"><![CDATA[Willst du die Wiedergabeliste <b>%1$s</b> löschen?]]></string>
     <string name="delete_x_playlists"><![CDATA[Willst du <b>%1$d</b> Wiedergabelisten löschen?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Willst du den Titel <b>%1$s</b> aus der Wiedergabeliste entfernen?]]></string>

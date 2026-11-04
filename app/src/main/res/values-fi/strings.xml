@@ -37,7 +37,6 @@
     <string name="action_go_to_album">Näytä albumi</string>
     <string name="no_results">Ei hakutuloksia</string>
     <string name="action_remove_from_playlist">Poista soittolistasta</string>
-    <string name="action_grid_size">Ruudukon koko</string>
     <string name="delete_playlist_x"><![CDATA[Haluatko poistaa soittolistan <b>%1$s</b>?]]></string>
     <string name="delete_x_playlists"><![CDATA[Poistetaanko <b>%1$d</b> soittolistaa?]]></string>
     <string name="remove_song_x_from_playlist"><![CDATA[Haluatko poistaa kappaleen <b>%1$s</b> soittolistasta?]]></string>
