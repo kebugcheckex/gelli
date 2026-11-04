@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.dkanada.gramophone.fragments.library.FavoritesFragment;
 import com.dkanada.gramophone.model.Category;
+import com.dkanada.gramophone.fragments.library.AlbumArtistsFragment;
 import com.dkanada.gramophone.fragments.library.AlbumsFragment;
 import com.dkanada.gramophone.fragments.library.ArtistsFragment;
 import com.dkanada.gramophone.fragments.library.GenresFragment;
@@ -157,7 +158,8 @@ public class MusicLibraryPagerAdapter extends FragmentPagerAdapter {
         ARTISTS(ArtistsFragment.class),
         GENRES(GenresFragment.class),
         PLAYLISTS(PlaylistsFragment.class),
-        FAVORITES(FavoritesFragment.class);
+        FAVORITES(FavoritesFragment.class),
+        ALBUM_ARTISTS(AlbumArtistsFragment.class);
 
         private final Class<? extends Fragment> mFragmentClass;
 

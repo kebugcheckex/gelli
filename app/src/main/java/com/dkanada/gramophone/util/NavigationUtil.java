@@ -79,9 +79,14 @@ public class NavigationUtil {
     }
 
     public static void startArtist(Activity activity, Artist artist, Pair<View, String> sharedElements) {
+        startArtist(activity, artist, sharedElements, false);
+    }
+
+    public static void startArtist(Activity activity, Artist artist, Pair<View, String> sharedElements, boolean albumArtist) {
         final Intent intent = new Intent(activity, ArtistDetailActivity.class);
 
         intent.putExtra(ArtistDetailActivity.EXTRA_ARTIST, artist);
+        intent.putExtra(ArtistDetailActivity.EXTRA_ALBUM_ARTIST, albumArtist);
         startActivitySharedElements(activity, intent, sharedElements);
     }
 

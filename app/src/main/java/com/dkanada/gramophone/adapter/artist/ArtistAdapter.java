@@ -36,13 +36,15 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
     protected int itemLayoutRes;
 
     protected boolean usePalette;
+    private final boolean albumArtists;
 
-    public ArtistAdapter(@NonNull AppCompatActivity activity, List<Artist> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
+    public ArtistAdapter(@NonNull AppCompatActivity activity, List<Artist> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder, boolean albumArtists) {
         super(activity, R.id.cab_stub, R.menu.menu_select_media);
         this.activity = activity;
         this.dataSet = dataSet;
         this.itemLayoutRes = itemLayoutRes;
         this.usePalette = usePalette;
+        this.albumArtists = albumArtists;
         setHasStableIds(true);
     }
 
@@ -163,7 +165,7 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
 
         QueryUtil.getSongsByArtistIds(ids, media -> {
             SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
-        });
+        }, albumArtists);
     }
 
     @NonNull
@@ -190,7 +192,7 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
                         image,
                         activity.getResources().getString(R.string.transition_artist_image)
                 );
-                NavigationUtil.startArtist(activity, dataSet.get(getBindingAdapterPosition()), transition);
+                NavigationUtil.startArtist(activity, dataSet.get(getBindingAdapterPosition()), transition, albumArtists);
             }
         }
 

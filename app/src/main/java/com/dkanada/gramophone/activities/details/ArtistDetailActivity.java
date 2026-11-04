@@ -40,6 +40,7 @@ import java.util.Objects;
 
 public class ArtistDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, CabHolder, AppBarLayout.OnOffsetChangedListener {
     public static final String EXTRA_ARTIST = BuildConfig.APPLICATION_ID + ".extra.artist";
+    public static final String EXTRA_ALBUM_ARTIST = BuildConfig.APPLICATION_ID + ".extra.album_artist";
 
     private ActivityArtistDetailBinding binding;
 
@@ -48,12 +49,14 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     private int toolbarColor;
 
     private Artist artist;
+    private boolean albumArtist;
     private HorizontalAlbumAdapter albumAdapter;
     private SongAdapter songAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         artist = getIntent().getParcelableExtra(EXTRA_ARTIST);
+        albumArtist = getIntent().getBooleanExtra(EXTRA_ALBUM_ARTIST, false);
 
         super.onCreate(savedInstanceState);
 
@@ -73,12 +76,12 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
         QueryUtil.getAlbumsByArtistId(artist.id, media -> {
             artist.albums = media;
             setArtist(artist);
-        });
+        }, albumArtist);
 
         QueryUtil.getSongsByArtistId(artist.id, media -> {
             artist.songs = media;
             setArtist(artist);
-        });
+        }, albumArtist);
     }
 
     @Override

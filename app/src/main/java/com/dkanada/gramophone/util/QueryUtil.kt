@@ -15,6 +15,7 @@ import com.dkanada.gramophone.model.Song
 import com.dkanada.gramophone.model.SortMethod
 import com.dkanada.gramophone.model.SortOrder as AppSortOrder
 import kotlinx.coroutines.runBlocking
+import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.exception.ApiClientException
 import org.jellyfin.sdk.api.client.extensions.artistsApi
 import org.jellyfin.sdk.api.client.extensions.itemsApi
@@ -24,6 +25,7 @@ import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.request.GetAlbumArtistsRequest
+import org.jellyfin.sdk.model.api.request.GetArtistsRequest
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import java.util.UUID
 
@@ -118,35 +120,24 @@ object QueryUtil {
         )
     }
 
+    /** People credited on individual tracks, including featured artists. */
     @JvmStatic
     fun getArtists(sortMethod: SortMethod?, sortOrder: AppSortOrder?, startIndex: Int, callback: MediaCallback<Artist>) {
-        val api = JellyfinSdkSession.createApiOrNull()
-        if (api == null) {
-            Log.w(TAG, "getArtists: missing SDK session state")
-            callback.onLoadMedia(emptyList())
-            return
+        fetchArtists("getArtists", callback) { api ->
+            val request = artistsRequest(sortMethod, sortOrder, startIndex, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
+            val result by api.artistsApi.getArtists(request)
+            result.items.map(SdkMediaMapper::toArtist)
         }
+    }
 
-        val request = artistsRequest(sortMethod, sortOrder, startIndex, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
-
-        Thread {
-            val mapped = try {
-                runBlocking {
-                    val result by api.artistsApi.getAlbumArtists(request)
-                    result.items.map(SdkMediaMapper::toArtist)
-                }
-            } catch (err: ApiClientException) {
-                Log.w(TAG, "getArtists: API error: ${err.message}", err)
-                emptyList()
-            } catch (err: Exception) {
-                Log.w(TAG, "getArtists: unexpected error: ${err.message}", err)
-                emptyList()
-            }
-
-            Handler(Looper.getMainLooper()).post {
-                callback.onLoadMedia(mapped)
-            }
-        }.start()
+    /** Primary artists of albums. Distinct from [getArtists]. */
+    @JvmStatic
+    fun getAlbumArtists(sortMethod: SortMethod?, sortOrder: AppSortOrder?, startIndex: Int, callback: MediaCallback<Artist>) {
+        fetchArtists("getAlbumArtists", callback) { api ->
+            val request = albumArtistsRequest(sortMethod, sortOrder, startIndex, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
+            val result by api.artistsApi.getAlbumArtists(request)
+            result.items.map(SdkMediaMapper::toArtist)
+        }
     }
 
     @JvmStatic
@@ -199,15 +190,10 @@ object QueryUtil {
     }
 
     @JvmStatic
-    fun getSongsByArtistIds(artistIds: List<String>, callback: MediaCallback<Song>) {
+    @JvmOverloads
+    fun getSongsByArtistIds(artistIds: List<String>, callback: MediaCallback<Song>, albumArtist: Boolean = false) {
         fetchItems(
-            request = GetItemsRequest(
-                userId = currentUserUuidOrNull(),
-                artistIds = artistIds.mapNotNull(::toUuidOrNull),
-                includeItemTypes = listOf(BaseItemKind.AUDIO),
-                fields = listOf(ItemFields.MEDIA_SOURCES),
-                recursive = true
-            ),
+            request = songsByArtistIdsRequest(artistIds, JellyfinSdkSession.getCurrentUserId(), albumArtist),
             onErrorTag = "getSongsByArtistIds",
             mapper = SdkSongMapper::fromItem,
             callback = callback
@@ -233,14 +219,10 @@ object QueryUtil {
     }
 
     @JvmStatic
-    fun getAlbumsByArtistId(artistId: String, callback: MediaCallback<Album>) {
+    @JvmOverloads
+    fun getAlbumsByArtistId(artistId: String, callback: MediaCallback<Album>, albumArtist: Boolean = false) {
         fetchItems(
-            request = GetItemsRequest(
-                userId = currentUserUuidOrNull(),
-                artistIds = listOfNotNull(toUuidOrNull(artistId)),
-                includeItemTypes = listOf(BaseItemKind.MUSIC_ALBUM),
-                recursive = true
-            ),
+            request = albumsByArtistIdRequest(artistId, JellyfinSdkSession.getCurrentUserId(), albumArtist),
             onErrorTag = "getAlbumsByArtistId",
             mapper = SdkMediaMapper::toAlbum,
             callback = callback
@@ -248,15 +230,10 @@ object QueryUtil {
     }
 
     @JvmStatic
-    fun getSongsByArtistId(artistId: String, callback: MediaCallback<Song>) {
+    @JvmOverloads
+    fun getSongsByArtistId(artistId: String, callback: MediaCallback<Song>, albumArtist: Boolean = false) {
         fetchItems(
-            request = GetItemsRequest(
-                userId = currentUserUuidOrNull(),
-                artistIds = listOfNotNull(toUuidOrNull(artistId)),
-                includeItemTypes = listOf(BaseItemKind.AUDIO),
-                fields = listOf(ItemFields.MEDIA_SOURCES),
-                recursive = true
-            ),
+            request = songsByArtistIdsRequest(listOf(artistId), JellyfinSdkSession.getCurrentUserId(), albumArtist),
             onErrorTag = "getSongsByArtistId",
             mapper = SdkSongMapper::fromItem,
             callback = callback
@@ -314,6 +291,54 @@ object QueryUtil {
     )
 
     internal fun artistsRequest(
+        sortMethod: SortMethod?,
+        sortOrder: AppSortOrder?,
+        startIndex: Int,
+        userId: String?,
+        pageSize: Int,
+        library: Library?
+    ): GetArtistsRequest = GetArtistsRequest(
+        userId = toUuidOrNull(userId),
+        parentId = toUuidOrNull(library?.id),
+        startIndex = startIndex,
+        limit = pageSize,
+        sortBy = listOfNotNull(sortMethod?.let { mapSortBy(it.api) }),
+        sortOrder = mapSortOrder(sortOrder),
+        fields = listOf(ItemFields.GENRES)
+    )
+
+    internal fun songsByArtistIdsRequest(
+        artistIds: List<String>,
+        userId: String?,
+        albumArtist: Boolean
+    ): GetItemsRequest {
+        val ids = artistIds.mapNotNull(::toUuidOrNull)
+        return GetItemsRequest(
+            userId = toUuidOrNull(userId),
+            artistIds = if (albumArtist) null else ids,
+            albumArtistIds = if (albumArtist) ids else null,
+            includeItemTypes = listOf(BaseItemKind.AUDIO),
+            fields = listOf(ItemFields.MEDIA_SOURCES),
+            recursive = true
+        )
+    }
+
+    internal fun albumsByArtistIdRequest(
+        artistId: String,
+        userId: String?,
+        albumArtist: Boolean
+    ): GetItemsRequest {
+        val ids = listOfNotNull(toUuidOrNull(artistId))
+        return GetItemsRequest(
+            userId = toUuidOrNull(userId),
+            artistIds = if (albumArtist) null else ids,
+            albumArtistIds = if (albumArtist) ids else null,
+            includeItemTypes = listOf(BaseItemKind.MUSIC_ALBUM),
+            recursive = true
+        )
+    }
+
+    internal fun albumArtistsRequest(
         sortMethod: SortMethod?,
         sortOrder: AppSortOrder?,
         startIndex: Int,
@@ -438,6 +463,35 @@ object QueryUtil {
             append('-')
             append(value, 20, 32)
         }
+    }
+
+    private fun fetchArtists(
+        onErrorTag: String,
+        callback: MediaCallback<Artist>,
+        load: suspend (ApiClient) -> List<Artist>
+    ) {
+        val api = JellyfinSdkSession.createApiOrNull()
+        if (api == null) {
+            Log.w(TAG, "$onErrorTag: missing SDK session state")
+            callback.onLoadMedia(emptyList())
+            return
+        }
+
+        Thread {
+            val mapped = try {
+                runBlocking { load(api) }
+            } catch (err: ApiClientException) {
+                Log.w(TAG, "$onErrorTag: API error: ${err.message}", err)
+                emptyList()
+            } catch (err: Exception) {
+                Log.w(TAG, "$onErrorTag: unexpected error: ${err.message}", err)
+                emptyList()
+            }
+
+            Handler(Looper.getMainLooper()).post {
+                callback.onLoadMedia(mapped)
+            }
+        }.start()
     }
 
     private fun <T> fetchItems(

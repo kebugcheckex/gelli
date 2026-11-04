@@ -104,7 +104,7 @@ After removal, show the actual number removed and measured space recovered, upda
 
 Add **By artist** below the overview, with each row showing the artist name, **72 of 120 songs · 60% offline**, a small coverage bar, and **360 MB on device**. Offer alphabetical, least available, and most storage sorting. Tapping a row opens artist details with the same coverage header; keep download and removal actions in the detail screen.
 
-Use the same artist membership as the existing Artists browser (album artists), with consistent membership for both numerator and denominator. Multi-artist songs may appear under multiple artists, but count only once in the account summary. Artist storage rows therefore are not necessarily additive. Fetch artist totals in batches or build them from an inventory, rather than one request per visible row. Cache artist inventories/totals for offline viewing with the same timestamp/unknown rules.
+Use album-artist membership, the same as the Album Artists browser, with consistent membership for both numerator and denominator. Multi-artist songs may appear under multiple artists, but count only once in the account summary. Artist storage rows therefore are not necessarily additive. Fetch artist totals in batches or build them from an inventory, rather than one request per visible row. Cache artist inventories/totals for offline viewing with the same timestamp/unknown rules.
 
 ## Fit with the existing app
 

@@ -10,6 +10,7 @@ import com.dkanada.gramophone.adapter.artist.ArtistAdapter;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
+import com.dkanada.gramophone.interfaces.MediaCallback;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 
@@ -17,6 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFragment<ArtistAdapter, GridLayoutManager> {
+    protected boolean isAlbumArtists() {
+        return false;
+    }
+
     @NonNull
     @Override
     protected GridLayoutManager createLayoutManager() {
@@ -30,12 +35,12 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
         notifyLayoutResChanged(itemLayoutRes);
 
         List<Artist> dataSet = getAdapter() == null ? new ArrayList<>() : getAdapter().getDataSet();
-        return new ArtistAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, loadUsePalette(), getLibraryFragment().getMainActivity());
+        return new ArtistAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, loadUsePalette(), getLibraryFragment().getMainActivity(), isAlbumArtists());
     }
 
     @Override
     protected void loadItems(int index) {
-        QueryUtil.getArtists(getSortMethod(), getSortOrder(), index, media -> {
+        MediaCallback<Artist> callback = media -> {
             if (index == 0) getAdapter().getDataSet().clear();
             getAdapter().getDataSet().addAll(media);
             if (media.size() < PreferenceUtil.getInstance(App.getInstance()).getPageSize()) {
@@ -45,12 +50,18 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
             }
             getAdapter().notifyDataSetChanged();
             loading = false;
-        });
+        };
+
+        if (isAlbumArtists()) {
+            QueryUtil.getAlbumArtists(getSortMethod(), getSortOrder(), index, callback);
+        } else {
+            QueryUtil.getArtists(getSortMethod(), getSortOrder(), index, callback);
+        }
     }
 
     @Override
     protected int getEmptyMessage() {
-        return R.string.no_artists;
+        return isAlbumArtists() ? R.string.no_album_artists : R.string.no_artists;
     }
 
     @LayoutRes
@@ -64,12 +75,18 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
 
     @Override
     protected SortMethod loadSortMethod() {
-        return PreferenceUtil.getInstance(getActivity()).getArtistSortMethod();
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        return isAlbumArtists() ? preferences.getAlbumArtistsSortMethod() : preferences.getArtistSortMethod();
     }
 
     @Override
     protected void saveSortMethod(SortMethod sortMethod) {
-        PreferenceUtil.getInstance(getActivity()).setArtistSortMethod(sortMethod);
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        if (isAlbumArtists()) {
+            preferences.setAlbumArtistsSortMethod(sortMethod);
+        } else {
+            preferences.setArtistSortMethod(sortMethod);
+        }
     }
 
     @Override
@@ -78,12 +95,18 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
 
     @Override
     protected SortOrder loadSortOrder() {
-        return PreferenceUtil.getInstance(getActivity()).getArtistSortOrder();
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        return isAlbumArtists() ? preferences.getAlbumArtistsSortOrder() : preferences.getArtistSortOrder();
     }
 
     @Override
     protected void saveSortOrder(SortOrder sortOrder) {
-        PreferenceUtil.getInstance(getActivity()).setArtistSortOrder(sortOrder);
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        if (isAlbumArtists()) {
+            preferences.setAlbumArtistsSortOrder(sortOrder);
+        } else {
+            preferences.setArtistSortOrder(sortOrder);
+        }
     }
 
     @Override
@@ -92,32 +115,50 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
 
     @Override
     protected int loadGridSize() {
-        return PreferenceUtil.getInstance(getActivity()).getArtistGridSize(requireActivity());
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        return isAlbumArtists() ? preferences.getAlbumArtistsGridSize(requireActivity()) : preferences.getArtistGridSize(requireActivity());
     }
 
     @Override
     protected void saveGridSize(int gridSize) {
-        PreferenceUtil.getInstance(getActivity()).setArtistGridSize(gridSize);
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        if (isAlbumArtists()) {
+            preferences.setAlbumArtistsGridSize(gridSize);
+        } else {
+            preferences.setArtistGridSize(gridSize);
+        }
     }
 
     @Override
     protected int loadGridSizeLand() {
-        return PreferenceUtil.getInstance(getActivity()).getArtistGridSizeLand(requireActivity());
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        return isAlbumArtists() ? preferences.getAlbumArtistsGridSizeLand(requireActivity()) : preferences.getArtistGridSizeLand(requireActivity());
     }
 
     @Override
     protected void saveGridSizeLand(int gridSize) {
-        PreferenceUtil.getInstance(getActivity()).setArtistGridSizeLand(gridSize);
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        if (isAlbumArtists()) {
+            preferences.setAlbumArtistsGridSizeLand(gridSize);
+        } else {
+            preferences.setArtistGridSizeLand(gridSize);
+        }
     }
 
     @Override
     protected void saveUsePalette(boolean usePalette) {
-        PreferenceUtil.getInstance(getActivity()).setArtistColoredFooters(usePalette);
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        if (isAlbumArtists()) {
+            preferences.setAlbumArtistsColoredFooters(usePalette);
+        } else {
+            preferences.setArtistColoredFooters(usePalette);
+        }
     }
 
     @Override
     public boolean loadUsePalette() {
-        return PreferenceUtil.getInstance(getActivity()).getArtistColoredFooters();
+        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
+        return isAlbumArtists() ? preferences.getAlbumArtistsColoredFooters() : preferences.getArtistColoredFooters();
     }
 
     @Override

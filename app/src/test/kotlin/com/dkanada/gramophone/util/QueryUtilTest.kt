@@ -6,6 +6,7 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -173,6 +174,50 @@ class QueryUtilTest {
         )
 
         assertEquals(50, request.startIndex)
+    }
+
+    @Test
+    fun artistsRequest_isDistinctFromAlbumArtists() {
+        val artists = QueryUtil.artistsRequest(SortMethod.NAME, AppSortOrder.ASCENDING, 0, userId, 50, library)
+        val albumArtists = QueryUtil.albumArtistsRequest(SortMethod.NAME, AppSortOrder.ASCENDING, 0, userId, 50, library)
+
+        assertEquals(artists.parentId, albumArtists.parentId)
+        assertEquals(artists.userId, albumArtists.userId)
+        assertEquals(listOf(ItemSortBy.SORT_NAME), albumArtists.sortBy)
+        assertEquals(listOf(ItemFields.GENRES), albumArtists.fields)
+    }
+
+    @Test
+    fun albumsByArtistIdRequest_usesAlbumArtistIdsForAlbumArtists() {
+        val artistId = "aabbccddeeff00112233445566778899"
+        val expected = UUID.fromString("aabbccdd-eeff-0011-2233-445566778899")
+
+        val track = QueryUtil.albumsByArtistIdRequest(artistId, userId, albumArtist = false)
+        val album = QueryUtil.albumsByArtistIdRequest(artistId, userId, albumArtist = true)
+
+        assertEquals(listOf(expected), track.artistIds)
+        assertNull(track.albumArtistIds)
+        assertEquals(listOf(BaseItemKind.MUSIC_ALBUM), track.includeItemTypes)
+
+        assertNull(album.artistIds)
+        assertEquals(listOf(expected), album.albumArtistIds)
+        assertEquals(listOf(BaseItemKind.MUSIC_ALBUM), album.includeItemTypes)
+    }
+
+    @Test
+    fun songsByArtistIdsRequest_usesAlbumArtistIdsForAlbumArtists() {
+        val artistId = "aabbccddeeff00112233445566778899"
+        val expected = UUID.fromString("aabbccdd-eeff-0011-2233-445566778899")
+
+        val track = QueryUtil.songsByArtistIdsRequest(listOf(artistId), userId, albumArtist = false)
+        val album = QueryUtil.songsByArtistIdsRequest(listOf(artistId), userId, albumArtist = true)
+
+        assertEquals(listOf(expected), track.artistIds)
+        assertNull(track.albumArtistIds)
+        assertEquals(listOf(BaseItemKind.AUDIO), track.includeItemTypes)
+
+        assertNull(album.artistIds)
+        assertEquals(listOf(expected), album.albumArtistIds)
     }
 
     // --- songsRequest: library scope, sort, paging, favorites ---

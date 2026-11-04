@@ -73,7 +73,7 @@ Room database (`JellyDatabase`) with migrations tracked in the class. DAOs:
 ### UI Structure
 
 - `activities/` — `SplashActivity` → `LoginActivity` → `MainActivity` (hosts the `LibraryFragment`). `SettingsActivity`, `SearchActivity`, `SelectActivity`, and detail activities live alongside.
-- `fragments/library/` — one fragment per library tab: `AlbumsFragment`, `ArtistsFragment`, `SongsFragment`, `PlaylistsFragment`, `FavoritesFragment`, `GenresFragment`.
+- `fragments/library/` — one fragment per library tab: `AlbumsFragment`, `ArtistsFragment`, `AlbumArtistsFragment`, `SongsFragment`, `PlaylistsFragment`, `FavoritesFragment`, `GenresFragment`.
 - `fragments/player/` — sliding-up player panel rendered inside `MainActivity`.
 - `glide/` — `CustomGlideRequest` builds image URLs from Jellyfin item IDs; `BlurTransformation` uses blurhash placeholders.
 

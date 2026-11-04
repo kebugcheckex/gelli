@@ -45,10 +45,12 @@ public final class PreferenceUtil {
     public static final String ALBUM_SORT_METHOD = "album_sort_method";
     public static final String SONG_SORT_METHOD = "song_sort_method";
     public static final String ARTIST_SORT_METHOD = "artist_sort_method";
+    public static final String ALBUM_ARTISTS_SORT_METHOD = "album_artists_sort_method";
 
     public static final String ALBUM_SORT_ORDER = "album_sort_order";
     public static final String SONG_SORT_ORDER = "song_sort_order";
     public static final String ARTIST_SORT_ORDER = "artist_sort_order";
+    public static final String ALBUM_ARTISTS_SORT_ORDER = "album_artists_sort_order";
 
     public static final String ALBUM_GRID_SIZE = "album_grid_size";
     public static final String ALBUM_GRID_SIZE_LAND = "album_grid_size_land";
@@ -59,9 +61,13 @@ public final class PreferenceUtil {
     public static final String ARTIST_GRID_SIZE = "artist_grid_size";
     public static final String ARTIST_GRID_SIZE_LAND = "artist_grid_size_land";
 
+    public static final String ALBUM_ARTISTS_GRID_SIZE = "album_artists_grid_size";
+    public static final String ALBUM_ARTISTS_GRID_SIZE_LAND = "album_artists_grid_size_land";
+
     public static final String ALBUM_COLORED_FOOTERS = "album_colored_footers";
     public static final String SONG_COLORED_FOOTERS = "song_colored_footers";
     public static final String ARTIST_COLORED_FOOTERS = "artist_colored_footers";
+    public static final String ALBUM_ARTISTS_COLORED_FOOTERS = "album_artists_colored_footers";
     public static final String ALBUM_ARTIST_COLORED_FOOTERS = "album_artist_colored_footers";
 
     public static final String CATEGORIES = "categories";
@@ -336,6 +342,14 @@ public final class PreferenceUtil {
         mPreferences.edit().putString(ARTIST_SORT_ORDER, sortOrder.toString()).apply();
     }
 
+    public final SortOrder getAlbumArtistsSortOrder() {
+        return SortOrder.valueOf(mPreferences.getString(ALBUM_ARTISTS_SORT_ORDER, SortOrder.ASCENDING.toString()));
+    }
+
+    public void setAlbumArtistsSortOrder(SortOrder sortOrder) {
+        mPreferences.edit().putString(ALBUM_ARTISTS_SORT_ORDER, sortOrder.toString()).apply();
+    }
+
     public final SortMethod getAlbumSortMethod() {
         return SortMethod.valueOf(mPreferences.getString(ALBUM_SORT_METHOD, SortMethod.RANDOM.toString()));
     }
@@ -358,6 +372,14 @@ public final class PreferenceUtil {
 
     public void setArtistSortMethod(SortMethod sortMethod) {
         mPreferences.edit().putString(ARTIST_SORT_METHOD, sortMethod.toString()).apply();
+    }
+
+    public final SortMethod getAlbumArtistsSortMethod() {
+        return SortMethod.valueOf(mPreferences.getString(ALBUM_ARTISTS_SORT_METHOD, SortMethod.NAME.toString()));
+    }
+
+    public void setAlbumArtistsSortMethod(SortMethod sortMethod) {
+        mPreferences.edit().putString(ALBUM_ARTISTS_SORT_METHOD, sortMethod.toString()).apply();
     }
 
     public int getLastSleepTimerValue() {
@@ -408,6 +430,14 @@ public final class PreferenceUtil {
         mPreferences.edit().putInt(ARTIST_GRID_SIZE, gridSize).apply();
     }
 
+    public final int getAlbumArtistsGridSize(Context context) {
+        return mPreferences.getInt(ALBUM_ARTISTS_GRID_SIZE, context.getResources().getInteger(R.integer.default_list_columns));
+    }
+
+    public void setAlbumArtistsGridSize(final int gridSize) {
+        mPreferences.edit().putInt(ALBUM_ARTISTS_GRID_SIZE, gridSize).apply();
+    }
+
     public final int getAlbumGridSizeLand(Context context) {
         return mPreferences.getInt(ALBUM_GRID_SIZE_LAND, context.getResources().getInteger(R.integer.default_grid_columns_land));
     }
@@ -432,6 +462,14 @@ public final class PreferenceUtil {
         mPreferences.edit().putInt(ARTIST_GRID_SIZE_LAND, gridSize).apply();
     }
 
+    public final int getAlbumArtistsGridSizeLand(Context context) {
+        return mPreferences.getInt(ALBUM_ARTISTS_GRID_SIZE_LAND, context.getResources().getInteger(R.integer.default_list_columns_land));
+    }
+
+    public void setAlbumArtistsGridSizeLand(final int gridSize) {
+        mPreferences.edit().putInt(ALBUM_ARTISTS_GRID_SIZE_LAND, gridSize).apply();
+    }
+
     public final boolean getAlbumColoredFooters() {
         return mPreferences.getBoolean(ALBUM_COLORED_FOOTERS, true);
     }
@@ -454,6 +492,14 @@ public final class PreferenceUtil {
 
     public void setArtistColoredFooters(final boolean value) {
         mPreferences.edit().putBoolean(ARTIST_COLORED_FOOTERS, value).apply();
+    }
+
+    public final boolean getAlbumArtistsColoredFooters() {
+        return mPreferences.getBoolean(ALBUM_ARTISTS_COLORED_FOOTERS, true);
+    }
+
+    public void setAlbumArtistsColoredFooters(final boolean value) {
+        mPreferences.edit().putBoolean(ALBUM_ARTISTS_COLORED_FOOTERS, value).apply();
     }
 
     public final boolean getAlbumArtistColoredFooters() {
@@ -502,7 +548,7 @@ public final class PreferenceUtil {
         String defaultValues = Arrays.stream(Category.values()).map(Category::toString).collect(Collectors.joining("."));
         String values = mPreferences.getString(CATEGORIES, defaultValues);
 
-        return Arrays.stream(values.split("\\.")).map(category -> {
+        List<Category> stored = Arrays.stream(values.split("\\.")).map(category -> {
             Category item = Category.valueOf(category.toUpperCase());
 
             // this is kind of a hack but avoids any annoying json serialization
@@ -510,7 +556,38 @@ public final class PreferenceUtil {
             item.select = Character.isUpperCase(category.charAt(0));
 
             return item;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toCollection(ArrayList::new));
+
+        // Saved category lists predate new tabs. Insert missing ones, selected, next to their neighbors.
+        insertMissingCategories(stored);
+        return stored;
+    }
+
+    private static void insertMissingCategories(List<Category> stored) {
+        Category[] all = Category.values();
+        for (int i = 0; i < all.length; i++) {
+            if (stored.contains(all[i])) continue;
+
+            all[i].select = true;
+            int insertAt = stored.size();
+            for (int j = i - 1; j >= 0; j--) {
+                int index = stored.indexOf(all[j]);
+                if (index >= 0) {
+                    insertAt = index + 1;
+                    break;
+                }
+            }
+            if (insertAt == stored.size()) {
+                for (int j = i + 1; j < all.length; j++) {
+                    int index = stored.indexOf(all[j]);
+                    if (index >= 0) {
+                        insertAt = index;
+                        break;
+                    }
+                }
+            }
+            stored.add(insertAt, all[i]);
+        }
     }
 
     @SuppressWarnings("SimplifyStreamApiCallChains")

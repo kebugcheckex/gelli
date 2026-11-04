@@ -8,6 +8,7 @@ public enum Category {
     SONGS(R.string.songs),
     ALBUMS(R.string.albums),
     ARTISTS(R.string.artists),
+    ALBUM_ARTISTS(R.string.album_artists),
     GENRES(R.string.genres),
     PLAYLISTS(R.string.playlists),
     FAVORITES(R.string.favorites);
