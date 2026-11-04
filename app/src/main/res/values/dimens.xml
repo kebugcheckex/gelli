@@ -77,4 +77,7 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <!-- single-column content is centered in a column no wider than this -->
     <dimen name="max_content_width">840dp</dimen>
 
+    <!-- fixed now-playing column beside the content at w840dp -->
+    <dimen name="now_playing_pane_width">360dp</dimen>
+
 </resources>

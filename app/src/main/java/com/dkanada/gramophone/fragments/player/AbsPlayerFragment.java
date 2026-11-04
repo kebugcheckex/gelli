@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 
 import com.dkanada.gramophone.R;
+import com.dkanada.gramophone.activities.base.AbsMusicPanelActivity;
 import com.dkanada.gramophone.dialogs.AddToPlaylistDialog;
 import com.dkanada.gramophone.dialogs.CreatePlaylistDialog;
 import com.dkanada.gramophone.dialogs.SleepTimerDialog;
@@ -80,6 +81,13 @@ public abstract class AbsPlayerFragment extends AbsMusicServiceFragment implemen
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Whether this player sits in the fixed now-playing pane rather than in the sliding panel.
+     */
+    protected boolean isInPane() {
+        return getActivity() instanceof AbsMusicPanelActivity && ((AbsMusicPanelActivity) getActivity()).isPaneMode();
     }
 
     protected void toggleFavorite(Song song) {

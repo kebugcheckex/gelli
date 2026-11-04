@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- expanded width: the player stays in a fixed pane beside the content instead of a sliding panel -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:id="@+id/content_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+    <!-- invisible until the queue is known, so the player still measures itself on the first layout -->
+    <LinearLayout
+        android:id="@+id/now_playing_pane"
+        android:layout_width="@dimen/now_playing_pane_width"
+        android:layout_height="match_parent"
+        android:background="?android:colorBackground"
+        android:orientation="horizontal"
+        android:visibility="invisible">
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="?attr/dividerColor" />
+
+        <FrameLayout
+            android:id="@+id/player_fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+</LinearLayout>

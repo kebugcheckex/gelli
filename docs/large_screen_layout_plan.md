@@ -1,6 +1,6 @@
 # Large-screen layout
 
-Written November 4, 2026. Phase 1 is implemented and needs checking on a device. Phases 2–4 have not started.
+Written November 4, 2026. Phases 1 and 2 are implemented and need checking on a device. Phases 3 and 4 have not started.
 
 ## Goal
 
@@ -71,6 +71,17 @@ This is the main tablet feature: library on the left, now playing and queue in a
 5. **Detail activities inherit it.** All `AbsMusicContentActivity` subclasses get the pane without per-screen changes. Check that the album and artist detail headers and the CAB still lay out correctly in the narrower content area.
 
 Done when: on a landscape tablet and in a ≥840dp freeform window, you can browse, open detail screens, and search while the player and queue stay visible; resizing below 840dp goes back to the sliding panel with playback state intact.
+
+### As implemented
+
+- **Shell.** `layout-w840dp/sliding_music_panel_layout.xml` is a horizontal `LinearLayout`: `content_container` with weight 1, then `now_playing_pane` (a 1dp `dividerColor` line and `player_fragment_container`), `now_playing_pane_width` (360dp) wide. View binding requires every configuration to share the root ID, so the compact layout's root no longer has the `sliding_layout` ID. `AbsMusicPanelActivity` keeps the root in a nullable `slidingLayout` field, and `isPaneMode()` is true when that field is null.
+- **Pane visibility.** The pane starts `invisible`, so the player measures itself during the first layout pass. Once that pass has run and the queue is known, `hideBottomBar()` sets the pane to `gone` (empty queue) or `visible`, and calls `playerFragment.onShow()` when it shows. When the pane is gone, the content takes the full width.
+- **Panel API.** In pane mode, `expandPanel()`, `collapsePanel()`, and `setAntiDragView()` do nothing, and `getPanelState()` reports `EXPANDED`. `onPanelExpanded()` and `onPanelCollapsed()` are never called, so `MainActivity` never locks the drawer. The status bar, navigation bar, and task colors always follow the content (`contentOwnsSystemBars()`). The palette color only appears inside the pane.
+- **Player layout: resource qualifier, not a `pane` argument.** `layout-w840dp/fragment_flat_player.xml` and `fragment_card_player.xml` are copies of the portrait layouts. Width qualifiers take precedence over `land`, so a landscape window that's 840dp or wider gets the portrait arrangement in the pane. Since the shell and the player layout use the same qualifier, they can't disagree. The cost is two duplicated layouts that have to be kept in sync with `layout/`. Forcing the layout through a fragment argument would have meant inflating with an overridden-configuration context, which also affects child fragments and view contexts.
+- **Queue.** The portrait player's inner queue `SlidingUpPanelLayout` is unchanged. Check on a device whether a plain list under the controls works better in a tall pane.
+- **Player toolbar.** In the pane, the player has no close button (`AbsPlayerFragment.isInPane()`).
+- **Back.** In pane mode, Back goes straight to the normal activity behavior. It doesn't collapse the queue or the panel. `MainActivity` still closes the drawer and the CAB first.
+- **Not done:** no window-inset handling for the pane beyond what the player layouts already do (`StatusBarView`). A side navigation bar or a cutout on the right edge would overlap the pane, just as it overlaps the sliding panel today.
 
 ## Phase 3: Detail screens at expanded width
 

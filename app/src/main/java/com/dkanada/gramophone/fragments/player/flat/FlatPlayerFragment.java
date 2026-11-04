@@ -192,8 +192,11 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
     private void setUpPlayerToolbar() {
         binding.playerToolbar.inflateMenu(R.menu.menu_player);
-        binding.playerToolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
-        binding.playerToolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
+        // the pane can't be closed, so it gets no close button
+        if (!isInPane()) {
+            binding.playerToolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
+            binding.playerToolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
+        }
         binding.playerToolbar.setOnMenuItemClickListener(this);
     }
 
