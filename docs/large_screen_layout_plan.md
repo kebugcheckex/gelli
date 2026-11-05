@@ -1,6 +1,6 @@
 # Large-screen layout
 
-Written November 4, 2026. Phases 1 and 2 are implemented and need checking on a device. Phases 3 and 4 have not started.
+Written November 4, 2026. Phases 1–3 are implemented and need checking on a device. Phase 4 has not started.
 
 ## Goal
 
@@ -86,6 +86,14 @@ Done when: on a landscape tablet and in a ≥840dp freeform window, you can brow
 ## Phase 3: Detail screens at expanded width
 
 Keep these as activities. Add `layout-w840dp` versions of the album, artist, and playlist detail layouts: cover, metadata, and actions in a left column, and the tracklist on the right. Together with the Phase 2 pane, this gives a three-column layout on very wide windows. Decide on a device whether the detail two-column layout should apply only when the pane is hidden or the window is wider than about 1200dp.
+
+### As implemented
+
+- **Threshold: `layout-w1200dp`.** At 840dp, the visible pane leaves the content only about 480dp, which is too narrow for two columns. A resource qualifier can't tell whether the pane is showing. Switching layouts when the queue empties or fills would also rebuild the screen under the user. So the two-column layout depends only on window width. At 1200dp, the content area is about 840dp beside the pane. Most 10–12" tablets in landscape are about 1280dp wide and get it. Unfolded foldables and portrait tablets keep the phone layout. To change the threshold, rename the directory.
+- **Album and artist.** `layout-w1200dp/activity_album_detail.xml` and `activity_artist_detail.xml` replace the `CoordinatorLayout`/`AppBarLayout` collapsing header with a fixed `detail_side_column_width` (320dp) column on the left. The column holds a square cover and the metadata rows, and scrolls on its own if it's too tall. The tracklist is on the right. For the artist screen, the right side is the existing `InceptionScrollView` with the horizontal album row and the songs. The left column keeps the `header`, `image`, and transition names, so shared-element transitions and palette coloring work unchanged.
+- **Code.** View binding makes `appBarLayout` nullable because the wide layouts don't have it. When it's null, the activities skip the offset listener (no header fade) and put the palette color on `header` instead. The compact layout still colors only the app bar. Coloring the elevated header there would add a second shadow.
+- **Playlist and genre: no change.** Those screens have no header, only a toolbar and a list that `capContentWidth()` already centers, so a left column would have nothing to show.
+- **Header dimens.** `values-sw600dp/dimens.xml` is now `values-h600dp/dimens.xml`. The override only existed to undo the `values-land` short header on tablets in landscape, and that's really a question of window height. A tablet split top/bottom now gets the short header, and a landscape tablet still gets the tall one.
 
 ## Phase 4: Navigation (optional)
 

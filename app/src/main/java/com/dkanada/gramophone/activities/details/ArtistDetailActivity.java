@@ -111,7 +111,8 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     }
 
     private void setUpSongListView() {
-        binding.appBarLayout.addOnOffsetChangedListener(this);
+        // the w1200dp layout has a fixed side column instead of a collapsing header
+        if (binding.appBarLayout != null) binding.appBarLayout.addOnOffsetChangedListener(this);
 
         songAdapter = new SongAdapter(this, artist.songs, R.layout.item_list, false, this);
 
@@ -164,7 +165,11 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
 
     private void setColors(int color) {
         toolbarColor = color;
-        binding.appBarLayout.setBackgroundColor(color);
+        if (binding.appBarLayout != null) {
+            binding.appBarLayout.setBackgroundColor(color);
+        } else {
+            binding.header.setBackgroundColor(color);
+        }
 
         setColor(color);
 

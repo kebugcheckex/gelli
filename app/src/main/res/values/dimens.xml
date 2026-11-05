@@ -80,4 +80,7 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <!-- fixed now-playing column beside the content at w840dp -->
     <dimen name="now_playing_pane_width">360dp</dimen>
 
+    <!-- cover and metadata column on album and artist detail screens at w1200dp -->
+    <dimen name="detail_side_column_width">320dp</dimen>
+
 </resources>
