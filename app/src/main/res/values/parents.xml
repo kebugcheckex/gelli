@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Phonograph.Base" parent="Theme.AppCompat.NoActionBar">
+    <!--
+    Material 3 themes with neutral colour roles. The user-chosen primary and accent colours are applied at
+    runtime, so the roles here are greys that match the surfaces the app had under AppCompat.
+    -->
+    <style name="Theme.Phonograph.Base" parent="Theme.Material3.Dark.NoActionBar">
 
         <item name="android:windowActionBarOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
@@ -19,9 +23,49 @@
 
         <item name="toolbarPopupTheme">@style/ThemeOverlay.AppCompat</item>
 
-        <!-- TextInputLayout uses colorPrimary for the cursor line and bubble -->
-        <item name="colorAccent">@android:color/white</item>
+        <item name="android:colorBackground">#303030</item>
+        <item name="android:textColorPrimary">@color/text_primary_dark</item>
+        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
+        <item name="android:textColorTertiary">@color/text_secondary_dark</item>
+        <item name="android:textColorAlertDialogListItem">@color/text_primary_dark</item>
+
         <item name="colorPrimary">@android:color/white</item>
+        <item name="colorOnPrimary">@android:color/black</item>
+        <item name="colorPrimaryContainer">#505050</item>
+        <item name="colorOnPrimaryContainer">@android:color/white</item>
+        <item name="colorPrimaryInverse">@android:color/black</item>
+        <item name="colorSecondary">@android:color/white</item>
+        <item name="colorOnSecondary">@android:color/black</item>
+        <item name="colorSecondaryContainer">#505050</item>
+        <item name="colorOnSecondaryContainer">@android:color/white</item>
+        <item name="colorTertiary">@android:color/white</item>
+        <item name="colorOnTertiary">@android:color/black</item>
+        <item name="colorTertiaryContainer">#505050</item>
+        <item name="colorOnTertiaryContainer">@android:color/white</item>
+        <item name="colorAccent">@android:color/white</item>
+
+        <item name="colorOnBackground">@android:color/white</item>
+        <item name="colorSurface">#303030</item>
+        <item name="colorOnSurface">@android:color/white</item>
+        <item name="colorSurfaceVariant">#424242</item>
+        <item name="colorOnSurfaceVariant">#B3FFFFFF</item>
+        <item name="colorSurfaceDim">#262626</item>
+        <item name="colorSurfaceBright">#4E4E4E</item>
+        <item name="colorSurfaceContainerLowest">#262626</item>
+        <item name="colorSurfaceContainerLow">#363636</item>
+        <item name="colorSurfaceContainer">#3A3A3A</item>
+        <item name="colorSurfaceContainerHigh">#444444</item>
+        <item name="colorSurfaceContainerHighest">#4E4E4E</item>
+        <item name="colorSurfaceInverse">#EEEEEE</item>
+        <item name="colorOnSurfaceInverse">#303030</item>
+        <item name="colorOutline">#8C8C8C</item>
+        <item name="colorOutlineVariant">#4A4A4A</item>
+
+        <!-- the phone layouts were built around these sizes and styles -->
+        <item name="actionBarSize">@dimen/toolbar_height</item>
+        <item name="toolbarStyle">@style/Widget.AppCompat.Toolbar</item>
+        <item name="tabStyle">@style/Widget.Design.TabLayout</item>
+        <item name="appBarLayoutStyle">@style/Widget.Design.AppBarLayout</item>
 
         <!-- necessary to find the overflow button later in the layout -->
         <item name="android:actionOverflowButtonStyle">@style/Widget.ActionButton.Overflow</item>
@@ -30,7 +74,7 @@
 
     </style>
 
-    <style name="Theme.Phonograph.Base.Light" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.Phonograph.Base.Light" parent="Theme.Material3.Light.NoActionBar">
 
         <item name="android:windowActionBarOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
@@ -48,9 +92,49 @@
 
         <item name="toolbarPopupTheme">@style/ThemeOverlay.AppCompat.Light</item>
 
-        <!-- TextInputLayout uses colorPrimary for the cursor line and bubble -->
+        <item name="android:colorBackground">#FAFAFA</item>
+        <item name="android:textColorPrimary">@color/text_primary_light</item>
+        <item name="android:textColorSecondary">@color/text_secondary_light</item>
+        <item name="android:textColorTertiary">@color/text_secondary_light</item>
+        <item name="android:textColorAlertDialogListItem">@color/text_primary_light</item>
+
+        <item name="colorPrimary">#212121</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorPrimaryContainer">#E4E4E4</item>
+        <item name="colorOnPrimaryContainer">#212121</item>
+        <item name="colorPrimaryInverse">@android:color/white</item>
+        <item name="colorSecondary">#212121</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+        <item name="colorSecondaryContainer">#E0E0E0</item>
+        <item name="colorOnSecondaryContainer">#212121</item>
+        <item name="colorTertiary">#212121</item>
+        <item name="colorOnTertiary">@android:color/white</item>
+        <item name="colorTertiaryContainer">#E0E0E0</item>
+        <item name="colorOnTertiaryContainer">#212121</item>
         <item name="colorAccent">@android:color/black</item>
-        <item name="colorPrimary">@android:color/black</item>
+
+        <item name="colorOnBackground">#212121</item>
+        <item name="colorSurface">#FAFAFA</item>
+        <item name="colorOnSurface">#212121</item>
+        <item name="colorSurfaceVariant">#EEEEEE</item>
+        <item name="colorOnSurfaceVariant">#8A000000</item>
+        <item name="colorSurfaceDim">#E0E0E0</item>
+        <item name="colorSurfaceBright">@android:color/white</item>
+        <item name="colorSurfaceContainerLowest">@android:color/white</item>
+        <item name="colorSurfaceContainerLow">#F5F5F5</item>
+        <item name="colorSurfaceContainer">#F0F0F0</item>
+        <item name="colorSurfaceContainerHigh">#EAEAEA</item>
+        <item name="colorSurfaceContainerHighest">#E4E4E4</item>
+        <item name="colorSurfaceInverse">#303030</item>
+        <item name="colorOnSurfaceInverse">#F5F5F5</item>
+        <item name="colorOutline">#8C8C8C</item>
+        <item name="colorOutlineVariant">#E0E0E0</item>
+
+        <!-- the phone layouts were built around these sizes and styles -->
+        <item name="actionBarSize">@dimen/toolbar_height</item>
+        <item name="toolbarStyle">@style/Widget.AppCompat.Toolbar</item>
+        <item name="tabStyle">@style/Widget.Design.TabLayout</item>
+        <item name="appBarLayoutStyle">@style/Widget.Design.AppBarLayout</item>
 
         <!-- necessary to find the overflow button later in the layout -->
         <item name="android:actionOverflowButtonStyle">@style/Widget.ActionButton.Overflow</item>
@@ -60,11 +144,27 @@
     </style>
 
     <style name="Theme.Phonograph.Base.Black" parent="@style/Theme.Phonograph.Base">
+        <item name="android:colorBackground">@android:color/black</item>
         <item name="android:windowBackground">@android:color/black</item>
 
         <item name="dividerColor">#18FFFFFF</item>
         <item name="defaultFooterColor">#424242</item>
         <item name="cardBackgroundColor">#212121</item>
+
+        <item name="colorPrimaryContainer">#2E2E2E</item>
+        <item name="colorSecondaryContainer">#2E2E2E</item>
+        <item name="colorTertiaryContainer">#2E2E2E</item>
+        <item name="colorSurface">@android:color/black</item>
+        <item name="colorSurfaceVariant">#1E1E1E</item>
+        <item name="colorSurfaceDim">@android:color/black</item>
+        <item name="colorSurfaceBright">#2A2A2A</item>
+        <item name="colorSurfaceContainerLowest">@android:color/black</item>
+        <item name="colorSurfaceContainerLow">#121212</item>
+        <item name="colorSurfaceContainer">#181818</item>
+        <item name="colorSurfaceContainerHigh">#202020</item>
+        <item name="colorSurfaceContainerHighest">#2A2A2A</item>
+        <item name="colorOnSurfaceInverse">@android:color/black</item>
+        <item name="colorOutlineVariant">#262626</item>
     </style>
 
     <style name="FabParent">

@@ -52,6 +52,7 @@ public class MusicLibraryPagerAdapter extends FragmentPagerAdapter {
             Holder holder = new Holder();
 
             holder.mClassName = fragment.getFragmentClass().getName();
+            holder.category = category;
             holder.title = mContext.getResources().getString(category.title).toUpperCase();
 
             mHolderList.add(holder);
@@ -68,6 +69,11 @@ public class MusicLibraryPagerAdapter extends FragmentPagerAdapter {
         }
 
         return getItem(position);
+    }
+
+    @NonNull
+    public Category getCategory(final int position) {
+        return mHolderList.get(position).category;
     }
 
     @Override
@@ -190,6 +196,7 @@ public class MusicLibraryPagerAdapter extends FragmentPagerAdapter {
     private final static class Holder {
         String mClassName;
         Bundle mParams;
+        Category category;
         String title;
     }
 }

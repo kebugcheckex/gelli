@@ -22,6 +22,11 @@ import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.util.ShortcutUtil;
 import com.dkanada.gramophone.util.ThemeUtil;
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.navigationrail.NavigationRailView;
+import com.dkanada.gramophone.model.Category;
+import android.content.res.ColorStateList;
+import androidx.core.graphics.ColorUtils;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.MusicLibraryPagerAdapter;
 import com.dkanada.gramophone.dialogs.CreatePlaylistDialog;
@@ -82,16 +87,75 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
             PreferenceUtil.getInstance(getContext()).setLastTab(position);
 
             updateTabVisibility();
+            updateRailItems();
         }
     }
 
+    /**
+     * The expanded width layout has a navigation rail in place of the tabs and the drawer button.
+     */
+    private boolean hasRail() {
+        return binding.navigationRail != null;
+    }
+
     private void setUpToolbar() {
-        int primaryColor = PreferenceUtil.getInstance(requireActivity()).getPrimaryColor();
-        binding.appbar.setBackgroundColor(primaryColor);
-        binding.toolbar.setBackgroundColor(primaryColor);
-        binding.toolbar.setNavigationIcon(R.drawable.ic_menu_white_24dp);
-        binding.toolbar.setTitle(R.string.app_name);
+        if (!hasRail()) {
+            int primaryColor = PreferenceUtil.getInstance(requireActivity()).getPrimaryColor();
+            binding.appbar.setBackgroundColor(primaryColor);
+            binding.toolbar.setBackgroundColor(primaryColor);
+            binding.toolbar.setNavigationIcon(R.drawable.ic_menu_white_24dp);
+            binding.toolbar.setTitle(R.string.app_name);
+        }
+
         getMainActivity().setSupportActionBar(binding.toolbar);
+    }
+
+    private void setUpRail() {
+        NavigationRailView rail = binding.navigationRail;
+        int accentColor = PreferenceUtil.getInstance(requireActivity()).getAccentColor();
+        int normalColor = MaterialColors.getColor(rail, R.attr.colorOnSurfaceVariant);
+        int selectedColor = MaterialColors.getColor(rail, R.attr.colorOnSurface);
+
+        rail.setItemIconTintList(ThemeUtil.getColorStateList(normalColor, accentColor));
+        rail.setItemTextColor(ThemeUtil.getColorStateList(normalColor, selectedColor));
+        rail.setItemActiveIndicatorColor(ColorStateList.valueOf(ColorUtils.setAlphaComponent(accentColor, 0x3D)));
+
+        View header = rail.getHeaderView();
+        if (header != null) {
+            header.findViewById(R.id.rail_menu).setOnClickListener(v -> getMainActivity().openDrawer());
+            header.findViewById(R.id.rail_shuffle).setOnClickListener(v -> shuffleAll());
+        }
+
+        rail.setOnItemSelectedListener(item -> {
+            binding.pager.setCurrentItem(item.getItemId(), false);
+            return true;
+        });
+
+        updateRailItems();
+    }
+
+    private void updateRailItems() {
+        if (!hasRail()) return;
+
+        Menu menu = binding.navigationRail.getMenu();
+        menu.clear();
+        for (int i = 0; i < pagerAdapter.getCount(); i++) {
+            Category category = pagerAdapter.getCategory(i);
+            menu.add(Menu.NONE, i, i, category.title).setIcon(category.icon);
+        }
+
+        updateRailSelection(binding.pager.getCurrentItem());
+    }
+
+    private void updateRailSelection(int position) {
+        if (!hasRail() || position >= pagerAdapter.getCount()) return;
+
+        binding.navigationRail.getMenu().getItem(position).setChecked(true);
+        binding.toolbar.setTitle(pagerAdapter.getCategory(position).title);
+    }
+
+    private void shuffleAll() {
+        ShortcutUtil.getShuffle((media) -> MusicPlayerRemote.openAndShuffleQueue(media, true), false);
     }
 
     private void setUpViewPager() {
@@ -99,13 +163,15 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         binding.pager.setAdapter(pagerAdapter);
         binding.pager.setOffscreenPageLimit(pagerAdapter.getCount() - 1);
 
-        binding.tabs.setupWithViewPager(binding.pager);
+        if (binding.tabs != null) {
+            binding.tabs.setupWithViewPager(binding.pager);
 
-        int primaryColor = PreferenceUtil.getInstance(requireActivity()).getPrimaryColor();
-        int normalColor = ThemeUtil.getSecondaryTextColor(requireActivity(), primaryColor);
-        int selectedColor = ThemeUtil.getPrimaryTextColor(requireActivity(), primaryColor);
-        binding.tabs.setTabTextColors(normalColor, selectedColor);
-        binding.tabs.setSelectedTabIndicatorColor(PreferenceUtil.getInstance(requireActivity()).getAccentColor());
+            int primaryColor = PreferenceUtil.getInstance(requireActivity()).getPrimaryColor();
+            int normalColor = ThemeUtil.getSecondaryTextColor(requireActivity(), primaryColor);
+            int selectedColor = ThemeUtil.getPrimaryTextColor(requireActivity(), primaryColor);
+            binding.tabs.setTabTextColors(normalColor, selectedColor);
+            binding.tabs.setSelectedTabIndicatorColor(PreferenceUtil.getInstance(requireActivity()).getAccentColor());
+        }
 
         updateTabVisibility();
 
@@ -114,9 +180,12 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         }
 
         binding.pager.addOnPageChangeListener(this);
+        if (hasRail()) setUpRail();
     }
 
     private void updateTabVisibility() {
+        if (binding.tabs == null) return;
+
         // hide the tab bar when only a single tab is visible
         binding.tabs.setVisibility(pagerAdapter.getCount() == 1 ? View.GONE : View.VISIBLE);
     }
@@ -149,14 +218,23 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
             menu.add(0, R.id.action_new_playlist, 0, R.string.action_new_playlist);
         }
 
+        // the rail has its own shuffle button and the expanded grid has no footers to colour
+        if (hasRail()) {
+            menu.removeItem(R.id.action_shuffle_all);
+            menu.removeItem(R.id.action_colored_footers);
+        }
+
         Fragment currentFragment = getCurrentFragment();
         if (currentFragment instanceof AbsLibraryPagerRecyclerViewCustomGridSizeFragment && currentFragment.isAdded()) {
             AbsLibraryPagerRecyclerViewCustomGridSizeFragment absLibraryRecyclerViewCustomGridSizeFragment = (AbsLibraryPagerRecyclerViewCustomGridSizeFragment) currentFragment;
 
             setUpLayoutMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_layout).getSubMenu());
 
-            menu.findItem(R.id.action_colored_footers).setChecked(absLibraryRecyclerViewCustomGridSizeFragment.usePalette());
-            menu.findItem(R.id.action_colored_footers).setEnabled(absLibraryRecyclerViewCustomGridSizeFragment.canUsePalette());
+            MenuItem coloredFooters = menu.findItem(R.id.action_colored_footers);
+            if (coloredFooters != null) {
+                coloredFooters.setChecked(absLibraryRecyclerViewCustomGridSizeFragment.usePalette());
+                coloredFooters.setEnabled(absLibraryRecyclerViewCustomGridSizeFragment.canUsePalette());
+            }
 
             setUpSortMethodMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_sort_method).getSubMenu());
             setUpSortOrderMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_sort_order).getSubMenu());
@@ -195,7 +273,7 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         int id = item.getItemId();
         switch (id) {
             case R.id.action_shuffle_all:
-                ShortcutUtil.getShuffle((media) -> MusicPlayerRemote.openAndShuffleQueue(media, true), false);
+                shuffleAll();
                 return true;
             case R.id.action_new_playlist:
                 CreatePlaylistDialog.create().show(getChildFragmentManager(), "CREATE_PLAYLIST");
@@ -217,7 +295,8 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
             if (getLayoutMenuItemId(layout) == item.getItemId()) {
                 item.setChecked(true);
                 fragment.setAndSaveLibraryLayout(layout);
-                binding.toolbar.getMenu().findItem(R.id.action_colored_footers).setEnabled(fragment.canUsePalette());
+                MenuItem coloredFooters = binding.toolbar.getMenu().findItem(R.id.action_colored_footers);
+                if (coloredFooters != null) coloredFooters.setEnabled(fragment.canUsePalette());
                 return true;
             }
         }
@@ -339,6 +418,7 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
     @Override
     public void onPageSelected(int position) {
         PreferenceUtil.getInstance(getActivity()).setLastTab(position);
+        updateRailSelection(position);
     }
 
     @Override

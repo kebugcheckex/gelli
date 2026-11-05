@@ -2,8 +2,11 @@ package com.dkanada.gramophone.fragments.player.flat;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -15,6 +18,8 @@ import android.widget.ImageView;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -66,7 +71,9 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
         // layout-land puts the cover beside the controls when the window is wider than it is tall,
         // so pick the implementation that matches the layout that was actually inflated
-        if (binding.coverContainer != null) {
+        if (binding.playerWash != null) {
+            impl = new PaneImpl(this, binding);
+        } else if (binding.coverContainer != null) {
             impl = new LandscapeImpl(this, binding);
         } else {
             impl = new PortraitImpl(this, binding);
@@ -227,7 +234,10 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     private void updateIsFavorite() {
         boolean favorite = MusicPlayerRemote.getCurrentSong().favorite;
         int res = favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp;
-        int color = ThemeUtil.getColorResource(requireContext(), android.R.color.white);
+        // the pane toolbar sits on the surface, the others sit on the palette colour
+        int color = isInPane()
+            ? ThemeUtil.getColorResource(requireContext(), R.attr.colorOnSurfaceVariant)
+            : ContextCompat.getColor(requireContext(), android.R.color.white);
         Drawable drawable = ImageUtil.getTintedVectorDrawable(requireActivity(), res, color);
 
         binding.playerToolbar.getMenu().findItem(R.id.action_toggle_favorite)
@@ -284,7 +294,9 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     public void onColorChanged(int color) {
         animateColorChange(color);
         playbackControlsFragment.setDark(MaterialColors.isColorLight(color));
-        playbackControlsFragment.updateBufferingIndicatorColor(color);
+        if (!isInPane()) {
+            playbackControlsFragment.updateBufferingIndicatorColor(color);
+        }
         getCallbacks().onPaletteColorChanged();
     }
 
@@ -432,6 +444,57 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
             if (currentAnimatorSet!=null) currentAnimatorSet.cancel();
             currentAnimatorSet = createDefaultColorChangeAnimatorSet(newColor);
             currentAnimatorSet.start();
+        }
+    }
+
+    /**
+     * The fixed now playing pane at the expanded width. Everything sits on the theme surface,
+     * and the palette colour only shows as a soft wash that fades out behind the cover.
+     */
+    @SuppressWarnings("ConstantConditions")
+    private static class PaneImpl extends BaseImpl {
+        private static final int WASH_ALPHA = 0x80;
+
+        private final GradientDrawable wash = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.TRANSPARENT, Color.TRANSPARENT});
+
+        public PaneImpl(FlatPlayerFragment fragment, FragmentFlatPlayerBinding binding) {
+            super(fragment, binding);
+        }
+
+        @Override
+        public void init() {
+            binding.playerWash.setBackground(wash);
+        }
+
+        @Override
+        public void setUpPanelAndAlbumCoverHeight() {
+        }
+
+        @Override
+        public void updateCurrentSong(Song song) {
+            binding.playerSongTitle.setText(song.title);
+            binding.playerSongText.setText(MusicUtil.buildInfoString(song.artistName, song.albumName));
+        }
+
+        @Override
+        public void animateColorChange(int newColor) {
+            if (currentAnimatorSet != null) currentAnimatorSet.cancel();
+            if (!fragment.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
+                setWashColor(newColor);
+                return;
+            }
+
+            ValueAnimator animator = ValueAnimator.ofArgb(fragment.lastColor, newColor);
+            animator.addUpdateListener(animation -> setWashColor((int) animation.getAnimatedValue()));
+
+            currentAnimatorSet = new AnimatorSet();
+            currentAnimatorSet.play(animator);
+            currentAnimatorSet.setDuration(ViewUtil.PHONOGRAPH_ANIM_TIME);
+            currentAnimatorSet.start();
+        }
+
+        private void setWashColor(int color) {
+            wash.setColors(new int[]{ColorUtils.setAlphaComponent(color, WASH_ALPHA), ColorUtils.setAlphaComponent(color, 0)});
         }
     }
 

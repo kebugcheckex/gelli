@@ -53,9 +53,9 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
         currentNowPlayingScreen = PreferenceUtil.getInstance(this).getNowPlayingScreen();
 
-        // must implement AbsPlayerFragment
+        // must implement AbsPlayerFragment, and the fixed pane only has the flat arrangement
         Fragment fragment;
-        switch (currentNowPlayingScreen) {
+        switch (isPaneMode() ? NowPlayingScreen.FLAT : currentNowPlayingScreen) {
             case FLAT:
                 fragment = new FlatPlayerFragment();
                 break;

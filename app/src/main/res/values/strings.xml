@@ -224,6 +224,8 @@
     <string name="server">Server</string>
     <string name="unlimited">Unlimited</string>
     <string name="up_next">Up next</string>
+    <string name="now_playing">Now playing</string>
+    <string name="action_libraries">Libraries</string>
     <string name="x_selected">%1$d selected</string>
 
     <string name="playlist_is_empty">Playlist is empty</string>

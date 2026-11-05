@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the now playing pane puts the controls on the plain surface: a visible track, quiet times and a filled play button -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp">
+
+        <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+            android:id="@+id/player_buffering_indicator"
+            style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:indeterminate="true"
+            app:mpb_progressStyle="horizontal"
+            app:mpb_useIntrinsicPadding="false" />
+
+        <SeekBar
+            android:id="@+id/player_progress_slider"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+
+        <TextView
+            android:id="@+id/player_song_current_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:singleLine="true"
+            android:textAppearance="?textAppearanceLabelMedium"
+            tools:text="0:00" />
+
+        <TextView
+            android:id="@+id/player_song_total_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:singleLine="true"
+            android:textAppearance="?textAppearanceLabelMedium"
+            tools:text="4:00" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/player_media_controller_container"
+        android:layout_width="match_parent"
+        android:layout_height="88dp"
+        android:layoutDirection="ltr"
+        tools:ignore="ContentDescription">
+
+        <ImageButton
+            android:id="@+id/player_prev_button"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="12dp"
+            android:layout_toStartOf="@+id/player_play_pause__button"
+            android:background="?attr/roundSelector"
+            android:padding="14dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_skip_previous_white_24dp" />
+
+        <ImageButton
+            android:id="@+id/player_next_button"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_toEndOf="@+id/player_play_pause__button"
+            android:background="?attr/roundSelector"
+            android:padding="14dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_skip_next_white_24dp" />
+
+        <ImageButton
+            android:id="@+id/player_repeat_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:background="?attr/roundSelector"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_repeat_white_24dp" />
+
+        <ImageButton
+            android:id="@+id/player_shuffle_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/roundSelector"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_shuffle_white_24dp" />
+
+        <ImageButton
+            android:id="@+id/player_play_pause__button"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/play_pause_filled_background"
+            android:padding="18dp"
+            android:scaleType="fitCenter"
+            tools:src="@drawable/ic_pause_white_24dp" />
+
+    </RelativeLayout>
+
+</LinearLayout>

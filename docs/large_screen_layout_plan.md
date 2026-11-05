@@ -1,6 +1,6 @@
 # Large-screen layout
 
-Written November 4, 2026. Phases 1–3 are implemented and need checking on a device. Phase 4 has not started.
+Written November 4, 2026. Phases 1–4 are implemented and need checking on a device.
 
 ## Goal
 
@@ -95,12 +95,21 @@ Keep these as activities. Add `layout-w840dp` versions of the album, artist, and
 - **Playlist and genre: no change.** Those screens have no header, only a toolbar and a list that `capContentWidth()` already centers, so a left column would have nothing to show.
 - **Header dimens.** `values-sw600dp/dimens.xml` is now `values-h600dp/dimens.xml`. The override only existed to undo the `values-land` short header on tablets in landscape, and that's really a question of window height. A tablet split top/bottom now gets the short header, and a landscape tablet still gets the tall one.
 
-## Phase 4: Navigation (optional)
+## Phase 4: Navigation
 
 The drawer holds library switching, Settings, About, and Logout. The real top-level destinations are the `TabLayout` tabs, and tabs already work on tablets. Only do this phase if the drawer becomes a problem in use.
 
 - **Cheap version:** a permanent `NavigationView` at w840dp, using an alternate `activity_main_drawer_layout.xml` with a `LinearLayout` in place of `DrawerLayout`, and null checks on `drawerLayout` in `MainActivity`.
 - **Material version:** a `NavigationRail` for the library categories, replacing the tabs and `ViewPager`. This is a bigger change because the categories can be configured (`CategoryPreferenceDialog`).
+
+### As implemented
+
+This shipped as the Material version, together with a restyle of the expanded layout (option A in the landscape mocks).
+
+- **Material 3 theme.** `parents.xml` now builds on `Theme.Material3` with neutral grey color roles. The toolbar, tab, and app bar styles and the 56dp `actionBarSize` are pinned to the old widgets so phones keep their look. Popups, buttons, and the drawer pick up M3 styling everywhere.
+- **Navigation rail.** `layout-w840dp/fragment_library.xml` replaces the tabs with a `NavigationRailView`. Its items are rebuilt from the configured categories (each `Category` now has an icon) and drive the `ViewPager`. The rail header has a menu button that opens the existing drawer and a shuffle button. The top bar is neutral and shows the current category, and the status bar uses the surface color.
+- **Grid tiles.** `layout-w840dp/item_grid.xml` is a rounded cover with the text below and no palette footer, so the colored-footers option is hidden at this width.
+- **Now-playing pane.** `layout-w840dp/fragment_flat_player.xml` is a plain stack on the surface: cover, title, controls, and the queue. `FlatPlayerFragment.PaneImpl` shows the palette color only as a fading wash at the top. The controls use the accent color for the seek bar and a filled play button. The pane always uses the flat player, and the w840dp card player layout is gone.
 
 ## Not planned: Fragment-based list-detail
 

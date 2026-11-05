@@ -1,6 +1,7 @@
 package com.dkanada.gramophone.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,8 +57,31 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
+        setColor(isExpandedLayout()
+            ? ThemeUtil.getColorResource(this, R.attr.colorSurface)
+            : PreferenceUtil.getInstance(this).getPrimaryColor());
         LocalLibrary.verifyAsync();
+    }
+
+    private boolean isExpandedLayout() {
+        return getResources().getBoolean(R.bool.expanded_layout);
+    }
+
+    @Override
+    public void setStatusBarColor(int color) {
+        if (!isExpandedLayout()) {
+            super.setStatusBarColor(color);
+            return;
+        }
+
+        // the neutral app bar continues into the status bar without the darker band
+        View statusBar = findViewById(R.id.status_bar);
+        if (statusBar != null) statusBar.setBackgroundColor(color);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+    }
+
+    public void openDrawer() {
+        binding.drawerLayout.openDrawer(binding.navigationView);
     }
 
     @Override

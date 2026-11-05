@@ -96,7 +96,8 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     }
 
     public boolean canUsePalette() {
-        return getItemLayoutRes() == R.layout.item_grid;
+        // the expanded width grid tile puts its text below the cover, so it has no footer to colour
+        return getItemLayoutRes() == R.layout.item_grid && !getResources().getBoolean(R.bool.expanded_layout);
     }
 
     @LayoutRes
@@ -184,12 +185,7 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     }
 
     protected void applyRecyclerViewPaddingForLayoutRes(@NonNull RecyclerView recyclerView, @LayoutRes int res) {
-        int padding;
-        if (res == R.layout.item_grid) {
-            padding = (int) (getResources().getDisplayMetrics().density * 2);
-        } else {
-            padding = 0;
-        }
+        int padding = res == R.layout.item_grid ? getResources().getDimensionPixelSize(R.dimen.grid_padding) : 0;
 
         recyclerView.setPadding(padding, padding, padding, padding);
     }
