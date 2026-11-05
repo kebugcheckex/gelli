@@ -1,0 +1,217 @@
+# Material 3 migration
+
+Written November 5, 2026. Nothing here is implemented yet.
+
+## Goal
+
+Bring the phone layout and every remaining legacy component onto Material 3, so the whole app matches the expanded layout from the large-screen work (`docs/large_screen_layout_plan.md`).
+
+Decisions already made:
+
+- **Color comes from a preset, not a color wheel.** The separate primary and accent colors become a single color preset. Each preset is a Material 3 tonal scheme generated from one seed color. On Android 12 and later, a wallpaper option uses dynamic color.
+- **No album-color backgrounds in the library or on detail screens.** Grid tiles lose the palette footer, and album and artist headers sit on the surface. The now-playing screens keep their palette color (see *Not changed*).
+- **The Card now-playing screen is removed.** Flat is the only phone player, so the now-playing screen preference goes away too.
+
+Backward compatibility isn't a goal. The old color, footer, and now-playing preferences are simply dropped.
+
+## Current state
+
+The app theme already builds on `Theme.Material3` (`res/values/parents.xml`). Its color roles are neutral greys, and the user's colors are applied at runtime. The theme's view inflater already turns plain `<Button>`, `<CheckBox>`, and `<TextView>` tags into their Material versions. Four theme items hold the phone look in place:
+
+```xml
+<item name="actionBarSize">@dimen/toolbar_height</item>                <!-- 56dp -->
+<item name="toolbarStyle">@style/Widget.AppCompat.Toolbar</item>
+<item name="tabStyle">@style/Widget.Design.TabLayout</item>
+<item name="appBarLayoutStyle">@style/Widget.Design.AppBarLayout</item>
+```
+
+What's still legacy:
+
+| Area | Today | Where |
+|---|---|---|
+| Dialogs | `com.afollestad.material-dialogs` 0.9.6 (`core` and `commons`) | 13 dialogs, listed in Phase 2 |
+| Multi-select bar | `com.afollestad:material-cab` 2.0.1 | `AbsMultiSelectAdapter.kt`, `CabHolder`, `MainActivity`, and the album, artist, genre, and playlist detail activities |
+| Colors | `PRIMARY_COLOR` and `ACCENT_COLOR` preferences picked with the QuadFlask color wheel (`ColorPreference`), applied by hand in more than 15 places | See Phase 4 |
+| Phone toolbar, tabs, and app bar | Pinned old styles, primary-color background, `Toolbar` style with a dark action bar overlay and a 4dp shadow | 13 layouts use `@style/Toolbar` |
+| Status bar | Primary color darkened by 20% (`ThemeUtil.getColorDark`), drawn by `StatusBarView` | `AbsThemeActivity`, `AbsMusicPanelActivity`. `MainActivity` overrides this at expanded width. |
+| Grid tiles | Square cover with a palette-colored footer (`palette_color_container`) | `layout/item_grid.xml`, `layout/item_grid_card_horizontal.xml` |
+| Detail headers | Palette color on the app bar, status bar, and CAB | `AlbumDetailActivity`, `ArtistDetailActivity` |
+| Now-playing screens | Card and Flat, chosen in Settings through a `CircleIndicator` pager | `fragments/player/card/`, `NowPlayingPreferenceDialog` |
+| Progress indicators | `me.zhanghai.android.materialprogressbar` and plain `ProgressBar` | Mini player, flat player controls, splash, downloads, landscape player |
+| Sleep timer | `com.github.kabouzeid:SeekArc` | `dialog_sleep_timer.xml`, `SleepTimerDialog` |
+| Cards | `androidx.cardview.CardView` | About cards, downloads, horizontal album row |
+| Buttons | 8 explicit `AppCompatButton`s (About's Special Thanks card) and `ImageButton`s in the player | |
+| Settings | androidx.preference with framework `SwitchPreference` and mismatched overlays (`PreferenceThemeOverlay` in dark themes, `PreferenceThemeOverlay.v14.Material` in light) | `res/xml/pref_*.xml` |
+| Login screen | `LoginScreen` style on `Theme.MaterialComponents.Light.DarkActionBar` | `styles.xml` |
+
+## Phase 1: Remove the Card player
+
+Do this first, so the later phases only have one phone player to migrate.
+
+1. Delete `fragments/player/card/` (`CardPlayerFragment`, `CardPlayerPlaybackControlsFragment`) and `layout/fragment_card_player.xml` and `fragment_card_player_playback_controls.xml`.
+2. `AbsMusicPanelActivity` always creates `FlatPlayerFragment` (or `LandscapePlayerFragment`). It implements `CardPlayerFragment.Callbacks` today. That interface is declared in `AbsPlayerFragment`, so name it there. Drop `currentNowPlayingScreen` and the recreate check in `onResume`.
+3. Delete `NowPlayingScreen`, `NowPlayingPreferenceDialog`, `preference_dialog_now_playing.xml`, `preference_dialog_now_playing_item.xml`, `np_card.png`, and `np_flat.png`.
+4. `pref_now_playing.xml` only holds this preference, so delete it along with its `addPreferencesFromResource` call and the `NOW_PLAYING_SCREEN` handling in `SettingsActivity`. Delete `NOW_PLAYING_SCREEN`, `getNowPlayingScreen()`, and `setNowPlayingScreen()` from `PreferenceUtil`.
+5. Remove the `me.relex:circleindicator` dependency and the unused strings (`card`, `flat`, `pref_header_now_playing_screen`, and the preference title and summary).
+
+Leave `drawable/card.xml` and the app widget named "Card". They belong to the home-screen widgets, not the player.
+
+Done when: the app builds without `fragments/player/card/`, the phone player is always Flat, and Settings has no now-playing section.
+
+## Phase 2: Dialogs
+
+Replace `MaterialDialog.Builder` with `MaterialAlertDialogBuilder` inside the existing `DialogFragment`s. The fragments and their `create()` factories stay the same.
+
+| Dialog | Uses | Replacement |
+|---|---|---|
+| `ConfirmLogoutDialog`, `DeletePlaylistDialog`, `RemoveFromDeviceDialog`, `RemoveFromPlaylistDialog` | content, positive, negative | `setMessage`, `setPositiveButton`, `setNegativeButton` |
+| `AddToPlaylistDialog`, `SongShareDialog` | `items` with `itemsCallback` | `setItems` |
+| `CreatePlaylistDialog`, `RenamePlaylistDialog` | `input`, `inputType` | A new `dialog_text_input.xml` with a `TextInputLayout` (`Widget.Material3.TextInputLayout.OutlinedBox`), passed with `setView`. Enable the positive button only when the text isn't empty, as `input` did. |
+| `SongDetailDialog` | `customView`, positive | `setView` |
+| `SleepTimerDialog` | `customView`, positive, neutral (cancel timer), show listener | `setView`, `setNeutralButton`, `setOnShowListener` on the created dialog. The arc becomes a slider in Phase 6. |
+| `CategoryPreferenceDialog` | `customView`, `autoDismiss(false)`, neutral (reset) | `setView`. `AlertDialog` always dismisses on a button press, so attach the neutral and positive click handlers in `setOnShowListener` through `getButton()` to keep the dialog open for reset and for an invalid selection. |
+| `DirectPlayPreference` | `customView`, positive, negative | `setView` |
+| `NowPlayingPreferenceDialog` | | Deleted in Phase 1 |
+
+`onCreateDialog` returns the `AlertDialog` from `builder.create()`. Code that reached into `MaterialDialog` (`getCustomView()`, `DialogAction`) uses the view binding instead. Remove both `com.afollestad.material-dialogs` dependencies once the last import is gone.
+
+Done when: no `com.afollestad.materialdialogs` imports remain, and every dialog uses the M3 shape and colors in all three themes.
+
+## Phase 3: Multi-select bar
+
+Replace material-cab with AppCompat's `ActionMode`, styled by the M3 theme.
+
+1. Theme: set `windowActionModeOverlay` to true and `actionModeStyle` to a surface-colored style (`colorSurfaceContainer` background, `colorOnSurface` title), so the action mode covers the toolbar instead of pushing the content down.
+2. `AbsMultiSelectAdapter.kt` starts the mode with `activity.startSupportActionMode(callback)`, updates `mode.title`, and calls `mode.finish()` when nothing is checked. The `onCreateActionMode`, `onActionItemClicked`, and `onDestroyActionMode` callbacks map onto today's `onCreate`, `onSelection`, and `onDestroy`.
+3. `CabHolder` keeps its role: the adapter asks the activity before it opens a mode, so only one mode is active at a time. Its methods take `ActionMode` in place of `AttachedCab`. `MainActivity` and the detail activities close the mode on Back and on page changes, as they do today.
+4. Remove the `cab_stub` `ViewStub`s (`activity_album_detail.xml`, `activity_artist_detail.xml`, `activity_genre_detail.xml`, `activity_playlist_detail.xml`, `fragment_library.xml`, and their `layout-w840dp`/`layout-w1200dp` versions), the `R.id.cab_stub` argument in the `AlbumAdapter`, `ArtistAdapter`, `PlaylistAdapter`, and `SongAdapter` constructors, the `cab.backgroundColor(null, getPaletteColor())` calls in the detail activities, and the `com.afollestad:material-cab` dependency.
+
+Check on a device that the mode covers the toolbar in each activity that has one (`setSupportActionBar`), including the expanded layout with the rail.
+
+Done when: multi-select works in the library tabs and every detail screen, and material-cab is gone.
+
+## Phase 4: Color presets
+
+### Model
+
+- A new `ColorPreset` enum: `NEUTRAL`, about ten seeds, and `WALLPAPER`. `NEUTRAL` is the current grey scheme from `parents.xml`, so the expanded layout's tuning stays available. Example seeds: Indigo `#3F51B5` (the old default primary), Blue, Teal, Green, Amber, Orange, Red, Pink, Purple, Brown. Settle the list and the default on a device. Indigo is the starting proposal.
+- `WALLPAPER` appears only when `DynamicColors.isDynamicColorAvailable()` returns true (Android 12 and later). If a stored `WALLPAPER` value meets an older device, it falls back to the default.
+- One preference, `COLOR_PRESET`, replaces `PRIMARY_COLOR` and `ACCENT_COLOR`.
+
+### Generated overlays
+
+Theme attributes can't be set to arbitrary values at runtime below Android 12, so every preset is a pre-built theme overlay.
+
+- `scripts/generate_color_presets.mjs` uses `@material/material-color-utilities` (`SchemeTonalSpot`, standard contrast). For each seed it writes `ThemeOverlay.Gelli.Color.<Name>.Light` and `.Dark` with the full role set (`colorPrimary` through `colorOutlineVariant`, including the surface container roles) into `res/values/color_presets.xml`. The output file is committed. Run the script by hand when the preset list changes.
+- `NEUTRAL` has no overlay: the grey roles stay in the base themes.
+- The black theme becomes an overlay, `ThemeOverlay.Gelli.Black`, that forces the surface roles to the current black values and is applied *after* the preset. Today `Theme.Phonograph.Black` is a base theme, and a preset applied on top of it would bring back grey surfaces. `Theme` keeps `LIGHT`, `DARK`, and `BLACK`. `BLACK` maps to the dark base theme plus this overlay.
+
+### Applying the preset
+
+- `AbsThemeActivity.onCreate` calls `setTheme`, then `getTheme().applyStyle(preset overlay, true)`, then the black overlay, all **before** `super.onCreate`. Today `setTheme` runs after `super.onCreate`, so fragments restored in `super.onCreate` can inflate with the wrong theme. For `WALLPAPER`, call `DynamicColors.applyToActivityIfAvailable(this)` in place of the preset overlay. It applies the base theme's `dynamicColorThemeOverlay`, which the M3 light and dark themes already set, so the light or dark scheme follows the base theme.
+- `onResume` recreates the activity when the theme or the preset changes, as it does for the colors today.
+- Code outside an activity resolves colors through a new `ThemeUtil.themedContext(context)`, a `ContextThemeWrapper` with the base theme and the preset applied. `AppShortcutIconGenerator` uses it for the colored shortcuts (`colorPrimaryContainer` and `colorOnPrimaryContainer`).
+- `LoginScreen` becomes a child of the app theme, so the login screen picks up the preset.
+
+### Removing the hand tinting
+
+Every `getPrimaryColor()` and `getAccentColor()` call goes away. Most become nothing at all, because the M3 component already reads the right role.
+
+| Site | Today | After |
+|---|---|---|
+| `AbsThemeActivity`, `AbsMusicPanelActivity`, `MainActivity` | Status bar from primary color | Status bar is `colorSurface` (Phase 5) |
+| `LibraryFragment` toolbar, app bar, tabs | Primary background, text colors from its luminance, accent indicator | Theme defaults (Phase 5) |
+| `LibraryFragment.setUpRail` | Accent icon tint and indicator | Remove. The M3 rail defaults use `colorSecondaryContainer` and `colorOnSecondaryContainer`. |
+| `MainActivity.setUpNavigationView` | Accent tint for the checked item | Remove (M3 `NavigationView` defaults) |
+| `AboutActivity`, `SearchActivity`, `SettingsActivity`, `GenreDetailActivity`, `PlaylistDetailActivity` | `toolbar.setBackgroundColor(primary)` | Remove |
+| `SelectActivity`, `LoginActivity` | Primary color for the background or buttons | Theme roles |
+| Fast scroller (`ViewUtil.setUpFastScrollRecyclerViewColor`) | Accent | `colorPrimary` |
+| `ShuffleButtonSongAdapter` | Accent | `colorPrimary` |
+| `MiniPlayerFragment`, `PlayerBarFragment` | Accent for the progress | `colorPrimary` |
+| `AbsBaseActivity` Snackbar | Accent action text | Remove (M3 uses `colorPrimaryInverse`) |
+| `SleepTimerDialog` | Accent arc | The slider's default colors (Phase 6) |
+| `JellyPreferenceCategory` | `R.color.color_accent` | `colorPrimary` |
+
+Then delete `getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_COLOR`, `ColorPreference`, `ColorCircleDrawable` (check for other users first), `preference_color.xml`, `color_primary`, `color_accent`, `ThemeUtil.getColorDark`, and the `com.github.QuadFlask:colorpicker` dependency.
+
+### Picker
+
+`ColorPresetPreference` replaces the two color preferences in `pref_interface.xml`. It opens a `MaterialAlertDialogBuilder` dialog with a grid of swatches. Each swatch shows the preset's `colorPrimary` on its `colorSurfaceContainerHigh`, resolved through a `ContextThemeWrapper` for the current light or dark theme. A check mark shows the current choice. The wallpaper swatch is shown only when dynamic color is available.
+
+Done when: the phone and the expanded layout both follow the chosen preset in light, dark, and black. Changing the preset recreates the open screens. No code reads a user color directly.
+
+## Phase 5: Phone chrome and album colors
+
+### Toolbars, tabs, and app bars
+
+1. Remove the four pinned items from both base themes. The top bar becomes the M3 default: 64dp, `colorSurface`, no shadow. Check the two other uses of `toolbar_height`, and every layout that offsets content by `?actionBarSize`.
+2. `@style/Toolbar` (13 layouts) loses the `ThemeOverlay.AppCompat.Dark.ActionBar` theme and the 4dp elevation. Then merge it with `Toolbar.Surface`, so there's one toolbar style.
+3. `LibraryFragment` phone layout: the toolbar, app bar, and `TabLayout` sit on the surface with M3 tab styling and keep `tabMode="scrollable"`. Remove the programmatic colors in `setUpToolbar` and `setUpViewPager`.
+4. Lift on scroll: the M3 app bar changes to `colorSurfaceContainer` when its content scrolls, and it needs the current page's scrolling view. Every page's RecyclerView shares the `recycler_view` ID, so `liftOnScrollTargetViewId` would find the wrong one. Either update the target on page changes or turn off lift-on-scroll and rely on the tab divider. Decide on a device.
+5. Status bar: every activity uses `colorSurface` with no darker band, as `MainActivity` already does at expanded width. Move that behavior into `AbsThemeActivity.setColor` and delete the `MainActivity` override. Light status bar icons follow the surface color. The player panel's navigation bar blend with the palette color in `AbsMusicPanelActivity` stays, starting from the surface color.
+6. Navigation drawer: M3 `NavigationView` defaults, and `navigation_drawer_header.xml` on `colorSurfaceContainerLow`.
+
+### Grid tiles
+
+1. Move `layout-w840dp/item_grid.xml` (rounded cover, text below) to `layout/item_grid.xml` and delete the old phone tile. Check the 2-column phone grid at each cell size.
+2. Give `item_grid_card_horizontal.xml` (the artist screen's album row) the same look.
+3. Delete the colored footers: the `action_colored_footers` menu item and its handling in `LibraryFragment` and `ArtistDetailActivity`, the five `*_COLORED_FOOTERS` preferences, `usePalette`, `setUsePalette`, `loadUsePalette`, `saveUsePalette`, and `canUsePalette` in `AbsLibraryPagerRecyclerViewCustomGridSizeFragment` and its subclasses, `usePalette` in `AlbumAdapter`, `ArtistAdapter`, `SongAdapter`, and `HorizontalAlbumAdapter`, `paletteColorContainer` in `MediaEntryViewHolder`, and the `defaultFooterColor` attribute. The adapters still load covers with Glide, but they skip `.palette()` for grid items.
+
+### Detail headers
+
+1. `AlbumDetailActivity` and `ArtistDetailActivity`: the header, app bar, and status bar use the surface, with `colorOnSurface` and `colorOnSurfaceVariant` text and icons. Delete `setColors` and the palette load for the header. The cover still loads into `image`, and the transition names stay.
+2. Neither activity implements `PaletteColorHolder` anymore. Only `AbsPlayerFragment` keeps it.
+3. The `layout-w1200dp` two-column layouts get the same treatment. Today they color `header` with the palette.
+4. `GenreDetailActivity` and `PlaylistDetailActivity` only lose the primary-color toolbar.
+
+### Player panel
+
+- Mini player: `colorSurfaceContainer` background, `colorOnSurface` text, and a `LinearProgressIndicator` along the top edge (Phase 6 swaps the widget).
+- The Flat player keeps its palette background and status bar color (see *Not changed*), and its toolbar sits on that color as it does now.
+
+Expect to tune spacing on every phone screen after this phase. Check light, dark, and black on a phone, and the expanded layout for regressions.
+
+Done when: no phone screen shows the old primary-color toolbar or album-color backgrounds, and phone and expanded layouts share one look.
+
+## Phase 6: Remaining widgets
+
+| Widget | Change |
+|---|---|
+| `CardView` in `card_about_app.xml`, `card_author.xml`, `card_special_thanks.xml`, `card_support_development.xml`, `activity_downloads.xml` | `MaterialCardView` (`Widget.Material3.CardView.Filled`). Remove `cardBackgroundColor` from the themes and the `androidx.cardview` dependency once unused. |
+| 8 `AppCompatButton`s in `card_special_thanks.xml` | `MaterialButton` with `Widget.Material3.Button.TextButton` |
+| `ImageButton`s in the player controls, player bar, queue sheet, and landscape player | `MaterialButton` with the M3 icon button styles. Check that the animated play/pause drawable still runs through `setIcon`. If it doesn't, keep `ImageButton` with `?attr/selectableItemBackgroundBorderless`. |
+| `MaterialProgressBar` in `fragment_mini_player.xml` and `fragment_flat_player_playback_controls.xml` | `LinearProgressIndicator` for progress and `CircularProgressIndicator` for buffering. Remove the `materialprogressbar` dependency. |
+| Plain `ProgressBar` in `activity_splash.xml`, `activity_downloads.xml`, and `fragment_landscape_player.xml` | `CircularProgressIndicator` or `LinearProgressIndicator` |
+| `SeekBar` for playback position | Keep it. M3's `Slider` has no buffered-progress track. Restyle the track and thumb with `colorPrimary` and `colorSurfaceContainerHighest`, and match the landscape player. |
+| `SeekArc` in the sleep timer | A `Slider` from 1 to 120 minutes (step 1) above the existing time text, with the "finish last song" checkbox below. Remove the `SeekArc` dependency. |
+| `IconImageView` | Tint with `colorOnSurfaceVariant` in place of `iconColor`. Remove `iconColor` if nothing else reads it. |
+| `roundSelector`, `rectSelector`, `rectSelectorStrong` | Use `?attr/selectableItemBackgroundBorderless` and `?attr/selectableItemBackground`, so presses use M3's state layers. Delete the drawables and attributes once unused. |
+
+The home-screen widgets (`app_widget_*.xml`) and the notification layouts are built from `RemoteViews` and stay as they are.
+
+Done when: the dependencies above are gone and no layout uses `androidx.cardview`, `AppCompatButton`, or `MaterialProgressBar`.
+
+## Phase 7: Settings
+
+androidx.preference has no Material 3 theme, so style it directly.
+
+1. One preference theme overlay for all three themes, based on `PreferenceThemeOverlay`, which fixes today's light/dark mismatch. Category titles use `colorPrimary`, titles use `colorOnSurface`, and summaries use `colorOnSurfaceVariant`.
+2. The 9 `SwitchPreference`s become `SwitchPreferenceCompat` with a `widgetLayout` that holds a `MaterialSwitch`.
+3. `ListPreference` and the other built-in preference dialogs use AppCompat's `AlertDialog`. Set `alertDialogTheme` in the base themes to the M3 alert dialog overlay. If the shape or colors still don't match the `MaterialAlertDialogBuilder` dialogs, override `onDisplayPreferenceDialog` in `SettingsActivity` to build them with `MaterialAlertDialogBuilder`.
+4. `JellyPreferenceCategory` drops its hard-coded accent color (Phase 4).
+5. Settings keeps the content-width cap from the large-screen work.
+
+Done when: Settings matches the rest of the app in all three themes, including its dialogs.
+
+## Cleanup
+
+After the last phase, remove any attributes, drawables, and dimens nothing reads anymore (`defaultFooterColor`, `cardBackgroundColor`, the selector drawables, `toolbar_elevation`, and `toolbar_height` if unused). Then update `docs/large_screen_layout_plan.md` wherever it describes the pinned phone styles or the neutral-only theme.
+
+## Not changed
+
+- **Now-playing palette color.** The Flat player still tints its background and status bar with the album color, and the landscape player keeps its palette gradient. Only library and detail backgrounds drop it. This can be revisited after Phase 5.
+- **`SlidingUpPanelLayout`.** It's the shell for every content activity. `BottomSheetBehavior` is the closest Material equivalent, but switching would mean rewriting the shell, so only the panel's contents are restyled.
+- **Fast scroller and `advrecyclerview`.** M3 has no fast scroller, so the existing one only changes color. Drag-to-reorder isn't a visible component.
+- **Home-screen widgets and notifications.** `RemoteViews` can't use Material components. The colored notification option still uses the album color.
+- **Edge-to-edge.** With `targetSdk 35`, Android 15 forces edge-to-edge, and the status and navigation bar color calls have no effect there. `StatusBarView` covers the status bar today. Proper inset handling deserves its own plan.
+- **Following the system dark mode.** The app keeps its explicit light, dark, and black themes rather than moving to `DayNight`.
