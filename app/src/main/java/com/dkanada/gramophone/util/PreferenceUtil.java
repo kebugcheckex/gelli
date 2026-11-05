@@ -15,7 +15,6 @@ import com.dkanada.gramophone.model.Codec;
 import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.NetworkPolicy;
 import com.dkanada.gramophone.interfaces.base.PreferenceMigration;
-import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
 import com.dkanada.gramophone.service.SaveTrigger;
 
 import java.io.File;
@@ -76,8 +75,6 @@ public final class PreferenceUtil {
 
     public static final String CLASSIC_NOTIFICATION = "classic_notification";
     public static final String COLORED_NOTIFICATION = "colored_notification";
-
-    public static final String NOW_PLAYING_SCREEN = "now_playing_screen";
 
     public static final String SHOW_ALBUM_COVER = "show_album_cover";
     public static final String BLUR_ALBUM_COVER = "blur_album_cover";
@@ -266,19 +263,6 @@ public final class PreferenceUtil {
 
     public void setQueueSheetOpen(final boolean value) {
         mPreferences.edit().putBoolean(QUEUE_SHEET_OPEN, value).apply();
-    }
-
-    public final NowPlayingScreen getNowPlayingScreen() {
-        int id = mPreferences.getInt(NOW_PLAYING_SCREEN, 0);
-        for (NowPlayingScreen nowPlayingScreen : NowPlayingScreen.values()) {
-            if (nowPlayingScreen.id == id) return nowPlayingScreen;
-        }
-
-        return NowPlayingScreen.CARD;
-    }
-
-    public void setNowPlayingScreen(NowPlayingScreen nowPlayingScreen) {
-        mPreferences.edit().putInt(NOW_PLAYING_SCREEN, nowPlayingScreen.id).apply();
     }
 
     public final boolean getColoredNotification() {

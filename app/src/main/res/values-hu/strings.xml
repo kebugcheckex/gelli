@@ -53,7 +53,6 @@
     <string name="light_theme_name">Világos</string>
     <string name="dark_theme_name">Sötét</string>
     <string name="pref_header_colors">Színek</string>
-    <string name="pref_header_now_playing_screen">Most játszott lista</string>
     <string name="pref_title_theme">Téma</string>
     <string name="pref_header_audio">Hang</string>
     <string name="pref_header_library">Könyvtár</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">A dizájnban való segítségért.</string>
     <string name="website">Weboldal</string>
     <string name="up_next">Lejátszási sor</string>
-    <string name="pref_title_now_playing_appearance">Megjelenés</string>
     <string name="login">Bejelentkezés</string>
     <string name="username">Felhasználónév</string>
     <string name="password">Jelszó</string>

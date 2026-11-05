@@ -53,7 +53,6 @@
     <string name="light_theme_name">Світла</string>
     <string name="dark_theme_name">Темна</string>
     <string name="pref_header_colors">Кольори</string>
-    <string name="pref_header_now_playing_screen">Відтворюється</string>
     <string name="pref_title_theme">Загальна тема</string>
     <string name="pref_header_audio">Аудіо</string>
     <string name="pref_header_library">Бібліотека</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">За допомогу в дизайні.</string>
     <string name="website">Веб-сайт</string>
     <string name="up_next">До наступного</string>
-    <string name="pref_title_now_playing_appearance">Вигляд</string>
     <string name="login">Ім’я користувача</string>
     <string name="username">Ім‘я користувача</string>
     <string name="password">Пароль</string>

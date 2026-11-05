@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Nothing here is implemented yet.
+Written November 5, 2026. Phase 1 is done.
 
 ## Goal
 

@@ -114,11 +114,8 @@
     <string name="dark_theme_name">Dark</string>
     <string name="black_theme_name">Black</string>
 
-    <string name="card">Card</string>
-    <string name="flat">Flat</string>
 
     <string name="pref_header_colors">Colors</string>
-    <string name="pref_header_now_playing_screen">Now Playing</string>
     <string name="pref_header_audio">Audio</string>
     <string name="pref_header_cache">Cache</string>
     <string name="pref_header_library">Library</string>
@@ -132,7 +129,6 @@
     <string name="pref_title_primary_color">Primary Color</string>
     <string name="pref_title_accent_color">Accent Color</string>
     <string name="pref_title_theme">Theme</string>
-    <string name="pref_title_now_playing_appearance">Appearance</string>
     <string name="pref_title_colored_shortcuts">Colored Shortcuts</string>
     <string name="pref_title_show_album_art">Show Album Cover</string>
     <string name="pref_title_blur_album_art">Blur Album Cover</string>

@@ -53,7 +53,6 @@
     <string name="light_theme_name">Licht</string>
     <string name="dark_theme_name">Donker</string>
     <string name="pref_header_colors">Kleuren</string>
-    <string name="pref_header_now_playing_screen">Afspeelscherm</string>
     <string name="pref_title_theme">Algemeen thema</string>
     <string name="pref_header_audio">Audio</string>
     <string name="pref_header_library">Bibliotheek</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">Voor de hulp met het design.</string>
     <string name="website">Website</string>
     <string name="up_next">Als volgende</string>
-    <string name="pref_title_now_playing_appearance">Uiterlijk</string>
     <string name="login">Login</string>
     <string name="username">Gebruikersnaam</string>
     <string name="password">Wachtwoord</string>

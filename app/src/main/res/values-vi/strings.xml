@@ -52,7 +52,6 @@
     <string name="light_theme_name">Sáng</string>
     <string name="dark_theme_name">Tối</string>
     <string name="pref_header_colors">Màu sắc</string>
-    <string name="pref_header_now_playing_screen">Đang phát</string>
     <string name="pref_title_theme">Chủ đề chung</string>
     <string name="pref_header_audio">Âm thanh</string>
     <string name="pref_header_lock_screen">Màn hình khóa</string>
@@ -108,7 +107,6 @@
     <string name="aleksandar_tesic_summary">Vì đã giúp tôi thiết kế.</string>
     <string name="website">Trang web</string>
     <string name="up_next">Tiếp theo</string>
-    <string name="pref_title_now_playing_appearance">Giao diện</string>
     <string name="login">Tài khoản GitHub</string>
     <string name="username">Tên người dùng</string>
     <string name="password">Mật khẩu</string>

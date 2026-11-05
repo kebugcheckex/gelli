@@ -53,7 +53,6 @@
     <string name="light_theme_name">Açık</string>
     <string name="dark_theme_name">Koyu</string>
     <string name="pref_header_colors">Renkler</string>
-    <string name="pref_header_now_playing_screen">Şuan çalınan</string>
     <string name="pref_title_theme">Genel tema</string>
     <string name="pref_header_audio">Ses</string>
     <string name="pref_header_library">Kitaplık</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">Tasarımda bana yardımcı olduğu için.</string>
     <string name="website">Web sitesi</string>
     <string name="up_next">Sırada olanlar</string>
-    <string name="pref_title_now_playing_appearance">Görünüm</string>
     <string name="login">Oturum aç</string>
     <string name="username">Kullanıcı adı</string>
     <string name="password">Şifre</string>

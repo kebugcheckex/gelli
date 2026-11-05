@@ -53,7 +53,6 @@
     <string name="light_theme_name">Svijetla</string>
     <string name="dark_theme_name">Tamna</string>
     <string name="pref_header_colors">Boje</string>
-    <string name="pref_header_now_playing_screen">Trenutna reprodukcija</string>
     <string name="pref_title_theme">Općenita tema</string>
     <string name="pref_header_audio">Zvuk</string>
     <string name="pref_header_library">Biblioteka</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">Za pomoć u dizajnu.</string>
     <string name="website">Web-stranica</string>
     <string name="up_next">Sljedeće na redu</string>
-    <string name="pref_title_now_playing_appearance">Izgled</string>
     <string name="login">Prijava</string>
     <string name="username">Korisničko ime</string>
     <string name="password">Lozinka</string>

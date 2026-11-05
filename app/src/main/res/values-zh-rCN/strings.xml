@@ -96,11 +96,8 @@
     <string name="dark_theme_name">深色</string>
     <string name="black_theme_name">黑色</string>
 
-    <string name="card">卡片</string>
-    <string name="flat">扁平</string>
 
     <string name="pref_header_colors">颜色</string>
-    <string name="pref_header_now_playing_screen">正在播放</string>
     <string name="pref_header_audio">声音</string>
     <string name="pref_header_cache">缓存</string>
     <string name="pref_header_library">媒体库</string>
@@ -112,7 +109,6 @@
     <string name="pref_title_primary_color">主色调</string>
     <string name="pref_title_accent_color">强调色</string>
     <string name="pref_title_theme">主题</string>
-    <string name="pref_title_now_playing_appearance">外观</string>
     <string name="pref_title_colored_shortcuts">多彩应用快捷方式</string>
     <string name="pref_title_show_album_art">显示专辑封面</string>
     <string name="pref_title_blur_album_art">专辑封面模糊化</string>

@@ -53,7 +53,6 @@
     <string name="light_theme_name">Claro</string>
     <string name="dark_theme_name">Oscuro</string>
     <string name="pref_header_colors">Colores</string>
-    <string name="pref_header_now_playing_screen">Reproducción actual</string>
     <string name="pref_title_theme">Tema general</string>
     <string name="pref_header_audio">Audio</string>
     <string name="pref_header_library">Biblioteca</string>
@@ -116,7 +115,6 @@
     <string name="aleksandar_tesic_summary">Por ayudarme con el diseño.</string>
     <string name="website">Sitio web</string>
     <string name="up_next">A continuación</string>
-    <string name="pref_title_now_playing_appearance">Apariencia</string>
     <string name="login">Registrarse</string>
     <string name="username">Nombre de usuario</string>
     <string name="password">Contraseña</string>

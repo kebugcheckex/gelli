@@ -20,11 +20,8 @@ import com.dkanada.gramophone.databinding.SlidingMusicPanelLayoutBinding;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.fragments.player.AbsPlayerFragment;
 import com.dkanada.gramophone.fragments.player.LandscapePlayerFragment;
-import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
 import com.dkanada.gramophone.fragments.player.PlayerBarFragment;
-import com.dkanada.gramophone.fragments.player.card.CardPlayerFragment;
 import com.dkanada.gramophone.fragments.player.flat.FlatPlayerFragment;
-import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -33,7 +30,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
  * Wraps the content in a sliding panel that holds the player. The collapsed panel is the mini player,
  * or at the expanded width a full-width player bar, which also has a queue sheet beside the content.
  */
-public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity implements SlidingUpPanelLayout.PanelSlideListener, CardPlayerFragment.Callbacks {
+public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity implements SlidingUpPanelLayout.PanelSlideListener, AbsPlayerFragment.Callbacks {
     private SlidingMusicPanelLayoutBinding binding;
     private SlidingUpPanelLayout slidingLayout;
 
@@ -41,7 +38,6 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     private int taskDescriptionColor;
     private boolean lightStatusBar;
 
-    private NowPlayingScreen currentNowPlayingScreen;
     private AbsPlayerFragment playerFragment;
     // the mini player, or the player bar at the expanded width
     private Fragment miniPlayerFragment;
@@ -57,21 +53,10 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         super.onCreate(savedInstanceState);
         setContentView(createContentView());
 
-        currentNowPlayingScreen = PreferenceUtil.getInstance(this).getNowPlayingScreen();
-
-        // must implement AbsPlayerFragment, and a window wider than it is tall gets the landscape player whatever the preference
-        Fragment fragment;
-        if (getResources().getBoolean(R.bool.landscape_player)) {
-            fragment = new LandscapePlayerFragment();
-        } else switch (currentNowPlayingScreen) {
-            case FLAT:
-                fragment = new FlatPlayerFragment();
-                break;
-            case CARD:
-            default:
-                fragment = new CardPlayerFragment();
-                break;
-        }
+        // must implement AbsPlayerFragment, and a window wider than it is tall gets the landscape player
+        Fragment fragment = getResources().getBoolean(R.bool.landscape_player)
+            ? new LandscapePlayerFragment()
+            : new FlatPlayerFragment();
 
         getSupportFragmentManager().beginTransaction().replace(R.id.player_fragment_container, fragment).commit();
         getSupportFragmentManager().executePendingTransactions();
@@ -113,10 +98,6 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (currentNowPlayingScreen != PreferenceUtil.getInstance(this).getNowPlayingScreen()) {
-            NavigationUtil.recreateMain(this);
-        }
 
         // another screen may have opened or closed the sheet
         applyQueueSheetVisibility();

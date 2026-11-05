@@ -21,8 +21,6 @@
         <item name="android:focusable">false</item>
     </style>
 
-    <style name="Fab" parent="FabParent" />
-
     <style name="MusicProgressSlider" parent="MusicProgressSliderParent">
         <item name="android:thumbOffset">0dp</item>
     </style>

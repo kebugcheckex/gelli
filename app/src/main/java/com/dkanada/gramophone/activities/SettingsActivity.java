@@ -17,7 +17,6 @@ import com.dkanada.gramophone.databinding.ActivitySettingsBinding;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.views.shortcuts.DynamicShortcutManager;
 import com.dkanada.gramophone.dialogs.preferences.CategoryPreferenceDialog;
-import com.dkanada.gramophone.dialogs.preferences.NowPlayingPreferenceDialog;
 import com.dkanada.gramophone.activities.base.AbsBaseActivity;
 import com.dkanada.gramophone.service.SaveTrigger;
 import com.dkanada.gramophone.service.SaveWorker;
@@ -53,7 +52,6 @@ public class SettingsActivity extends AbsBaseActivity {
             addPreferencesFromResource(R.xml.pref_library);
             addPreferencesFromResource(R.xml.pref_interface);
             addPreferencesFromResource(R.xml.pref_notification);
-            addPreferencesFromResource(R.xml.pref_now_playing);
             addPreferencesFromResource(R.xml.pref_lock_screen);
             addPreferencesFromResource(R.xml.pref_playback);
             addPreferencesFromResource(R.xml.pref_network);
@@ -87,7 +85,6 @@ public class SettingsActivity extends AbsBaseActivity {
             final TwoStatePreference coloredNotification = findPreference(PreferenceUtil.COLORED_NOTIFICATION);
             final TwoStatePreference colorAppShortcuts = findPreference(PreferenceUtil.COLORED_SHORTCUTS);
             final Preference categoryPreference = findPreference(PreferenceUtil.CATEGORIES);
-            final Preference nowPlayingPreference = findPreference(PreferenceUtil.NOW_PLAYING_SCREEN);
             final Preference showAlbumCoverPreference = findPreference(PreferenceUtil.SHOW_ALBUM_COVER);
             final Preference blurAlbumCoverPreference = findPreference(PreferenceUtil.BLUR_ALBUM_COVER);
 
@@ -121,15 +118,9 @@ public class SettingsActivity extends AbsBaseActivity {
                 return false;
             });
 
-            nowPlayingPreference.setOnPreferenceClickListener(preference -> {
-                NowPlayingPreferenceDialog.create().show(getParentFragmentManager(), NowPlayingPreferenceDialog.TAG);
-                return false;
-            });
-
-            // use this to set default state for playback screen and notification style
+            // use this to set default state for notification style and save trigger
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
 
-            onSharedPreferenceChanged(preferences, PreferenceUtil.NOW_PLAYING_SCREEN);
             onSharedPreferenceChanged(preferences, PreferenceUtil.CLASSIC_NOTIFICATION);
             onSharedPreferenceChanged(preferences, PreferenceUtil.LIBRARY_SAVE_TRIGGER);
         }
@@ -149,11 +140,6 @@ public class SettingsActivity extends AbsBaseActivity {
                     new DynamicShortcutManager(requireContext()).updateDynamicShortcuts();
 
                     requireActivity().recreate();
-                    break;
-                case PreferenceUtil.NOW_PLAYING_SCREEN:
-                    Preference preference = findPreference(PreferenceUtil.NOW_PLAYING_SCREEN);
-
-                    preference.setSummary(PreferenceUtil.getInstance(getActivity()).getNowPlayingScreen().titleRes);
                     break;
                 case PreferenceUtil.CLASSIC_NOTIFICATION:
                     TwoStatePreference colorNotification = findPreference(PreferenceUtil.COLORED_NOTIFICATION);

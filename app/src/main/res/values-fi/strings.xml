@@ -54,7 +54,6 @@
     <string name="light_theme_name">Vaalea</string>
     <string name="dark_theme_name">Tumma</string>
     <string name="pref_header_colors">Värit</string>
-    <string name="pref_header_now_playing_screen">Toistetaan parhaillaan</string>
     <string name="pref_title_theme">Yleinen teema</string>
     <string name="pref_header_audio">Ääni</string>
     <string name="pref_header_library">Kirjasto</string>
@@ -117,7 +116,6 @@
     <string name="aleksandar_tesic_summary">Sovelluksen ulkonäön kanssa auttamisesta.</string>
     <string name="website">Verkkosivu</string>
     <string name="up_next">Seuraavaksi</string>
-    <string name="pref_title_now_playing_appearance">Ulkonäkö</string>
     <string name="login">Kirjaudu sisään</string>
     <string name="username">Käyttäjänimi</string>
     <string name="password">Salasana</string>

@@ -53,7 +53,6 @@
     <string name="light_theme_name">Clair</string>
     <string name="dark_theme_name">Sombre</string>
     <string name="pref_header_colors">Couleurs</string>
-    <string name="pref_header_now_playing_screen">Lecture en cours</string>
     <string name="pref_title_theme">Thème général</string>
     <string name="pref_header_audio">Audio</string>
     <string name="pref_header_library">Bibliothèque</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">Pour m\'avoir aidé à la conception.</string>
     <string name="website">Site internet</string>
     <string name="up_next">Suivant</string>
-    <string name="pref_title_now_playing_appearance">Apparence</string>
     <string name="login">Connexion</string>
     <string name="username">Nom d\'utilisateur</string>
     <string name="password">Mot de passe</string>
@@ -146,11 +144,9 @@
     <string name="added_title_to_queue">1 titre ajouté à la liste de lecture.</string>
     <string name="added_x_titles_to_queue">%1$d titres ajoutés à la liste de lecture.</string>
     <string name="black_theme_name">Noir</string>
-    <string name="card">Carte</string>
     <string name="error_share_file">Il y a eu une erreur en partageant le fichier.</string>
     <string name="error_version">Merci de mettre à jour votre serveur à la dernière version.</string>
     <string name="finish_current_music_sleep_timer">Finir la dernière chanson</string>
-    <string name="flat">Flat</string>
     <string name="logout">Déconnexion</string>
     <string name="name">Nom</string>
     <string name="pref_summary_remember_queue">Enregistrer la liste de lecture à la fermeture de l\'application pour la conserver entre différentes utilisations.</string>

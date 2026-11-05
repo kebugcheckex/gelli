@@ -53,7 +53,6 @@
     <string name="light_theme_name">Light (Alb)</string>
     <string name="dark_theme_name">Dark (Negru)</string>
     <string name="pref_header_colors">Culori</string>
-    <string name="pref_header_now_playing_screen">Redare acum</string>
     <string name="pref_title_theme">Temă generală</string>
     <string name="pref_header_audio">Audio</string>
     <string name="pref_header_library">Bibliotecă</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">Pentru ajutorul cu designul.</string>
     <string name="website">Site web</string>
     <string name="up_next">Urmează</string>
-    <string name="pref_title_now_playing_appearance">Aspect</string>
     <string name="login">Logare</string>
     <string name="username">Nume utilizator</string>
     <string name="password">Parolă</string>

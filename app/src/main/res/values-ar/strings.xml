@@ -53,7 +53,6 @@
     <string name="light_theme_name">فاتح</string>
     <string name="dark_theme_name">غامق</string>
     <string name="pref_header_colors">الألوان</string>
-    <string name="pref_header_now_playing_screen">يتم تشغيله الآن</string>
     <string name="pref_title_theme">التنسيق العام</string>
     <string name="pref_header_audio">الصوت</string>
     <string name="pref_header_library">المكتبة</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">من أجل مساعدته لي في التصميم.</string>
     <string name="website">الموقع</string>
     <string name="up_next">التالي</string>
-    <string name="pref_title_now_playing_appearance">المظهر</string>
     <string name="login">تسجيل دخول</string>
     <string name="username">اسم المستخدم</string>
     <string name="password">كلمة المرور</string>

@@ -53,7 +53,6 @@
     <string name="light_theme_name">בהיר</string>
     <string name="dark_theme_name">כהה</string>
     <string name="pref_header_colors">צבעים</string>
-    <string name="pref_header_now_playing_screen">מנגן כעת</string>
     <string name="pref_title_theme">ערכת נושא כללית</string>
     <string name="pref_header_audio">שמע</string>
     <string name="pref_header_library">ספרייה</string>
@@ -114,7 +113,6 @@
     <string name="aleksandar_tesic_summary">על העזרה עם העיצוב.</string>
     <string name="website">אתר</string>
     <string name="up_next">הבא בתור</string>
-    <string name="pref_title_now_playing_appearance">מראה</string>
     <string name="login">התחבר</string>
     <string name="username">שם משתמש</string>
     <string name="password">סיסמא</string>

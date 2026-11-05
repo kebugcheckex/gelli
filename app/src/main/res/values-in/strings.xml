@@ -54,7 +54,6 @@
     <string name="light_theme_name">Terang</string>
     <string name="dark_theme_name">Gelap</string>
     <string name="pref_header_colors">Warna</string>
-    <string name="pref_header_now_playing_screen">Sedang diputar</string>
     <string name="pref_title_theme">Tema umum</string>
     <string name="pref_header_audio">Suara</string>
     <string name="pref_header_library">Pustaka</string>
@@ -117,7 +116,6 @@
     <string name="aleksandar_tesic_summary">"Untuk yang membantu saya dengan desainnya. "</string>
     <string name="website">Situs</string>
     <string name="up_next">Berikutnya</string>
-    <string name="pref_title_now_playing_appearance">Tampilan</string>
     <string name="login">Masuk</string>
     <string name="username">Nama pengguna</string>
     <string name="password">Kata sandi</string>
