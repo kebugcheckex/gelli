@@ -6,16 +6,18 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.Spanned;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
+import com.dkanada.gramophone.databinding.DialogFileDetailsBinding;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class SongDetailDialog extends DialogFragment {
     public static final String TAG = SongDetailDialog.class.getSimpleName();
@@ -63,22 +65,18 @@ public class SongDetailDialog extends DialogFragment {
         final Activity context = requireActivity();
         final Song song = getArguments().getParcelable("song");
 
-        MaterialDialog dialog = new MaterialDialog.Builder(context)
-                .customView(R.layout.dialog_file_details, true)
-                .title(context.getResources().getString(R.string.label_details))
-                .positiveText(android.R.string.ok)
-                .build();
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
+        DialogFileDetailsBinding binding = DialogFileDetailsBinding.inflate(LayoutInflater.from(builder.getContext()));
 
-        View dialogView = dialog.getCustomView();
-        final TextView path = dialogView.findViewById(R.id.file_path);
-        final TextView name = dialogView.findViewById(R.id.file_name);
-        final TextView size = dialogView.findViewById(R.id.file_size);
-        final TextView format = dialogView.findViewById(R.id.file_format);
-        final TextView length = dialogView.findViewById(R.id.track_length);
-        final TextView sampleRate = dialogView.findViewById(R.id.sample_rate);
-        final TextView bitRate = dialogView.findViewById(R.id.bit_rate);
-        final TextView bitDepth = dialogView.findViewById(R.id.bit_depth);
-        final TextView channels = dialogView.findViewById(R.id.channels);
+        final TextView path = binding.filePath;
+        final TextView name = binding.fileName;
+        final TextView size = binding.fileSize;
+        final TextView format = binding.fileFormat;
+        final TextView length = binding.trackLength;
+        final TextView sampleRate = binding.sampleRate;
+        final TextView bitRate = binding.bitRate;
+        final TextView bitDepth = binding.bitDepth;
+        final TextView channels = binding.channels;
 
         path.setText(makeTextWithTitle(context, R.string.label_file_path, "-"));
         name.setText(makeTextWithTitle(context, R.string.label_file_name, "-"));
@@ -108,6 +106,10 @@ public class SongDetailDialog extends DialogFragment {
             }
         }
 
-        return dialog;
+        return builder
+                .setTitle(R.string.label_details)
+                .setView(binding.getRoot())
+                .setPositiveButton(android.R.string.ok, null)
+                .create();
     }
 }

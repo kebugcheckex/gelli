@@ -2,18 +2,20 @@ package com.dkanada.gramophone.dialogs.preferences;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.CategoryAdapter;
 import com.dkanada.gramophone.model.Category;
 import com.dkanada.gramophone.util.PreferenceUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +31,8 @@ public class CategoryPreferenceDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        View view = requireActivity().getLayoutInflater().inflate(R.layout.preference_dialog_category, null);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireActivity());
+        View view = LayoutInflater.from(builder.getContext()).inflate(R.layout.preference_dialog_category, null);
         List<Category> categories = PreferenceUtil.getInstance(getContext()).getCategories();
         CategoryAdapter adapter = new CategoryAdapter(categories);
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
@@ -38,23 +41,21 @@ public class CategoryPreferenceDialog extends DialogFragment {
         recyclerView.setAdapter(adapter);
         adapter.attachToRecyclerView(recyclerView);
 
-        return new MaterialDialog.Builder(requireActivity())
-                .customView(view, false)
-                .title(R.string.pref_title_categories)
-                .positiveText(android.R.string.ok)
-                .neutralText(R.string.reset_action)
-                .negativeText(android.R.string.cancel)
-                .autoDismiss(false)
-                .onNeutral((dialog, action) -> {
-                    adapter.setCategories(Arrays.stream(Category.values())
-                        .peek(category -> category.select = true)
-                        .collect(Collectors.toList()));
-                })
-                .onNegative((dialog, action) -> dismiss())
-                .onPositive((dialog, action) -> {
-                    PreferenceUtil.getInstance(getContext()).setCategories(adapter.getCategories());
-                    dismiss();
-                })
-                .build();
+        AlertDialog dialog = builder
+                .setTitle(R.string.pref_title_categories)
+                .setView(view)
+                .setPositiveButton(android.R.string.ok, (d, which) -> PreferenceUtil.getInstance(getContext()).setCategories(adapter.getCategories()))
+                .setNeutralButton(R.string.reset_action, null)
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+
+        // the dialog would dismiss on any button, so reset is attached here to keep it open
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
+            adapter.setCategories(Arrays.stream(Category.values())
+                .peek(category -> category.select = true)
+                .collect(Collectors.toList()));
+        }));
+
+        return dialog;
     }
 }

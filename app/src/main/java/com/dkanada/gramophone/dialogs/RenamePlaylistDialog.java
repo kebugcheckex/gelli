@@ -2,14 +2,13 @@ package com.dkanada.gramophone.dialogs;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import android.text.InputType;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Playlist;
+import com.dkanada.gramophone.util.DialogUtil;
 import com.dkanada.gramophone.util.PlaylistUtil;
 
 public class RenamePlaylistDialog extends DialogFragment {
@@ -31,19 +30,9 @@ public class RenamePlaylistDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return new MaterialDialog.Builder(requireActivity())
-            .title(R.string.rename_playlist_title)
-            .positiveText(R.string.rename_action)
-            .negativeText(android.R.string.cancel)
-            .inputType(InputType.TYPE_CLASS_TEXT)
-            .input(getString(R.string.name), "", false, (materialDialog, charSequence) -> {
-                final String name = charSequence.toString().trim();
-
-                if (!name.isEmpty()) {
-                    String id = getArguments().getString(PLAYLIST);
-                    PlaylistUtil.renamePlaylist(id, name);
-                }
-            })
-            .build();
+        return DialogUtil.createNameInputDialog(requireActivity(), R.string.rename_playlist_title, R.string.rename_action, name -> {
+            String id = requireArguments().getString(PLAYLIST);
+            PlaylistUtil.renamePlaylist(id, name);
+        });
     }
 }

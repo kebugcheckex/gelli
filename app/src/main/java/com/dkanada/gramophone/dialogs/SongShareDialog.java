@@ -7,10 +7,10 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class SongShareDialog extends DialogFragment {
     public static final String TAG = SongShareDialog.class.getSimpleName();
@@ -29,10 +29,10 @@ public class SongShareDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final Song song = getArguments().getParcelable("song");
         final String currentlyListening = getString(R.string.currently_listening_to_x_by_x, song.title, song.artistName);
-        return new MaterialDialog.Builder(requireActivity())
-                .title(R.string.what_do_you_want_to_share)
-                .items(getString(R.string.the_audio_file), "\u201C" + currentlyListening + "\u201D")
-                .itemsCallback((materialDialog, view, i, charSequence) -> {
+        final CharSequence[] items = {getString(R.string.the_audio_file), "\u201C" + currentlyListening + "\u201D"};
+        return new MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(R.string.what_do_you_want_to_share)
+                .setItems(items, (dialog, i) -> {
                     switch (i) {
                         case 0:
                             startActivity(Intent.createChooser(MusicUtil.createShareSongFileIntent(song, getContext()), null));
@@ -46,6 +46,6 @@ public class SongShareDialog extends DialogFragment {
                             break;
                     }
                 })
-                .build();
+                .create();
     }
 }

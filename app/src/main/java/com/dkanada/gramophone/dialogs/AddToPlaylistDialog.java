@@ -3,15 +3,18 @@ package com.dkanada.gramophone.dialogs;
 import android.app.Dialog;
 import android.os.Bundle;
 
+import android.widget.ArrayAdapter;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.DialogUtil;
 import com.dkanada.gramophone.util.PlaylistUtil;
 import com.dkanada.gramophone.util.QueryUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,35 +42,31 @@ public class AddToPlaylistDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         List<Playlist> playlists = new ArrayList<>();
-        MaterialDialog dialog = new MaterialDialog.Builder(requireActivity())
-                .title(R.string.action_add_to_playlist)
-                .items(requireActivity().getResources().getString(R.string.action_new_playlist))
-                .itemsCallback((materialDialog, view, i, charSequence) -> {
-                    final List<Song> songs = getArguments().getParcelableArrayList("songs");
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireActivity());
+
+        // the first item creates a playlist, and the existing playlists follow once they load
+        ArrayAdapter<CharSequence> adapter = DialogUtil.createListAdapter(builder.getContext());
+        adapter.add(getString(R.string.action_new_playlist));
+
+        QueryUtil.getPlaylists(media -> {
+            playlists.addAll(media);
+            for (Playlist playlist : media) {
+                adapter.add(playlist.name);
+            }
+        });
+
+        return builder
+                .setTitle(R.string.action_add_to_playlist)
+                .setAdapter(adapter, (dialog, i) -> {
+                    final List<Song> songs = requireArguments().getParcelableArrayList("songs");
                     if (songs == null) return;
 
                     if (i == 0) {
-                        materialDialog.dismiss();
                         CreatePlaylistDialog.create(songs).show(requireActivity().getSupportFragmentManager(), "ADD_TO_PLAYLIST");
                     } else {
-                        materialDialog.dismiss();
                         PlaylistUtil.addItems(songs, playlists.get(i - 1).id);
                     }
                 })
-                .build();
-
-        QueryUtil.getPlaylists(media -> {
-            List<String> names = new ArrayList<>();
-
-            names.add(requireActivity().getResources().getString(R.string.action_new_playlist));
-            for (Playlist playlist : media) {
-                names.add(playlist.name);
-            }
-
-            playlists.addAll(media);
-            dialog.setItems(names.toArray(new String[0]));
-        });
-
-        return dialog;
+                .create();
     }
 }

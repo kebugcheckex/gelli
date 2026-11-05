@@ -2,15 +2,14 @@ package com.dkanada.gramophone.dialogs;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import android.text.InputType;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
+import com.dkanada.gramophone.util.DialogUtil;
 import com.dkanada.gramophone.util.PlaylistUtil;
 
 import java.util.ArrayList;
@@ -43,19 +42,11 @@ public class CreatePlaylistDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        return new MaterialDialog.Builder(requireActivity())
-                .title(R.string.action_new_playlist)
-                .positiveText(R.string.create_action)
-                .negativeText(android.R.string.cancel)
-                .inputType(InputType.TYPE_CLASS_TEXT)
-                .input(R.string.name, 0, false, (materialDialog, charSequence) -> {
-                    final String name = charSequence.toString().trim();
-                    if (getActivity() == null || getArguments() == null || name.isEmpty()) return;
-                    List<Song> songs = getArguments().getParcelableArrayList(SONGS);
-                    if (songs != null) {
-                        PlaylistUtil.createPlaylist(name, songs);
-                    }
-                })
-                .build();
+        return DialogUtil.createNameInputDialog(requireActivity(), R.string.action_new_playlist, R.string.create_action, name -> {
+            List<Song> songs = requireArguments().getParcelableArrayList(SONGS);
+            if (songs != null) {
+                PlaylistUtil.createPlaylist(name, songs);
+            }
+        });
     }
 }

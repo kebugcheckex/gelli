@@ -9,10 +9,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.LocalLibrary;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +43,12 @@ public class RemoveFromDeviceDialog extends DialogFragment {
         final List<String> ids = requireArguments().getStringArrayList("ids");
         final Context context = requireContext().getApplicationContext();
 
-        return new MaterialDialog.Builder(requireActivity())
-                .title(R.string.action_remove_from_device)
-                .content(Html.fromHtml(getString(R.string.remove_x_songs_from_device, ids.size())))
-                .positiveText(R.string.remove_action)
-                .negativeText(android.R.string.cancel)
-                .onPositive((dialog, which) -> remove(context, ids))
-                .build();
+        return new MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(R.string.action_remove_from_device)
+                .setMessage(Html.fromHtml(getString(R.string.remove_x_songs_from_device, ids.size())))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.remove_action, (dialog, which) -> remove(context, ids))
+                .create();
     }
 
     /** Removes the songs without asking and reports how many were stored. */

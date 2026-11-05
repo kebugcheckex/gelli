@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phase 1 is done.
+Written November 5, 2026. Phases 1 and 2 are done.
 
 ## Goal
 

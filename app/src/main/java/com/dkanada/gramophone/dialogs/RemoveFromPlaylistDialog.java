@@ -7,11 +7,11 @@ import android.text.Html;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.PlaylistSong;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.PlaylistUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,12 +52,11 @@ public class RemoveFromPlaylistDialog extends DialogFragment {
             content = Html.fromHtml(getString(R.string.remove_song_x_from_playlist, songs.get(0).title));
         }
 
-        return new MaterialDialog.Builder(requireActivity())
-                .title(title)
-                .content(content)
-                .positiveText(R.string.remove_action)
-                .negativeText(android.R.string.cancel)
-                .onPositive((dialog, which) -> PlaylistUtil.deleteItems(songs, songs.get(0).playlistId))
-                .build();
+        return new MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(title)
+                .setMessage(content)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.remove_action, (dialog, which) -> PlaylistUtil.deleteItems(songs, songs.get(0).playlistId))
+                .create();
     }
 }
