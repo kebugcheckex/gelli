@@ -3,4 +3,7 @@
 
     <dimen name="grid_padding">12dp</dimen>
 
+    <!-- the collapsed panel is the player bar instead of the mini player -->
+    <dimen name="mini_player_height">88dp</dimen>
+
 </resources>

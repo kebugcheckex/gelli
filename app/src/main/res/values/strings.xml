@@ -225,6 +225,10 @@
     <string name="unlimited">Unlimited</string>
     <string name="up_next">Up next</string>
     <string name="now_playing">Now playing</string>
+    <string name="queue">Queue</string>
+    <string name="action_toggle_queue">Show or hide the queue</string>
+    <string name="action_open_player">Open the player</string>
+    <string name="action_repeat">Repeat</string>
     <string name="action_libraries">Libraries</string>
     <string name="x_selected">%1$d selected</string>
 

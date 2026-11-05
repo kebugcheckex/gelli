@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the queue as a side sheet beside the content at w840dp, opened from the player bar -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:orientation="vertical">
+
+    <com.dkanada.gramophone.views.StatusBarView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/status_bar_padding" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:text="@string/queue"
+                android:textAppearance="?textAppearanceTitleLarge"
+                android:textColor="?android:textColorPrimary" />
+
+            <TextView
+                android:id="@+id/queue_sheet_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textAppearance="?textAppearanceBodySmall"
+                android:textColor="?android:textColorSecondary"
+                tools:text="Up next • 38:12" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/queue_sheet_close_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/roundSelector"
+            android:contentDescription="@string/action_toggle_queue"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_close_white_24dp" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/queue_sheet_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
+        android:requiresFadingEdge="vertical" />
+
+</LinearLayout>

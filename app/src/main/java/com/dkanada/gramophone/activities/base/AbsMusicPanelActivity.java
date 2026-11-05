@@ -9,17 +9,18 @@ import android.view.ViewTreeObserver;
 import android.view.animation.PathInterpolator;
 
 import androidx.annotation.FloatRange;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.databinding.SlidingMusicPanelLayoutBinding;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.fragments.player.AbsPlayerFragment;
-import com.dkanada.gramophone.fragments.player.MiniPlayerFragment;
 import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
+import com.dkanada.gramophone.fragments.player.PlayerBarFragment;
 import com.dkanada.gramophone.fragments.player.card.CardPlayerFragment;
 import com.dkanada.gramophone.fragments.player.flat.FlatPlayerFragment;
 import com.dkanada.gramophone.util.NavigationUtil;
@@ -27,10 +28,12 @@ import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+/**
+ * Wraps the content in a sliding panel that holds the player. The collapsed panel is the mini player,
+ * or at the expanded width a full-width player bar, which also has a queue sheet beside the content.
+ */
 public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity implements SlidingUpPanelLayout.PanelSlideListener, CardPlayerFragment.Callbacks {
     private SlidingMusicPanelLayoutBinding binding;
-    // the binding root below expanded width, null in pane mode
-    @Nullable
     private SlidingUpPanelLayout slidingLayout;
 
     private int navigationBarColor;
@@ -39,12 +42,14 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
     private NowPlayingScreen currentNowPlayingScreen;
     private AbsPlayerFragment playerFragment;
-    private MiniPlayerFragment miniPlayerFragment;
+    // the mini player, or the player bar at the expanded width
+    private Fragment miniPlayerFragment;
     private ValueAnimator navigationBarColorAnimator;
 
-    // pane mode only: null until the queue is known
-    private Boolean paneHidden;
-    private boolean paneLaidOut;
+    // the collapsed panel and the queue sheet stay hidden until the queue is known to have songs
+    private boolean bottomBarHidden = true;
+    // the collapsed panel reaches under the navigation bar, so it grows by this much and pads its content up
+    private int bottomInset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +58,9 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
         currentNowPlayingScreen = PreferenceUtil.getInstance(this).getNowPlayingScreen();
 
-        // must implement AbsPlayerFragment, and the fixed pane only has the flat arrangement
+        // must implement AbsPlayerFragment
         Fragment fragment;
-        switch (isPaneMode() ? NowPlayingScreen.FLAT : currentNowPlayingScreen) {
+        switch (currentNowPlayingScreen) {
             case FLAT:
                 fragment = new FlatPlayerFragment();
                 break;
@@ -69,50 +74,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         getSupportFragmentManager().executePendingTransactions();
 
         playerFragment = (AbsPlayerFragment) getSupportFragmentManager().findFragmentById(R.id.player_fragment_container);
-        if (isPaneMode()) {
-            setUpPane();
-        } else {
-            setUpSlidingPanel();
-        }
-
-        // TODO remove this once createContentView works with inheritance
-        // any AbsMusicPanelActivity child without setColor has status bar issues
-        // setDrawUnderStatusBar only works after content view has been set
-        setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
-    }
-
-    /**
-     * At expanded width the shell has no sliding panel: the player sits in a fixed pane beside the content.
-     */
-    public boolean isPaneMode() {
-        return binding != null && slidingLayout == null;
-    }
-
-    private void setUpPane() {
-        playerFragment.setMenuVisibility(true);
-        playerFragment.setUserVisibleHint(true);
-
-        // the player fragment sizes its views in its own first layout pass, which runs before this one
-        binding.getRoot().getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                binding.getRoot().getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                paneLaidOut = true;
-                applyPaneVisibility();
-            }
-        });
-    }
-
-    private void applyPaneVisibility() {
-        if (!paneLaidOut || paneHidden == null) return;
-
-        // noinspection ConstantConditions
-        binding.nowPlayingPane.setVisibility(paneHidden ? View.GONE : View.VISIBLE);
-        if (!paneHidden) playerFragment.onShow();
-    }
-
-    private void setUpSlidingPanel() {
-        miniPlayerFragment = (MiniPlayerFragment) getSupportFragmentManager().findFragmentById(R.id.mini_player_fragment);
+        miniPlayerFragment = getSupportFragmentManager().findFragmentById(R.id.mini_player_fragment);
 
         // noinspection ConstantConditions
         miniPlayerFragment.getView().setOnClickListener(v -> expandPanel());
@@ -138,6 +100,11 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         });
 
         slidingLayout.addPanelSlideListener(this);
+
+        // TODO remove this once createContentView works with inheritance
+        // any AbsMusicPanelActivity child without setColor has status bar issues
+        // setDrawUnderStatusBar only works after content view has been set
+        setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
     }
 
     @Override
@@ -147,10 +114,12 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         if (currentNowPlayingScreen != PreferenceUtil.getInstance(this).getNowPlayingScreen()) {
             NavigationUtil.recreateMain(this);
         }
+
+        // another screen may have opened or closed the sheet
+        applyQueueSheetVisibility();
     }
 
     public void setAntiDragView(View antiDragView) {
-        if (isPaneMode()) return;
         slidingLayout.setAntiDragView(antiDragView);
     }
 
@@ -159,11 +128,6 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();
-
-        if (isPaneMode()) {
-            hideBottomBar(MusicPlayerRemote.getPlayingQueue().isEmpty());
-            return;
-        }
 
         // don't call hideBottomBar(true) here as it causes a bug with the SlidingUpPanelLayout
         if (!MusicPlayerRemote.getPlayingQueue().isEmpty()) {
@@ -214,6 +178,11 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         playerFragment.setMenuVisibility(false);
         playerFragment.setUserVisibleHint(false);
         playerFragment.onHide();
+
+        // the expanded player has its own favorite button
+        if (miniPlayerFragment instanceof PlayerBarFragment) {
+            ((PlayerBarFragment) miniPlayerFragment).updateIsFavorite();
+        }
     }
 
     public void onPanelExpanded(View panel) {
@@ -236,43 +205,82 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         miniPlayerFragment.getView().setVisibility(alpha == 0 ? View.GONE : View.VISIBLE);
     }
 
-    /**
-     * In pane mode the player is always showing, so this reports expanded.
-     */
     public SlidingUpPanelLayout.PanelState getPanelState() {
-        if (binding == null) return null;
-        if (isPaneMode()) return SlidingUpPanelLayout.PanelState.EXPANDED;
-        return slidingLayout.getPanelState();
+        return binding == null ? null : slidingLayout.getPanelState();
     }
 
     public void collapsePanel() {
-        if (isPaneMode()) return;
         slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
     }
 
     public void expandPanel() {
-        if (isPaneMode()) return;
         slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
     }
 
-    /**
-     * Hides the mini player, or in pane mode the whole now-playing pane so the content takes the full width.
-     */
     public void hideBottomBar(final boolean hide) {
-        if (isPaneMode()) {
-            paneHidden = hide;
-            applyPaneVisibility();
-        } else if (hide) {
+        bottomBarHidden = hide;
+        applyQueueSheetVisibility();
+
+        if (hide) {
             slidingLayout.setPanelHeight(0);
             collapsePanel();
         } else {
-            slidingLayout.setPanelHeight(getResources().getDimensionPixelSize(R.dimen.mini_player_height));
+            slidingLayout.setPanelHeight(getCollapsedPanelHeight());
+        }
+    }
+
+    private int getCollapsedPanelHeight() {
+        return getResources().getDimensionPixelSize(R.dimen.mini_player_height) + bottomInset;
+    }
+
+    private void applyBottomInset() {
+        if (miniPlayerFragment == null || miniPlayerFragment.getView() == null) return;
+
+        View miniPlayer = miniPlayerFragment.getView();
+        miniPlayer.setPadding(miniPlayer.getPaddingLeft(), miniPlayer.getPaddingTop(), miniPlayer.getPaddingRight(), bottomInset);
+        miniPlayer.getLayoutParams().height = getCollapsedPanelHeight();
+        miniPlayer.requestLayout();
+
+        if (!bottomBarHidden) slidingLayout.setPanelHeight(getCollapsedPanelHeight());
+    }
+
+    /**
+     * Whether the queue sheet is open. Only the expanded width has one, and it stays open across screens.
+     */
+    public boolean isQueueSheetOpen() {
+        return binding != null && binding.queueSheet != null && PreferenceUtil.getInstance(this).getQueueSheetOpen();
+    }
+
+    public void setQueueSheetOpen(boolean open) {
+        PreferenceUtil.getInstance(this).setQueueSheetOpen(open);
+        applyQueueSheetVisibility();
+    }
+
+    public void toggleQueueSheet() {
+        setQueueSheetOpen(!isQueueSheetOpen());
+    }
+
+    private void applyQueueSheetVisibility() {
+        if (binding == null || binding.queueSheet == null) return;
+
+        binding.queueSheet.setVisibility(isQueueSheetOpen() && !bottomBarHidden ? View.VISIBLE : View.GONE);
+        if (miniPlayerFragment instanceof PlayerBarFragment) {
+            ((PlayerBarFragment) miniPlayerFragment).updateQueueButton();
         }
     }
 
     protected View wrapSlidingMusicPanel(View view) {
         binding = SlidingMusicPanelLayoutBinding.inflate(getLayoutInflater());
-        slidingLayout = binding.getRoot() instanceof SlidingUpPanelLayout ? (SlidingUpPanelLayout) binding.getRoot() : null;
+        slidingLayout = binding.getRoot();
+        ViewCompat.setOnApplyWindowInsetsListener(slidingLayout, (v, insets) -> {
+            int inset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            if (inset != bottomInset) {
+                bottomInset = inset;
+                applyBottomInset();
+            }
+
+            return insets;
+        });
 
         ViewGroup contentContainer = binding.contentContainer;
         contentContainer.addView(view);
@@ -282,7 +290,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
     @Override
     public void onPaletteColorChanged() {
-        if (!isPaneMode() && getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+        if (getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
             int playerFragmentColor = playerFragment.getPaletteColor();
 
             super.setTaskDescriptionColor(playerFragmentColor);
@@ -296,7 +304,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     public void setLightStatusBar(boolean enabled) {
         lightStatusBar = enabled;
 
-        if (contentOwnsSystemBars()) {
+        if (getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
             super.setLightStatusBar(enabled);
         }
     }
@@ -309,7 +317,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
             navigationBarColorAnimator.cancel();
         }
 
-        if (contentOwnsSystemBars()) {
+        if (getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
             super.setNavigationBarColor(color);
         }
     }
@@ -340,12 +348,6 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
     @Override
     public void onBackPressed() {
-        // the pane is part of the screen, so Back leaves the screen rather than closing the player or its queue
-        if (isPaneMode()) {
-            super.onBackPressed();
-            return;
-        }
-
         boolean queuePanelCollapsed = playerFragment.onBackPressed();
 
         if (!queuePanelCollapsed && getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
@@ -359,16 +361,8 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     public void setTaskDescriptionColor(int color) {
         taskDescriptionColor = color;
 
-        if (binding == null || contentOwnsSystemBars()) {
+        if (getPanelState() == null || getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
             super.setTaskDescriptionColor(color);
         }
-    }
-
-    /**
-     * Whether the status bar, navigation bar, and task colors follow the content rather than the player.
-     * The player only takes them over when it is expanded over the content; the pane leaves them to the content.
-     */
-    private boolean contentOwnsSystemBars() {
-        return isPaneMode() || getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED;
     }
 }

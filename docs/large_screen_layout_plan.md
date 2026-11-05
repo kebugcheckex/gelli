@@ -1,6 +1,6 @@
 # Large-screen layout
 
-Written November 4, 2026. Phases 1–4 are implemented and need checking on a device.
+Written November 4, 2026. Phases 1–5 are implemented. Phase 5 replaces the Phase 2 pane and has been checked on a Pixel Tablet.
 
 ## Goal
 
@@ -31,7 +31,7 @@ Use the Material window size classes, measured on the window's current width:
 |---|---|---|
 | Compact | < 600dp | Today's phone layout |
 | Medium | 600–839dp | Phone shell; width-based grids; content-width cap; landscape player when expanded |
-| Expanded | ≥ 840dp | Persistent now-playing pane beside the content |
+| Expanded | ≥ 840dp | Player bar along the bottom, optional queue sheet beside the content |
 
 Use width resource qualifiers (`values-w600dp`, `layout-w840dp`) and `Configuration.screenWidthDp` in code. Don't use `sw600dp` for layout decisions: it describes the device, not the window, so it's wrong in split-screen. Don't add `androidx.window` for now. It's only needed for hinge or posture awareness on foldables.
 
@@ -56,6 +56,8 @@ Done when: the grid looks the same density on a phone, in split-screen, and on a
 - **Not changed:** `values-sw600dp/dimens.xml` (taller detail headers) and `values-land/` (shorter headers in wide, short windows). Phase 3 reworks those headers anyway.
 
 ## Phase 2: Persistent now-playing pane at expanded width
+
+> Superseded by Phase 5. The pane, pane mode in `AbsMusicPanelActivity`, and the `layout-w840dp` player layouts are gone. The notes below record what was tried.
 
 This is the main tablet feature: library on the left, now playing and queue in a fixed column (about 360–400dp) on the right.
 
@@ -109,7 +111,21 @@ This shipped as the Material version, together with a restyle of the expanded la
 - **Material 3 theme.** `parents.xml` now builds on `Theme.Material3` with neutral grey color roles. The toolbar, tab, and app bar styles and the 56dp `actionBarSize` are pinned to the old widgets so phones keep their look. Popups, buttons, and the drawer pick up M3 styling everywhere.
 - **Navigation rail.** `layout-w840dp/fragment_library.xml` replaces the tabs with a `NavigationRailView`. Its items are rebuilt from the configured categories (each `Category` now has an icon) and drive the `ViewPager`. The rail header has a menu button that opens the existing drawer and a shuffle button. The top bar is neutral and shows the current category, and the status bar uses the surface color.
 - **Grid tiles.** `layout-w840dp/item_grid.xml` is a rounded cover with the text below and no palette footer, so the colored-footers option is hidden at this width.
-- **Now-playing pane.** `layout-w840dp/fragment_flat_player.xml` is a plain stack on the surface: cover, title, controls, and the queue. `FlatPlayerFragment.PaneImpl` shows the palette color only as a fading wash at the top. The controls use the accent color for the seek bar and a filled play button. The pane always uses the flat player, and the w840dp card player layout is gone.
+- **Now-playing pane.** A plain flat-player stack on the surface with a palette wash at the top. Removed in Phase 5.
+
+## Phase 5: Player bar and queue sheet
+
+Option B in the landscape mocks. The fixed pane took 360dp from the content all the time, even when you only want to browse. At w840dp the shell now keeps the sliding panel, and the collapsed panel is a full-width player bar instead of the mini player.
+
+- **Shell.** `layout-w840dp/sliding_music_panel_layout.xml` is a `SlidingUpPanelLayout` again. Its first child is a horizontal row: `content_container` and `queue_sheet` (a 1dp divider and `QueueSheetFragment`, `queue_sheet_width` = 320dp, `gone` by default). The sliding child holds `player_fragment_container` and `PlayerBarFragment` in place of `MiniPlayerFragment`. Both configurations share the root, so `AbsMusicPanelActivity` has one code path again. Back collapses the inner queue, then the panel, then finishes.
+- **Player bar.** `fragment_player_bar.xml`, `mini_player_height` = 88dp at w840dp. Left: a rounded cover, title, artist and album, and favorite. Middle (`player_bar_controls_width`, 400dp, 560dp at w1200dp): shuffle, previous, a filled accent play button, next, repeat, and a seek bar with times. Right: queue and expand. It sits on `colorSurfaceContainer`, and anything switched on uses the accent color. The activity refreshes the favorite when the panel collapses, since the full player can change it.
+- **Queue sheet.** `QueueSheetFragment` is a `PlayingQueueAdapter` with drag-to-reorder. Played songs stay above the current one, dimmed, and the list scrolls the current song to the top when the track changes, but not on a reorder. The adapter got `setDimCurrent(false)`, because the sheet has no separate current-song row. The open state is the `queue_sheet_open` preference, so it carries across activities and restarts. The sheet only shows while the bar does.
+- **Expand.** The expand button opens the full player. At this width that resolves to the `layout-land` flat or card player, which follows the player preference again. A dedicated full-window player (option C) isn't built.
+- **Insets.** The bar is padded by the navigation bar inset, and the collapsed panel height is `mini_player_height` plus that inset, so it clears the gesture handle. This applies to the compact mini player too.
+- **Detail threshold stays at w1200dp.** With the sheet open, an 840dp window leaves about 520dp for content, which is still too narrow for the two-column detail layouts.
+- **Removed:** pane mode (`isPaneMode`, `contentOwnsSystemBars`), `AbsPlayerFragment.isInPane()`, `FlatPlayerFragment.PaneImpl`, the `layout-w840dp` player layouts, and the `now_playing_pane_*` dimens.
+- **Left out of option B:** lyrics (see the live lyrics plan), a volume slider, and a History / Up next switch in the sheet.
+- **Not checked on a device:** the compact layout after the inset change, the card player at w840dp, drag-to-reorder in the sheet, and the light theme.
 
 ## Not planned: Fragment-based list-detail
 
@@ -117,9 +133,9 @@ Opening an album in a pane next to the album grid would mean turning the detail 
 
 ## Related decisions
 
-- **The umano `SlidingUpPanelLayout`** is unmaintained. Phase 2 adds a code path that doesn't use it, which makes it easier to move the compact path to `BottomSheetBehavior` later. That's a separate change, not a requirement for this plan.
+- **The umano `SlidingUpPanelLayout`** is unmaintained. Every size class uses it again after Phase 5. Moving it to `BottomSheetBehavior` is a separate change, not a requirement for this plan.
 - **targetSdk 36:** Android 16 ignores orientation and resizability locks on large screens for apps that target API 36. Gelli doesn't use any, so raising `targetSdk` from 35 doesn't break anything here.
-- **Edge-to-edge:** targetSdk 35 already forces edge-to-edge. The new pane and divider must respect window insets the same way the current `StatusBarView` / `status_bar` layouts do.
+- **Edge-to-edge:** targetSdk 35 already forces edge-to-edge. The player bar and queue sheet must respect window insets the same way the current `StatusBarView` / `status_bar` layouts do.
 
 ## Validation
 
@@ -130,4 +146,4 @@ There are no automated UI tests, so validation is on devices or emulators:
 - Split-screen at 1/3, 1/2, and 2/3 on a tablet, plus resizing across the 600dp and 840dp boundaries while music plays
 - A foldable emulator, folded and unfolded, while music plays
 - Both now-playing screens (Flat and Card), light and dark themes, large font scale
-- Queue drag-to-reorder in the pane, the CAB on detail screens, and Back at each size class
+- Queue drag-to-reorder in the queue sheet, the CAB on detail screens, and Back at each size class

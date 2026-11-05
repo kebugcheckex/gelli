@@ -27,6 +27,8 @@ public class PlayingQueueAdapter extends SongAdapter implements DraggableItemAda
     private static final int NEXT = 2;
 
     private int current;
+    // the full players show the current song above the queue, so the queue row for it is dimmed like history
+    private boolean dimCurrent = true;
 
     public PlayingQueueAdapter(AppCompatActivity activity, List<Song> dataSet, int current, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
         super(activity, dataSet, itemLayoutRes, usePalette, cabHolder);
@@ -45,7 +47,7 @@ public class PlayingQueueAdapter extends SongAdapter implements DraggableItemAda
             holder.imageText.setText(String.valueOf(position - current));
         }
 
-        if (holder.getItemViewType() == HISTORY || holder.getItemViewType() == CURRENT) {
+        if (holder.getItemViewType() == HISTORY || (dimCurrent && holder.getItemViewType() == CURRENT)) {
             setAlpha(holder, 0.5f);
         }
     }
@@ -69,6 +71,11 @@ public class PlayingQueueAdapter extends SongAdapter implements DraggableItemAda
     public void swapDataSet(List<Song> dataSet, int position) {
         this.dataSet = dataSet;
         current = position;
+        notifyDataSetChanged();
+    }
+
+    public void setDimCurrent(boolean dimCurrent) {
+        this.dimCurrent = dimCurrent;
         notifyDataSetChanged();
     }
 

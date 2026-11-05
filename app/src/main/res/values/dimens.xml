@@ -81,9 +81,9 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <!-- single-column content is centered in a column no wider than this -->
     <dimen name="max_content_width">840dp</dimen>
 
-    <!-- fixed now-playing column beside the content at w840dp -->
-    <dimen name="now_playing_pane_width">360dp</dimen>
-    <dimen name="now_playing_pane_cover_size">232dp</dimen>
+    <!-- player bar and queue sheet at w840dp -->
+    <dimen name="player_bar_controls_width">400dp</dimen>
+    <dimen name="queue_sheet_width">320dp</dimen>
 
     <!-- cover and metadata column on album and artist detail screens at w1200dp -->
     <dimen name="detail_side_column_width">320dp</dimen>

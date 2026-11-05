@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- filled play button in the now playing pane, the fill is tinted with the accent colour at runtime -->
+<!-- filled play button in the player bar, the fill is tinted with the accent colour at runtime -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="#33FFFFFF">
     <item>

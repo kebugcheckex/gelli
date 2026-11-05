@@ -26,8 +26,6 @@ import com.dkanada.gramophone.helper.PlayPauseButtonOnClickHandler;
 import com.dkanada.gramophone.interfaces.base.SimpleOnSeekbarChangeListener;
 import com.dkanada.gramophone.fragments.AbsMusicServiceFragment;
 import com.dkanada.gramophone.util.MusicUtil;
-import com.dkanada.gramophone.util.PreferenceUtil;
-import com.google.android.material.color.MaterialColors;
 import com.dkanada.gramophone.views.PlayPauseDrawable;
 
 import java.util.Collection;
@@ -47,9 +45,6 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
 
     private boolean hidden = false;
 
-    // the now playing pane at the expanded width puts the controls on the theme surface instead of the palette colour
-    private boolean onSurface;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,14 +61,8 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        onSurface = getResources().getBoolean(R.bool.expanded_layout);
         setUpMusicControllers();
         updateProgressTextColor();
-
-        if (onSurface) {
-            setDark(false);
-            updateBufferingIndicatorColor(PreferenceUtil.getInstance(requireContext()).getAccentColor());
-        }
     }
 
     @Override
@@ -116,11 +105,6 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     }
 
     public void setDark(boolean dark) {
-        // on the surface the controls follow the theme, not the palette colour of the cover
-        if (onSurface) {
-            dark = MaterialColors.isColorLight(ThemeUtil.getColorResource(requireContext(), R.attr.colorSurface));
-        }
-
         if (dark) {
             lastPlaybackControlsColor = ThemeUtil.getSecondaryTextColor(requireActivity(), true);
             lastDisabledPlaybackControlsColor = ThemeUtil.getColorAlpha(requireActivity(), R.color.color_text_secondary_light, 180);
@@ -175,9 +159,7 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     }
 
     private void updateProgressTextColor() {
-        int color = onSurface
-            ? ThemeUtil.getColorResource(requireContext(), android.R.attr.textColorSecondary)
-            : ThemeUtil.getPrimaryTextColor(requireContext(), false);
+        int color = ThemeUtil.getPrimaryTextColor(requireContext(), false);
         binding.playerSongTotalTime.setTextColor(color);
         binding.playerSongCurrentProgress.setTextColor(color);
     }
@@ -188,13 +170,6 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     }
 
     private void updatePlayPauseColor() {
-        if (onSurface) {
-            int accentColor = PreferenceUtil.getInstance(requireContext()).getAccentColor();
-            binding.playerPlayPauseButton.setBackgroundTintList(ColorStateList.valueOf(accentColor));
-            binding.playerPlayPauseButton.setColorFilter(ThemeUtil.getPrimaryTextColor(requireContext(), accentColor), PorterDuff.Mode.SRC_IN);
-            return;
-        }
-
         binding.playerPlayPauseButton.setColorFilter(lastPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
     }
 
@@ -297,18 +272,9 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     }
 
     private void setUpProgressSlider() {
-        if (onSurface) {
-            // a regular track in the accent colour, since there is no palette band behind it
-            int accentColor = PreferenceUtil.getInstance(requireContext()).getAccentColor();
-            int trackColor = ThemeUtil.getColorResource(requireContext(), R.attr.colorOutlineVariant);
-            binding.playerProgressSlider.setThumbTintList(ColorStateList.valueOf(accentColor));
-            binding.playerProgressSlider.setProgressTintList(ColorStateList.valueOf(accentColor));
-            binding.playerProgressSlider.setProgressBackgroundTintList(ColorStateList.valueOf(trackColor));
-        } else {
-            int color = ThemeUtil.getPrimaryTextColor(requireContext(), false);
-            binding.playerProgressSlider.getThumb().mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-            binding.playerProgressSlider.getProgressDrawable().mutate().setColorFilter(Color.TRANSPARENT, PorterDuff.Mode.SRC_IN);
-        }
+        int color = ThemeUtil.getPrimaryTextColor(requireContext(), false);
+        binding.playerProgressSlider.getThumb().mutate().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        binding.playerProgressSlider.getProgressDrawable().mutate().setColorFilter(Color.TRANSPARENT, PorterDuff.Mode.SRC_IN);
 
         binding.playerProgressSlider.setOnSeekBarChangeListener(new SimpleOnSeekbarChangeListener() {
             @Override

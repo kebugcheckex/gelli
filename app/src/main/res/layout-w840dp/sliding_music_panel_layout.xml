@@ -1,35 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- expanded width: the player stays in a fixed pane beside the content instead of a sliding panel -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+expanded width: the collapsed panel is a full-width player bar instead of the mini player,
+and the queue can open as a side sheet beside the content. expanding the bar opens the full-window player.
+-->
+<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:gravity="bottom"
+    app:umanoOverlay="false"
+    app:umanoPanelHeight="0dp"
+    app:umanoShadowHeight="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/content_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:id="@+id/queue_sheet"
+            android:layout_width="@dimen/queue_sheet_width"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?attr/dividerColor" />
+
+            <fragment
+                android:id="@+id/queue_sheet_fragment"
+                class="com.dkanada.gramophone.fragments.player.QueueSheetFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/content_container"
-        android:layout_width="0dp"
+        android:id="@+id/sliding_panel"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
-
-    <!-- invisible until the queue is known, so the player still measures itself on the first layout -->
-    <LinearLayout
-        android:id="@+id/now_playing_pane"
-        android:layout_width="@dimen/now_playing_pane_width"
-        android:layout_height="match_parent"
-        android:background="?android:colorBackground"
-        android:orientation="horizontal"
-        android:visibility="invisible">
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="?attr/dividerColor" />
+        android:background="?android:colorBackground">
 
         <FrameLayout
             android:id="@+id/player_fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-    </LinearLayout>
+        <fragment
+            android:id="@+id/mini_player_fragment"
+            class="com.dkanada.gramophone.fragments.player.PlayerBarFragment"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/mini_player_height" />
 
-</LinearLayout>
+    </FrameLayout>
+
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>
