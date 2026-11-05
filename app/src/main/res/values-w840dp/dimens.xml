@@ -6,4 +6,7 @@
     <!-- the collapsed panel is the player bar instead of the mini player -->
     <dimen name="mini_player_height">88dp</dimen>
 
+    <dimen name="landscape_player_margin">72dp</dimen>
+    <dimen name="landscape_player_gap">64dp</dimen>
+
 </resources>

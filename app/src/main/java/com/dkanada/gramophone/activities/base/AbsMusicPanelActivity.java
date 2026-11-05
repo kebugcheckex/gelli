@@ -19,6 +19,7 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.databinding.SlidingMusicPanelLayoutBinding;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.fragments.player.AbsPlayerFragment;
+import com.dkanada.gramophone.fragments.player.LandscapePlayerFragment;
 import com.dkanada.gramophone.fragments.player.NowPlayingScreen;
 import com.dkanada.gramophone.fragments.player.PlayerBarFragment;
 import com.dkanada.gramophone.fragments.player.card.CardPlayerFragment;
@@ -58,9 +59,11 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
         currentNowPlayingScreen = PreferenceUtil.getInstance(this).getNowPlayingScreen();
 
-        // must implement AbsPlayerFragment
+        // must implement AbsPlayerFragment, and a window wider than it is tall gets the landscape player whatever the preference
         Fragment fragment;
-        switch (currentNowPlayingScreen) {
+        if (getResources().getBoolean(R.bool.landscape_player)) {
+            fragment = new LandscapePlayerFragment();
+        } else switch (currentNowPlayingScreen) {
             case FLAT:
                 fragment = new FlatPlayerFragment();
                 break;

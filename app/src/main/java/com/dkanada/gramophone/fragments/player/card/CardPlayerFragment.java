@@ -64,14 +64,7 @@ public class CardPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentCardPlayerBinding.inflate(inflater);
-
-        // layout-land puts the cover beside the controls when the window is wider than it is tall,
-        // so pick the implementation that matches the layout that was actually inflated
-        if (binding.coverContainer != null) {
-            impl = new LandscapeImpl(this, binding);
-        } else {
-            impl = new PortraitImpl(this, binding);
-        }
+        impl = new PortraitImpl(this, binding);
 
         return binding.getRoot();
     }
@@ -446,39 +439,4 @@ public class CardPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
-    private static class LandscapeImpl extends BaseImpl {
-        public LandscapeImpl(CardPlayerFragment fragment, FragmentCardPlayerBinding binding) {
-            super(fragment, binding);
-        }
-
-        @Override
-        public void init() {
-        }
-
-        @Override
-        public void setUpPanelAndAlbumCoverHeight() {
-            int panelHeight = binding.playerSlidingLayout.getHeight() - fragment.playbackControlsFragment.getView().getHeight();
-            binding.playerSlidingLayout.setPanelHeight(panelHeight);
-
-            ((AbsMusicPanelActivity) fragment.getActivity()).setAntiDragView(binding.playerSlidingLayout.findViewById(R.id.player_panel));
-        }
-
-        @Override
-        public void updateCurrentSong(Song song) {
-            binding.playerToolbar.setTitle(song.title);
-            binding.playerToolbar.setSubtitle(MusicUtil.buildInfoString(song.artistName, song.albumName));
-        }
-
-        @Override
-        public void animateColorChange(int newColor) {
-            if (!fragment.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) return;
-            if (currentAnimatorSet!=null) currentAnimatorSet.cancel();
-            binding.playerSlidingLayout.setBackgroundColor(fragment.lastColor);
-            currentAnimatorSet = createDefaultColorChangeAnimatorSet(newColor);
-            currentAnimatorSet.play(ViewUtil.createBackgroundColorTransition(binding.playerToolbar, fragment.lastColor, newColor))
-                    .with(ViewUtil.createBackgroundColorTransition(fragment.getView().findViewById(R.id.status_bar), ThemeUtil.getColorDark(fragment.lastColor), ThemeUtil.getColorDark(newColor)));
-            currentAnimatorSet.start();
-        }
-    }
 }

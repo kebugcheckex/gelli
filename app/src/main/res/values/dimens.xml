@@ -85,6 +85,14 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <dimen name="player_bar_controls_width">400dp</dimen>
     <dimen name="queue_sheet_width">320dp</dimen>
 
+    <!-- full-window landscape player, sized for a short phone window and grown at w840dp and h480dp -->
+    <dimen name="landscape_player_margin">24dp</dimen>
+    <dimen name="landscape_player_gap">32dp</dimen>
+    <dimen name="landscape_player_bottom_padding">16dp</dimen>
+    <dimen name="landscape_player_title_size">22sp</dimen>
+    <dimen name="landscape_player_play_size">56dp</dimen>
+    <dimen name="landscape_player_controls_height">64dp</dimen>
+
     <!-- cover and metadata column on album and artist detail screens at w1200dp -->
     <dimen name="detail_side_column_width">320dp</dimen>
 

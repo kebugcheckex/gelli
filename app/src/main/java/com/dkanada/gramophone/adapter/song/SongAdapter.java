@@ -100,7 +100,7 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(activity).inflate(itemLayoutRes, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(itemLayoutRes, parent, false);
 
         return createViewHolder(view);
     }

@@ -4,4 +4,10 @@
     <!-- the expanded width class swaps tabs and drawer for a rail and drops the coloured grid footers -->
     <bool name="expanded_layout">false</bool>
 
+    <!-- a window wider than it is tall gets the full-window landscape player instead of the flat or card one -->
+    <bool name="landscape_player">false</bool>
+
+    <!-- the landscape player only has room for the Up next and Details switch in a window at least 480dp tall -->
+    <bool name="landscape_player_tabs">false</bool>
+
 </resources>

@@ -33,23 +33,28 @@ public class SongDetailDialog extends DialogFragment {
         return Html.fromHtml("<b>" + context.getResources().getString(titleResId) + ": " + "</b>" + text);
     }
 
-    private static String getFileSizeString(long sizeInBytes) {
+    public static String getFileSizeString(long sizeInBytes) {
         long fileSizeInKB = sizeInBytes / 1024;
         long fileSizeInMB = fileSizeInKB / 1024;
         return fileSizeInMB + " MB";
     }
 
-    private static String getSampleRateString(int sampleRate) {
+    public static String getSampleRateString(int sampleRate) {
         return sampleRate + " Hz";
     }
 
-    private static String getBitRateString(int bitRate) {
+    public static String getBitRateString(int bitRate) {
         int bitRateInKB = bitRate / 1000;
         return bitRateInKB + " kb/s";
     }
 
-    private static String getBitDepthString(int bitDepth) {
+    public static String getBitDepthString(int bitDepth) {
         return bitDepth + "-bit";
+    }
+
+    public static String getFormatString(@NonNull Song song) {
+        if (song.container.equals(song.codec)) return song.container.toUpperCase();
+        return song.container.toUpperCase() + ":" + song.codec.toUpperCase();
     }
 
     @NonNull
@@ -90,11 +95,7 @@ public class SongDetailDialog extends DialogFragment {
             name.setText(makeTextWithTitle(context, R.string.label_file_name, song.title));
             size.setText(makeTextWithTitle(context, R.string.label_file_size, getFileSizeString(song.size)));
 
-            if (song.container.equals(song.codec)) {
-                format.setText(makeTextWithTitle(context, R.string.label_file_format, song.container.toUpperCase()));
-            } else {
-                format.setText(makeTextWithTitle(context, R.string.label_file_format, song.container.toUpperCase() + ":" + song.codec.toUpperCase()));
-            }
+            format.setText(makeTextWithTitle(context, R.string.label_file_format, getFormatString(song)));
 
             length.setText(makeTextWithTitle(context, R.string.label_track_length, MusicUtil.getReadableDurationString(song.duration)));
             sampleRate.setText(makeTextWithTitle(context, R.string.label_sample_rate, getSampleRateString(song.sampleRate)));

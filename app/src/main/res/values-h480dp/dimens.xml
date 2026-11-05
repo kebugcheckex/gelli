@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- the landscape player in a window tall enough for the large title and controls -->
+    <dimen name="landscape_player_bottom_padding">40dp</dimen>
+    <dimen name="landscape_player_title_size">32sp</dimen>
+    <dimen name="landscape_player_play_size">72dp</dimen>
+    <dimen name="landscape_player_controls_height">96dp</dimen>
+
+</resources>

@@ -64,14 +64,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentFlatPlayerBinding.inflate(inflater);
-
-        // layout-land puts the cover beside the controls when the window is wider than it is tall,
-        // so pick the implementation that matches the layout that was actually inflated
-        if (binding.coverContainer != null) {
-            impl = new LandscapeImpl(this, binding);
-        } else {
-            impl = new PortraitImpl(this, binding);
-        }
+        impl = new PortraitImpl(this, binding);
 
         return binding.getRoot();
     }
@@ -429,37 +422,6 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
             if (!fragment.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) return;
             if (currentAnimatorSet!=null) currentAnimatorSet.cancel();
             currentAnimatorSet = createDefaultColorChangeAnimatorSet(newColor);
-            currentAnimatorSet.start();
-        }
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    private static class LandscapeImpl extends BaseImpl {
-        public LandscapeImpl(FlatPlayerFragment fragment, FragmentFlatPlayerBinding binding) {
-            super(fragment, binding);
-        }
-
-        @Override
-        public void init() {
-        }
-
-        @Override
-        public void setUpPanelAndAlbumCoverHeight() {
-            ((AbsMusicPanelActivity) fragment.getActivity()).setAntiDragView(fragment.getView().findViewById(R.id.player_panel));
-        }
-
-        @Override
-        public void updateCurrentSong(Song song) {
-            binding.playerToolbar.setTitle(song.title);
-            binding.playerToolbar.setSubtitle(MusicUtil.buildInfoString(song.artistName, song.albumName));
-        }
-
-        @Override
-        public void animateColorChange(int newColor) {
-            if (!fragment.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) return;
-            if (currentAnimatorSet!=null) currentAnimatorSet.cancel();
-            currentAnimatorSet = createDefaultColorChangeAnimatorSet(newColor);
-            currentAnimatorSet.play(ViewUtil.createBackgroundColorTransition(binding.playerToolbar, fragment.lastColor, newColor));
             currentAnimatorSet.start();
         }
     }

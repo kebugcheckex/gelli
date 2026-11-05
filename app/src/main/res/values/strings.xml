@@ -226,6 +226,11 @@
     <string name="up_next">Up next</string>
     <string name="now_playing">Now playing</string>
     <string name="queue">Queue</string>
+    <string name="from_the_album">From the album</string>
+    <string name="action_close_player">Close player</string>
+    <string name="label_artist">Artist</string>
+    <string name="label_year">Year</string>
+    <string name="label_track">Track</string>
     <string name="action_toggle_queue">Show or hide the queue</string>
     <string name="action_open_player">Open the player</string>
     <string name="action_repeat">Repeat</string>

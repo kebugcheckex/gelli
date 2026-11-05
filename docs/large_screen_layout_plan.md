@@ -1,6 +1,6 @@
 # Large-screen layout
 
-Written November 4, 2026. Phases 1–5 are implemented. Phase 5 replaces the Phase 2 pane and has been checked on a Pixel Tablet.
+Written November 4, 2026. Phases 1–6 are implemented. Phase 5 replaces the Phase 2 pane, Phase 6 replaces the `layout-land` players, and both have been checked on a Pixel Tablet.
 
 ## Goal
 
@@ -52,7 +52,7 @@ Done when: the grid looks the same density on a phone, in split-screen, and on a
 - **One layout menu instead of two controls.** Each grid-capable tab (Albums, Songs, Artists, Album Artists) stores one `LibraryLayout` preference: `LIST`, `GRID_SMALL`, `GRID_MEDIUM`, or `GRID_LARGE`. The overflow menu's **Layout** submenu offers those four. Albums default to a medium grid, and the other tabs default to a list. The cell widths are the `grid_cell_*` dimens.
 - **Column count comes from the measured width.** The span is first estimated from `screenWidthDp`, then recomputed from the RecyclerView's real width whenever that width changes. Phase 2 needs this because the content area becomes narrower than the window. In two-column list mode, the Songs shuffle row spans both columns.
 - **Content-width cap.** `ViewUtil.capContentWidth()` grows a scrolling view's horizontal padding so its content stays within `max_content_width` (840dp), centered. The margins can still be scrolled. It's applied to the Genres and Playlists tabs, the album, artist, genre, and playlist tracklists, Search, Settings, About, and Downloads.
-- **Player layout.** `FlatPlayerFragment` and `CardPlayerFragment` now pick `LandscapeImpl` based on whether the inflated layout has `cover_container`, not on `orientation`. The side-by-side layout itself still comes from `layout-land`. On Android N and later, that qualifier follows the window's aspect ratio, including in multi-window, so it answers "is the window wider than it is tall?". Phase 2's `pane` argument still has to override it.
+- **Player layout.** `FlatPlayerFragment` and `CardPlayerFragment` now pick `LandscapeImpl` based on whether the inflated layout has `cover_container`, not on `orientation`. The side-by-side layout itself still comes from `layout-land`. On Android N and later, that qualifier follows the window's aspect ratio, including in multi-window, so it answers "is the window wider than it is tall?". Phase 2's `pane` argument still has to override it. Phase 6 removes `LandscapeImpl` and the `layout-land` player layouts.
 - **Not changed:** `values-sw600dp/dimens.xml` (taller detail headers) and `values-land/` (shorter headers in wide, short windows). Phase 3 reworks those headers anyway.
 
 ## Phase 2: Persistent now-playing pane at expanded width
@@ -120,12 +120,25 @@ Option B in the landscape mocks. The fixed pane took 360dp from the content all 
 - **Shell.** `layout-w840dp/sliding_music_panel_layout.xml` is a `SlidingUpPanelLayout` again. Its first child is a horizontal row: `content_container` and `queue_sheet` (a 1dp divider and `QueueSheetFragment`, `queue_sheet_width` = 320dp, `gone` by default). The sliding child holds `player_fragment_container` and `PlayerBarFragment` in place of `MiniPlayerFragment`. Both configurations share the root, so `AbsMusicPanelActivity` has one code path again. Back collapses the inner queue, then the panel, then finishes.
 - **Player bar.** `fragment_player_bar.xml`, `mini_player_height` = 88dp at w840dp. Left: a rounded cover, title, artist and album, and favorite. Middle (`player_bar_controls_width`, 400dp, 560dp at w1200dp): shuffle, previous, a filled accent play button, next, repeat, and a seek bar with times. Right: queue and expand. It sits on `colorSurfaceContainer`, and anything switched on uses the accent color. The activity refreshes the favorite when the panel collapses, since the full player can change it.
 - **Queue sheet.** `QueueSheetFragment` is a `PlayingQueueAdapter` with drag-to-reorder. Played songs stay above the current one, dimmed, and the list scrolls the current song to the top when the track changes, but not on a reorder. The adapter got `setDimCurrent(false)`, because the sheet has no separate current-song row. The open state is the `queue_sheet_open` preference, so it carries across activities and restarts. The sheet only shows while the bar does.
-- **Expand.** The expand button opens the full player. At this width that resolves to the `layout-land` flat or card player, which follows the player preference again. A dedicated full-window player (option C) isn't built.
+- **Expand.** The expand button opens the full player, which is the Phase 6 landscape player at this width.
 - **Insets.** The bar is padded by the navigation bar inset, and the collapsed panel height is `mini_player_height` plus that inset, so it clears the gesture handle. This applies to the compact mini player too.
 - **Detail threshold stays at w1200dp.** With the sheet open, an 840dp window leaves about 520dp for content, which is still too narrow for the two-column detail layouts.
 - **Removed:** pane mode (`isPaneMode`, `contentOwnsSystemBars`), `AbsPlayerFragment.isInPane()`, `FlatPlayerFragment.PaneImpl`, the `layout-w840dp` player layouts, and the `now_playing_pane_*` dimens.
 - **Left out of option B:** lyrics (see the live lyrics plan), a volume slider, and a History / Up next switch in the sheet.
 - **Not checked on a device:** the compact layout after the inset change, the card player at w840dp, drag-to-reorder in the sheet, and the light theme.
+
+## Phase 6: Full-window landscape player
+
+Option C in the landscape mocks. Any window wider than it is tall, from phone landscape up to the expanded tablet, now gets one player built for that shape. It replaces the `layout-land` flat and card players, and it ignores the player preference there. Portrait windows still use the flat or card player.
+
+- **Selection.** `AbsMusicPanelActivity` picks `LandscapePlayerFragment` when the `landscape_player` bool is true (`values-land`). `FlatPlayerFragment` and `CardPlayerFragment` lost `LandscapeImpl` and always use `PortraitImpl`.
+- **Layout.** `fragment_landscape_player.xml`. A top bar holds a collapse chevron, "From the album" with the album name (tap to open the album), and an overflow menu. Under it, the cover is the largest square left of a 45% guideline, and the right column has the title, artist · album, favorite, seek bar, controls with a white play button, and the tabs. `landscape_player_margin` / `_gap` widen at w840dp. The title, play button and controls grow at h480dp.
+- **Background.** A radial gradient built from the cover palette, with lightness capped at 0.32 so white text stays readable. It animates on track change. The fragment is dark whatever the app theme: it inflates through `ThemeOverlay.Gelli.LandscapePlayer`. `SongAdapter` now inflates rows from `parent.getContext()` so the queue rows pick up the overlay.
+- **Tabs.** Up next and Details, as a `MaterialButtonToggleGroup`, only at h480dp (`landscape_player_tabs`). Up next is `PlayingQueueListFragment`, the queue list split out of `QueueSheetFragment` so the sheet and the player share it. Details lists the song's metadata through the now-public `SongDetailDialog` formatters. In shorter windows there are no tabs, and Details is in the overflow menu instead.
+- **Source.** "From the album" always shows the current song's album. The queue doesn't record where it was started from, so playlists, artists and shuffles also show the album.
+- **Panel.** The tab content is the panel's anti-drag view, so scrolling the queue doesn't collapse the player.
+- **Left out of option C:** the Lyrics tab, which waits on the live lyrics plan.
+- **Not checked on a device:** phone landscape (no tabs), the light app theme, drag-to-reorder in the Up next tab, and rotation while playing.
 
 ## Not planned: Fragment-based list-detail
 
@@ -145,5 +158,5 @@ There are no automated UI tests, so validation is on devices or emulators:
 - 10–11" tablet portrait (medium) and landscape (expanded)
 - Split-screen at 1/3, 1/2, and 2/3 on a tablet, plus resizing across the 600dp and 840dp boundaries while music plays
 - A foldable emulator, folded and unfolded, while music plays
-- Both now-playing screens (Flat and Card), light and dark themes, large font scale
+- Both portrait now-playing screens (Flat and Card), the landscape player with and without tabs, light and dark themes, large font scale
 - Queue drag-to-reorder in the queue sheet, the CAB on detail screens, and Back at each size class

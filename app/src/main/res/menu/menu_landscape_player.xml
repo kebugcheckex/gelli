@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- overflow of the landscape player; Details only shows when the window is too short for the details tab -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_go_to_album"
+        android:title="@string/action_go_to_album" />
+
+    <item
+        android:id="@+id/action_go_to_artist"
+        android:title="@string/action_go_to_artist" />
+
+    <item
+        android:id="@+id/action_add_to_playlist"
+        android:title="@string/action_add_to_playlist" />
+
+    <item
+        android:id="@+id/action_share"
+        android:title="@string/action_share" />
+
+    <item
+        android:id="@+id/action_details"
+        android:title="@string/action_details" />
+
+    <item
+        android:id="@+id/action_sleep_timer"
+        android:title="@string/action_sleep_timer" />
+
+    <item
+        android:id="@+id/action_save_queue"
+        android:title="@string/action_save_queue" />
+
+    <item
+        android:id="@+id/action_clear_queue"
+        android:title="@string/action_clear_queue" />
+
+</menu>
