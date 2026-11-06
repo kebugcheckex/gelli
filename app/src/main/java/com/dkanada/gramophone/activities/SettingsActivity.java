@@ -8,6 +8,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -18,6 +19,7 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.views.shortcuts.DynamicShortcutManager;
 import com.dkanada.gramophone.dialogs.preferences.CategoryPreferenceDialog;
 import com.dkanada.gramophone.dialogs.preferences.ColorPresetDialog;
+import com.dkanada.gramophone.dialogs.preferences.ListPreferenceDialog;
 import com.dkanada.gramophone.activities.base.AbsBaseActivity;
 import com.dkanada.gramophone.service.SaveTrigger;
 import com.dkanada.gramophone.service.SaveWorker;
@@ -67,6 +69,25 @@ public class SettingsActivity extends AbsBaseActivity {
             setDivider(null);
             invalidateSettings();
             PreferenceUtil.getInstance(getActivity()).registerOnSharedPreferenceChangedListener(this);
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        public void onDisplayPreferenceDialog(@NonNull Preference preference) {
+            if (!(preference instanceof ListPreference)) {
+                super.onDisplayPreferenceDialog(preference);
+                return;
+            }
+
+            // a second tap can arrive before the dialog is on screen
+            if (getParentFragmentManager().findFragmentByTag(ListPreferenceDialog.TAG) != null) {
+                return;
+            }
+
+            // the library finds the preference through the target fragment
+            ListPreferenceDialog dialog = ListPreferenceDialog.create(preference.getKey());
+            dialog.setTargetFragment(this, 0);
+            dialog.show(getParentFragmentManager(), ListPreferenceDialog.TAG);
         }
 
         @Override

@@ -1,7 +1,6 @@
 package com.dkanada.gramophone.activities.base;
 
 import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -20,6 +19,7 @@ import androidx.core.app.ActivityCompat;
 import com.dkanada.gramophone.activities.MainActivity;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
             return;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this)
             .setNegativeButton(R.string.ignore, (dialog, id) -> showWarning());
 
         if (!checkBatteryOptimization()) {
