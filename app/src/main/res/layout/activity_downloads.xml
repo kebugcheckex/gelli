@@ -13,11 +13,11 @@
         android:id="@+id/toolbar"
         style="@style/Toolbar.Surface" />
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/loading"
-        style="?android:attr/progressBarStyleHorizontal"
+        style="@style/Widget.Material3.LinearProgressIndicator.Legacy"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
+        android:layout_height="wrap_content"
         android:importantForAccessibility="no"
         android:indeterminate="true"
         android:visibility="invisible" />
@@ -88,15 +88,15 @@
                             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                             tools:text="1,248 of 4,800 songs" />
 
-                        <ProgressBar
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
                             android:id="@+id/coverage_progress"
-                            style="?android:attr/progressBarStyleHorizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="8dp"
+                            android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
                             android:importantForAccessibility="no"
                             android:max="10000"
                             android:visibility="gone"
+                            app:trackThickness="8dp"
                             tools:progress="2600"
                             tools:visibility="visible" />
                     </LinearLayout>

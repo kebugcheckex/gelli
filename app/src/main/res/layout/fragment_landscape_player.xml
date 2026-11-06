@@ -262,13 +262,17 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                             android:padding="16dp"
                             android:scaleType="fitCenter" />
 
-                        <ProgressBar
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
                             android:id="@+id/landscape_player_buffering_indicator"
-                            style="?android:attr/progressBarStyle"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            style="@style/Widget.Material3.CircularProgressIndicator.Legacy"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
                             android:indeterminate="true"
-                            android:visibility="gone" />
+                            android:visibility="gone"
+                            app:indicatorInset="0dp"
+                            app:indicatorSize="@dimen/landscape_player_play_size"
+                            app:trackThickness="3dp" />
 
                     </FrameLayout>
 

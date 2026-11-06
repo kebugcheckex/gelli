@@ -166,7 +166,7 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         binding.landscapePlayerPlayPauseButton.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
         binding.landscapePlayerPlayPauseButton.setColorFilter(0xFF1A1A1A, PorterDuff.Mode.SRC_IN);
         binding.landscapePlayerPlayPauseButton.setOnClickListener(new PlayPauseButtonOnClickHandler());
-        binding.landscapePlayerBufferingIndicator.setIndeterminateTintList(ColorStateList.valueOf(Color.WHITE));
+        binding.landscapePlayerBufferingIndicator.setIndicatorColor(0xFF1A1A1A);
 
         binding.landscapePlayerPrevButton.setColorFilter(ICON_COLOR, PorterDuff.Mode.SRC_IN);
         binding.landscapePlayerPrevButton.setOnClickListener(v -> MusicPlayerRemote.back());

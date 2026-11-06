@@ -1,7 +1,6 @@
 package com.dkanada.gramophone.activities
 
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.format.Formatter
 import android.view.Menu
@@ -22,7 +21,6 @@ import com.dkanada.gramophone.util.LocalLibrary
 import com.dkanada.gramophone.util.NetworkUtil
 import com.dkanada.gramophone.util.OfflineCoverage
 import com.dkanada.gramophone.util.PreferenceUtil
-import com.dkanada.gramophone.util.ThemeUtil
 import com.dkanada.gramophone.util.ViewUtil
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -42,9 +40,6 @@ class DownloadsActivity : AbsBaseActivity(), LocalLibrary.Listener, NetworkUtil.
         ViewUtil.capContentWidth(binding.scrollView)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val primary = ColorStateList.valueOf(ThemeUtil.getColorResource(this, R.attr.colorPrimary))
-        binding.coverageProgress.progressTintList = primary
-        binding.loading.indeterminateTintList = primary
         ViewCompat.setScreenReaderFocusable(binding.coverageSummary, true)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

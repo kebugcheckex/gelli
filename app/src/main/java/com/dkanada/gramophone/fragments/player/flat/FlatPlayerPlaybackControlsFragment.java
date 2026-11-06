@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -140,8 +139,7 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     }
 
     public void updateBufferingIndicatorColor(int color) {
-        binding.playerBufferingIndicator.setProgressBackgroundTintList(ColorStateList.valueOf(getResources().getColor(android.R.color.transparent)));
-        binding.playerBufferingIndicator.setIndeterminateTintList(ColorStateList.valueOf(color));
+        binding.playerBufferingIndicator.setIndicatorColor(color);
     }
 
     private void setUpMusicControllers() {

@@ -100,7 +100,6 @@ dependencies {
     implementation 'com.github.kabouzeid:SeekArc:1.2-kmod'
     implementation 'com.github.kabouzeid:AndroidSlidingUpPanel:3.3.3-kmod'
 
-    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
     implementation 'com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
     implementation 'com.android.support:multidex:1.0.3'

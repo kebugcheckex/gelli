@@ -12,18 +12,18 @@
         android:layout_height="@dimen/progress_container_height"
         android:background="@color/overlay_light">
 
-        <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+        <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/player_buffering_indicator"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            style="@style/Widget.Material3.LinearProgressIndicator.Legacy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:indeterminate="true"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:mpb_progressStyle="horizontal"
-            app:mpb_useIntrinsicPadding="false"
-            style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal.NoPadding" />
+            app:trackColor="@android:color/transparent"
+            app:trackThickness="@dimen/progress_container_height" />
 
         <TextView
             android:id="@+id/player_song_current_progress"
