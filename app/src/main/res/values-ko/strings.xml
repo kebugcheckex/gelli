@@ -70,10 +70,6 @@
     <string name="create_action">만들기</string>
     <string name="reset_action">초기화</string>
     <string name="x_selected">%1$d 선택됨</string>
-    <string name="pref_title_primary_color">주 색상</string>
-    <string name="pref_title_accent_color">강조 색상</string>
-    <string name="pref_summary_primary_color">테마의 주 색상입니다. 기본값은 인디고색입니다.</string>
-    <string name="pref_summary_accent_color">테마의 강조 색상입니다. 기본값은 분홍색입니다.</string>
     <string name="no_playlists">재생 목록 없음</string>
     <string name="no_albums">앨범 없음</string>
     <string name="no_songs">노래 없음</string>

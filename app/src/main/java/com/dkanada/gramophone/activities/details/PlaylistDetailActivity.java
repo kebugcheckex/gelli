@@ -15,7 +15,6 @@ import com.dkanada.gramophone.databinding.ActivityPlaylistDetailBinding;
 import com.dkanada.gramophone.dialogs.DeletePlaylistDialog;
 import com.dkanada.gramophone.dialogs.RenamePlaylistDialog;
 import com.dkanada.gramophone.helper.menu.SongsMenuHelper;
-import com.dkanada.gramophone.util.PreferenceUtil;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager;
@@ -70,7 +69,7 @@ public class PlaylistDetailActivity extends AbsMusicContentActivity {
     }
 
     private void setUpRecyclerView() {
-        ViewUtil.setUpFastScrollRecyclerViewColor(this, binding.recyclerView, PreferenceUtil.getInstance(this).getAccentColor());
+        ViewUtil.setUpFastScrollRecyclerViewColor(this, binding.recyclerView);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         ViewUtil.capContentWidth(binding.recyclerView);
 

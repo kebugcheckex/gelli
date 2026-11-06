@@ -1,7 +1,6 @@
 package com.dkanada.gramophone.util;
 
 import android.app.Activity;
-import android.content.res.ColorStateList;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.view.ContextThemeWrapper;
@@ -51,20 +50,6 @@ public class ThemeUtil {
     @StyleRes
     private static int blackOverlay(ColorPreset preset) {
         return preset == ColorPreset.NEUTRAL ? R.style.ThemeOverlay_Gelli_Black_Neutral : R.style.ThemeOverlay_Gelli_Black;
-    }
-
-    public static ColorStateList getColorStateList(int normal, int active) {
-        int[][] states = new int[][]{
-            new int[]{-android.R.attr.state_checked},
-            new int[]{android.R.attr.state_checked}
-        };
-
-        int[] colors = new int[]{
-            normal,
-            active
-        };
-
-        return new ColorStateList(states, colors);
     }
 
     @ColorInt

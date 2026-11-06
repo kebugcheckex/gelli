@@ -17,7 +17,6 @@ import androidx.annotation.Nullable;
 import com.dkanada.gramophone.activities.base.AbsMusicPanelActivity;
 import com.dkanada.gramophone.databinding.FragmentMiniPlayerBinding;
 import com.dkanada.gramophone.model.Song;
-import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.helper.MusicProgressViewUpdateHelper;
@@ -58,10 +57,10 @@ public class MiniPlayerFragment extends AbsMusicServiceFragment implements Music
 
     private void setUpMiniPlayer() {
         setUpPlayPauseButton();
-        int accentColor = PreferenceUtil.getInstance(requireActivity()).getAccentColor();
+        int primaryColor = ThemeUtil.getColorResource(requireActivity(), R.attr.colorPrimary);
 
-        binding.progressBar.setSupportProgressTintList(ColorStateList.valueOf(accentColor));
-        binding.progressBar.setSupportIndeterminateTintList(ColorStateList.valueOf(accentColor));
+        binding.progressBar.setSupportProgressTintList(ColorStateList.valueOf(primaryColor));
+        binding.progressBar.setSupportIndeterminateTintList(ColorStateList.valueOf(primaryColor));
     }
 
     private void setUpPlayPauseButton() {

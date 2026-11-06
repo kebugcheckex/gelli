@@ -75,10 +75,12 @@ public class ViewUtil {
         return (x >= left) && (x <= right) && (y >= top) && (y <= bottom);
     }
 
-    public static void setUpFastScrollRecyclerViewColor(Context context, FastScrollRecyclerView recyclerView, int accentColor) {
-        recyclerView.setPopupBgColor(accentColor);
-        recyclerView.setPopupTextColor(ThemeUtil.getPrimaryTextColor(context, accentColor));
-        recyclerView.setThumbColor(accentColor);
+    public static void setUpFastScrollRecyclerViewColor(Context context, FastScrollRecyclerView recyclerView) {
+        int primaryColor = ThemeUtil.getColorResource(context, R.attr.colorPrimary);
+
+        recyclerView.setPopupBgColor(primaryColor);
+        recyclerView.setPopupTextColor(ThemeUtil.getColorResource(context, R.attr.colorOnPrimary));
+        recyclerView.setThumbColor(primaryColor);
         recyclerView.setTrackColor(ThemeUtil.getColorResource(context, R.attr.colorControlNormal, 40));
     }
 

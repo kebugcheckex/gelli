@@ -26,6 +26,7 @@ import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.service.MusicService;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
+import com.dkanada.gramophone.util.ThemeUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.triggertrap.seekarc.SeekArc;
 
@@ -98,8 +99,10 @@ public class SleepTimerDialog extends DialogFragment {
         boolean finishMusic = PreferenceUtil.getInstance(getActivity()).getSleepTimerFinishMusic();
         binding.shouldFinishLastSong.setChecked(finishMusic);
 
-        binding.seekArc.setProgressColor(PreferenceUtil.getInstance(getActivity()).getAccentColor());
-        binding.seekArc.setThumbColor(PreferenceUtil.getInstance(getActivity()).getAccentColor());
+        int primaryColor = ThemeUtil.getColorResource(requireActivity(), R.attr.colorPrimary);
+
+        binding.seekArc.setProgressColor(primaryColor);
+        binding.seekArc.setThumbColor(primaryColor);
 
         binding.seekArc.post(() -> {
             int width = binding.seekArc.getWidth();

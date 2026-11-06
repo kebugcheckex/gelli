@@ -72,10 +72,6 @@
     <string name="create_action">Buat</string>
     <string name="reset_action">Muat ulang</string>
     <string name="x_selected">%1$d terpilih</string>
-    <string name="pref_title_primary_color">Warna utama</string>
-    <string name="pref_title_accent_color">Warna aksen</string>
-    <string name="pref_summary_primary_color">Warna tema utama, distandarkan ke biru tua.</string>
-    <string name="pref_summary_accent_color">Warna aksen tema, distandarkan ke merah muda.</string>
     <string name="no_playlists">Tidak ada daftar putar</string>
     <string name="no_albums">Tidak ada album</string>
     <string name="no_songs">Tidak ada lagu</string>

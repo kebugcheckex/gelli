@@ -70,10 +70,6 @@
     <string name="create_action">Aanmaken</string>
     <string name="reset_action">Reset</string>
     <string name="x_selected">%1$d geselecteerd</string>
-    <string name="pref_title_primary_color">Primaire kleur</string>
-    <string name="pref_title_accent_color">Accentkleur</string>
-    <string name="pref_summary_primary_color">De primaire themakleur, standaard indigo.</string>
-    <string name="pref_summary_accent_color">De thema accentkleur, standaard roze.</string>
     <string name="no_playlists">Geen afspeellijsten</string>
     <string name="no_albums">Geen albums</string>
     <string name="no_songs">Geen nummers</string>

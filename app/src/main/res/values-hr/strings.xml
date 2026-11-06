@@ -70,10 +70,6 @@
     <string name="create_action">Stvori</string>
     <string name="reset_action">Poništi</string>
     <string name="x_selected">%1$d odabrano</string>
-    <string name="pref_title_primary_color">Primarna boja</string>
-    <string name="pref_title_accent_color">Naglašena boja</string>
-    <string name="pref_summary_primary_color">Primarna boja teme, zadana je indigo plava.</string>
-    <string name="pref_summary_accent_color">Naglašena boja teme, zadana je roza.</string>
     <string name="no_playlists">Nema popisa naslova</string>
     <string name="no_albums">Nema albuma</string>
     <string name="no_songs">Nema pjesama</string>

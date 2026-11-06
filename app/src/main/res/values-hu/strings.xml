@@ -70,10 +70,6 @@
     <string name="create_action">Létrehozás</string>
     <string name="reset_action">Visszaállítás</string>
     <string name="x_selected">%1$d kiválasztva</string>
-    <string name="pref_title_primary_color">Elsődleges szín</string>
-    <string name="pref_title_accent_color">Másodlagos szín</string>
-    <string name="pref_summary_primary_color">Az elsődleges szín, alapértelmezetten indigó.</string>
-    <string name="pref_summary_accent_color">A másodlagos szín, alapértelmezetten rózsaszín.</string>
     <string name="no_playlists">Nincsenek lejátszási listák</string>
     <string name="no_albums">Nincsenek albumok</string>
     <string name="no_songs">Nincsenek dalok</string>

@@ -37,10 +37,6 @@
     <string name="pref_header_audio">Audio</string>
     <string name="delete_action">Slett</string>
     <string name="rename_action">Gje nytt namn</string>
-    <string name="pref_title_primary_color">Primærfarge</string>
-    <string name="pref_title_accent_color">Fokusfarge</string>
-    <string name="pref_summary_primary_color">Primær temafarge, standard er indigo.</string>
-    <string name="pref_summary_accent_color">Fokustemafarge, standard er rosa.</string>
     <string name="no_playlists">Ingen spelelister</string>
     <string name="song">Song</string>
 </resources>

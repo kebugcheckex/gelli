@@ -64,10 +64,6 @@
     <string name="rename_action">Преименувай</string>
     <string name="create_action">Създай</string>
     <string name="x_selected">%1$d бе избрано</string>
-    <string name="pref_title_primary_color">Главен цвят</string>
-    <string name="pref_title_accent_color">Цвят на акцента</string>
-    <string name="pref_summary_primary_color">Подразбиращият се цвят на темата е индиго.</string>
-    <string name="pref_summary_accent_color">Цветът по подразбиране на акцентите е розов.</string>
     <string name="no_playlists">Няма плейлисти</string>
     <string name="no_albums">Няма албуми</string>
     <string name="no_songs">Няма песни</string>

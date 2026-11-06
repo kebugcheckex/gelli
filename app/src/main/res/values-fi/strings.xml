@@ -72,10 +72,6 @@
     <string name="create_action">Luo</string>
     <string name="reset_action">Nollaa</string>
     <string name="x_selected">%1$d valittu</string>
-    <string name="pref_title_primary_color">Ensisijainen väri</string>
-    <string name="pref_title_accent_color">Aksenttiväri</string>
-    <string name="pref_summary_primary_color">Ensisijainen teemaväri, oletuksena indigo.</string>
-    <string name="pref_summary_accent_color">Aksentti teemaväri, oletuksena pinkki.</string>
     <string name="no_playlists">Ei soittolistoja</string>
     <string name="no_albums">Ei albumeja</string>
     <string name="no_songs">Ei kappaleita</string>

@@ -24,7 +24,6 @@ import com.dkanada.gramophone.interfaces.base.SimpleOnSeekbarChangeListener;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.service.QueueManager;
 import com.dkanada.gramophone.util.MusicUtil;
-import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.views.PlayPauseDrawable;
 
@@ -38,7 +37,7 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
     private PlayPauseDrawable playPauseDrawable;
     private MusicProgressViewUpdateHelper progressViewUpdateHelper;
 
-    private int accentColor;
+    private int primaryColor;
     private int iconColor;
 
     @Override
@@ -60,7 +59,7 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         super.onViewCreated(view, savedInstanceState);
 
         Context context = requireContext();
-        accentColor = PreferenceUtil.getInstance(context).getAccentColor();
+        primaryColor = ThemeUtil.getColorResource(context, R.attr.colorPrimary);
         iconColor = ThemeUtil.getColorResource(context, R.attr.colorOnSurfaceVariant);
         int transportColor = ThemeUtil.getColorResource(context, R.attr.colorOnSurface);
 
@@ -68,8 +67,8 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
 
         playPauseDrawable = new PlayPauseDrawable(context);
         binding.playerBarPlayPauseButton.setImageDrawable(playPauseDrawable);
-        binding.playerBarPlayPauseButton.setBackgroundTintList(ColorStateList.valueOf(accentColor));
-        binding.playerBarPlayPauseButton.setColorFilter(ThemeUtil.getPrimaryTextColor(context, accentColor), PorterDuff.Mode.SRC_IN);
+        binding.playerBarPlayPauseButton.setBackgroundTintList(ColorStateList.valueOf(primaryColor));
+        binding.playerBarPlayPauseButton.setColorFilter(ThemeUtil.getColorResource(context, R.attr.colorOnPrimary), PorterDuff.Mode.SRC_IN);
         binding.playerBarPlayPauseButton.setOnClickListener(new PlayPauseButtonOnClickHandler());
 
         binding.playerBarPrevButton.setColorFilter(transportColor, PorterDuff.Mode.SRC_IN);
@@ -107,8 +106,8 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
 
     private void setUpProgressSlider() {
         int trackColor = ThemeUtil.getColorResource(requireContext(), R.attr.colorOutlineVariant);
-        binding.playerBarProgressSlider.setThumbTintList(ColorStateList.valueOf(accentColor));
-        binding.playerBarProgressSlider.setProgressTintList(ColorStateList.valueOf(accentColor));
+        binding.playerBarProgressSlider.setThumbTintList(ColorStateList.valueOf(primaryColor));
+        binding.playerBarProgressSlider.setProgressTintList(ColorStateList.valueOf(primaryColor));
         binding.playerBarProgressSlider.setProgressBackgroundTintList(ColorStateList.valueOf(trackColor));
 
         binding.playerBarProgressSlider.setOnSeekBarChangeListener(new SimpleOnSeekbarChangeListener() {
@@ -195,7 +194,7 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         if (song == null || binding == null) return;
 
         binding.playerBarFavoriteButton.setImageResource(song.favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp);
-        binding.playerBarFavoriteButton.setColorFilter(song.favorite ? accentColor : iconColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarFavoriteButton.setColorFilter(song.favorite ? primaryColor : iconColor, PorterDuff.Mode.SRC_IN);
         binding.playerBarFavoriteButton.setContentDescription(getString(song.favorite ? R.string.action_remove_from_favorites : R.string.action_add_to_favorites));
     }
 
@@ -203,7 +202,7 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         if (binding == null) return;
 
         boolean open = getPanelActivity().isQueueSheetOpen();
-        binding.playerBarQueueButton.setColorFilter(open ? accentColor : iconColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarQueueButton.setColorFilter(open ? primaryColor : iconColor, PorterDuff.Mode.SRC_IN);
         binding.playerBarQueueButton.setActivated(open);
     }
 
@@ -217,12 +216,12 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
 
     private void updateShuffleState() {
         boolean on = MusicPlayerRemote.getShuffleMode() == QueueManager.SHUFFLE_MODE_SHUFFLE;
-        binding.playerBarShuffleButton.setColorFilter(on ? accentColor : iconColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarShuffleButton.setColorFilter(on ? primaryColor : iconColor, PorterDuff.Mode.SRC_IN);
     }
 
     private void updateRepeatState() {
         int mode = MusicPlayerRemote.getRepeatMode();
         binding.playerBarRepeatButton.setImageResource(mode == QueueManager.REPEAT_MODE_THIS ? R.drawable.ic_repeat_one_white_24dp : R.drawable.ic_repeat_white_24dp);
-        binding.playerBarRepeatButton.setColorFilter(mode == QueueManager.REPEAT_MODE_NONE ? iconColor : accentColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarRepeatButton.setColorFilter(mode == QueueManager.REPEAT_MODE_NONE ? iconColor : primaryColor, PorterDuff.Mode.SRC_IN);
     }
 }

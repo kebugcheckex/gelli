@@ -67,10 +67,6 @@
     <string name="rename_action">Μετονομασία</string>
     <string name="create_action">Δημιουργία</string>
     <string name="x_selected">Επιλέχθηκαν %1$d</string>
-    <string name="pref_title_primary_color">Πρωτεύον χρώμα</string>
-    <string name="pref_title_accent_color">Χρώμα χαρακτήρων</string>
-    <string name="pref_summary_primary_color">Το πρωτεύον χρώμα θέματος είναι λουλακί.</string>
-    <string name="pref_summary_accent_color">Το χρώμα των χαρακτήρων του θέματος είναι ροζ.</string>
     <string name="no_playlists">Καμία λίστα</string>
     <string name="no_albums">Δεν υπάρχουν άλμπουμ</string>
     <string name="no_songs">Δεν υπάρχουν τραγούδια</string>

@@ -72,10 +72,6 @@
     <string name="create_action">Создать</string>
     <string name="reset_action">Сброс</string>
     <string name="x_selected">%1$d выбрано</string>
-    <string name="pref_title_primary_color">Основной цвет</string>
-    <string name="pref_title_accent_color">Цвет акцента</string>
-    <string name="pref_summary_primary_color">Основной цвет темы, по умолчанию — индиго.</string>
-    <string name="pref_summary_accent_color">Цвет акцента, по умолчанию — розовый</string>
     <string name="no_playlists">Нет плейлистов для отображения</string>
     <string name="no_albums">Нет альбомов для отображения</string>
     <string name="no_songs">Нет песен для отображения</string>

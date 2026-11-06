@@ -71,10 +71,6 @@
     <string name="create_action">Crear</string>
     <string name="reset_action">Reiniciar</string>
     <string name="x_selected">%1$d seleccionado</string>
-    <string name="pref_title_primary_color">Color primario</string>
-    <string name="pref_title_accent_color">Color secundario</string>
-    <string name="pref_summary_primary_color">El color principal, índigo por defecto</string>
-    <string name="pref_summary_accent_color">El color de énfasis por defecto es rosa.</string>
     <string name="no_playlists">No hay listas de reproducción</string>
     <string name="no_albums">No hay álbumes</string>
     <string name="no_songs">No hay canciones</string>

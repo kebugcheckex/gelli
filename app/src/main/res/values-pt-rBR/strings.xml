@@ -72,10 +72,6 @@
     <string name="create_action">Criar</string>
     <string name="reset_action">Redefinir</string>
     <string name="x_selected">%1$d selecionado</string>
-    <string name="pref_title_primary_color">Cor primária</string>
-    <string name="pref_title_accent_color">Cor dos detalhes</string>
-    <string name="pref_summary_primary_color">A cor do tema principal, o padrão é índigo.</string>
-    <string name="pref_summary_accent_color">A cor dos detalhes do tema, o padrão é rosa.</string>
     <string name="no_playlists">Nenhuma playlist</string>
     <string name="no_albums">Nenhum Álbum</string>
     <string name="no_songs">Nenhuma Musica</string>

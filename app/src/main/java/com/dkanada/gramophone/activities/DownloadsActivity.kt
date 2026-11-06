@@ -22,6 +22,7 @@ import com.dkanada.gramophone.util.LocalLibrary
 import com.dkanada.gramophone.util.NetworkUtil
 import com.dkanada.gramophone.util.OfflineCoverage
 import com.dkanada.gramophone.util.PreferenceUtil
+import com.dkanada.gramophone.util.ThemeUtil
 import com.dkanada.gramophone.util.ViewUtil
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -41,9 +42,9 @@ class DownloadsActivity : AbsBaseActivity(), LocalLibrary.Listener, NetworkUtil.
         ViewUtil.capContentWidth(binding.scrollView)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val accent = ColorStateList.valueOf(preferences.accentColor)
-        binding.coverageProgress.progressTintList = accent
-        binding.loading.indeterminateTintList = accent
+        val primary = ColorStateList.valueOf(ThemeUtil.getColorResource(this, R.attr.colorPrimary))
+        binding.coverageProgress.progressTintList = primary
+        binding.loading.indeterminateTintList = primary
         ViewCompat.setScreenReaderFocusable(binding.coverageSummary, true)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

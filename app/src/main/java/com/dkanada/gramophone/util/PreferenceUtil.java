@@ -8,7 +8,6 @@ import android.preference.PreferenceManager;
 
 import com.dkanada.gramophone.model.ColorPreset;
 import com.dkanada.gramophone.model.Theme;
-import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
 import com.dkanada.gramophone.model.Category;
@@ -72,8 +71,6 @@ public final class PreferenceUtil {
     public static final String REMEMBER_LAST_TAB = "remember_last_tab";
 
     public static final String GENERAL_THEME = "general_theme";
-    public static final String PRIMARY_COLOR = "primary_color";
-    public static final String ACCENT_COLOR = "accent_color";
     public static final String COLOR_PRESET = "color_preset";
     public static final String COLORED_SHORTCUTS = "colored_shortcuts";
 
@@ -243,14 +240,6 @@ public final class PreferenceUtil {
 
     public void setColorPreset(ColorPreset preset) {
         mPreferences.edit().putString(COLOR_PRESET, preset.name()).apply();
-    }
-
-    public int getPrimaryColor() {
-        return mPreferences.getInt(PRIMARY_COLOR, mContext.getResources().getColor(R.color.color_primary));
-    }
-
-    public int getAccentColor() {
-        return mPreferences.getInt(ACCENT_COLOR, mContext.getResources().getColor(R.color.color_accent));
     }
 
     public final int getPageSize() {

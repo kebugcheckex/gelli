@@ -70,10 +70,6 @@
     <string name="create_action">Створити</string>
     <string name="reset_action">Скинути</string>
     <string name="x_selected">Вибрано {%1$d}</string>
-    <string name="pref_title_primary_color">Основний колір</string>
-    <string name="pref_title_accent_color">Колір підкреслення</string>
-    <string name="pref_summary_primary_color">Основний колір теми, стандартно синій.</string>
-    <string name="pref_summary_accent_color">Акцентований колір теми, стандартно рожевий.</string>
     <string name="no_playlists">Немає списків відтворення</string>
     <string name="no_albums">Немає альбомів</string>
     <string name="no_songs">Немає пісень</string>

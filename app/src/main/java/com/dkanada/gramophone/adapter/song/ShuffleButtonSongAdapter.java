@@ -7,7 +7,7 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.dkanada.gramophone.util.PreferenceUtil;
+import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.util.ShortcutUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
@@ -30,11 +30,11 @@ public class ShuffleButtonSongAdapter extends AbsOffsetSongAdapter {
     @Override
     public void onBindViewHolder(@NonNull final SongAdapter.ViewHolder holder, int position) {
         if (holder.getItemViewType() == OFFSET_ITEM) {
-            int accentColor = PreferenceUtil.getInstance(activity).getAccentColor();
+            int primaryColor = ThemeUtil.getColorResource(activity, R.attr.colorPrimary);
 
             if (holder.title != null) {
                 holder.title.setText(activity.getResources().getString(R.string.action_shuffle_all).toUpperCase());
-                holder.title.setTextColor(accentColor);
+                holder.title.setTextColor(primaryColor);
                 holder.title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             }
 
@@ -49,7 +49,7 @@ public class ShuffleButtonSongAdapter extends AbsOffsetSongAdapter {
             if (holder.image != null) {
                 final int padding = activity.getResources().getDimensionPixelSize(R.dimen.default_item_margin) / 2;
                 holder.image.setPadding(padding, padding, padding, padding);
-                holder.image.setColorFilter(accentColor);
+                holder.image.setColorFilter(primaryColor);
                 holder.image.setImageResource(R.drawable.ic_shuffle_white_24dp);
             }
 

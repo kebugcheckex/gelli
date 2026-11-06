@@ -71,10 +71,6 @@
     <string name="create_action">Erstellen</string>
     <string name="reset_action">Zurücksetzen</string>
     <string name="x_selected">%1$d ausgewählt</string>
-    <string name="pref_title_primary_color">Hauptfarbe</string>
-    <string name="pref_title_accent_color">Akzentfarbe</string>
-    <string name="pref_summary_primary_color">Die primäre Farbe, Standard ist indigo.</string>
-    <string name="pref_summary_accent_color">Die Akzentfarbe, Standard ist pink.</string>
     <string name="no_playlists">Keine Wiedergabelisten</string>
     <string name="no_albums">Keine Alben</string>
     <string name="no_songs">Keine Songs</string>

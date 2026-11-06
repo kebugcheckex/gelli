@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1, 2, and 3 are done, and so are steps 1 and 2 of Phase 4. The phone chrome moved out of Phase 5 and now comes before the presets, so each preset is checked on the final surfaces.
+Written November 5, 2026. Phases 1, 2, 3, and 4 are done. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
 
 ## Goal
 
@@ -98,7 +98,7 @@ The work runs in three steps, each with its own commit:
 
 1. Move the phone chrome onto the surface color, using the existing greys. Done.
 2. Add the presets: the generator, the overlays, `ColorPreset`, the black overlay, the earlier `setTheme` call, and the picker. Done.
-3. Remove the remaining hand tinting and the old color preferences.
+3. Remove the remaining hand tinting and the old color preferences. Done.
 
 ### Step 1: Phone chrome (done)
 
@@ -127,8 +127,6 @@ The *Model*, *Generated overlays*, *Applying the preset*, and *Picker* sections 
 
 Checked on an Android 15 emulator in light, dark, and black, including Wallpaper with the Monet overlays enabled. That image ships with them disabled, which makes the wallpaper roles fall back to heavy framework defaults. Android 14 and below are untested, and the path where Wallpaper is unavailable is only covered by `ColorPresetTest`.
 
-Until step 3, the settings headers, progress bars, fast scroller, and Snackbar action keep the old pink accent.
-
 ### Model
 
 - A new `ColorPreset` enum: `NEUTRAL`, about ten seeds, and `WALLPAPER`. `NEUTRAL` is the current grey scheme from `parents.xml`, so the expanded layout's tuning stays available. Example seeds: Indigo `#3F51B5` (the old default primary), Blue, Teal, Green, Amber, Orange, Red, Pink, Purple, Brown. Settle the list and the default on a device. Indigo is the starting proposal.
@@ -151,11 +149,11 @@ Theme attributes can't be set to arbitrary values at runtime below Android 12, s
 - Code outside an activity resolves colors through a new `ThemeUtil.themedContext(context)`, a `ContextThemeWrapper` with the base theme and the preset applied. `AppShortcutIconGenerator` uses it for the colored shortcuts (`colorPrimaryContainer` and `colorOnPrimaryContainer`).
 - `LoginScreen` becomes a child of the app theme, so the login screen picks up the preset. Recheck the select button, which sets `?colorOnSurface` by hand since step 1, against the presets.
 
-### Removing the hand tinting
+### Step 3: Removing the hand tinting (done)
 
-Every remaining `getPrimaryColor()` and `getAccentColor()` call goes away. Most become nothing at all, because the M3 component already reads the right role. Step 1 already removed the status bar, toolbar, tab, drawer, login, and select sites.
+Every remaining `getPrimaryColor()` and `getAccentColor()` call is gone. Most became nothing at all, because the M3 component already reads the right role. Step 1 already removed the status bar, toolbar, tab, drawer, login, and select sites.
 
-| Site | Today | After |
+| Site | Before | After |
 |---|---|---|
 | `LibraryFragment.setUpRail` | Accent icon tint and indicator | Remove. The M3 rail defaults use `colorSecondaryContainer` and `colorOnSecondaryContainer`. |
 | `DownloadsActivity` | Accent for `coverageProgress` and `loading` | `colorPrimary` |
@@ -163,10 +161,12 @@ Every remaining `getPrimaryColor()` and `getAccentColor()` call goes away. Most 
 | `ShuffleButtonSongAdapter` | Accent | `colorPrimary` |
 | `MiniPlayerFragment`, `PlayerBarFragment` | Accent for the progress | `colorPrimary` |
 | `AbsBaseActivity` Snackbar | Accent action text | Remove (M3 uses `colorPrimaryInverse`) |
-| `SleepTimerDialog` | Accent arc | The slider's default colors (Phase 6) |
+| `SleepTimerDialog` | Accent arc | `colorPrimary` until the slider's default colors take over in Phase 6 |
 | `JellyPreferenceCategory` | `ACCENT_COLOR`, falling back to `R.color.color_accent` | `colorPrimary` |
 
-Then delete `getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_COLOR`, `ColorPreference`, `ColorCircleDrawable` (check for other users first), `preference_color.xml`, `color_primary`, `color_accent`, the `pref_title_primary_color`, `pref_title_accent_color`, `pref_summary_primary_color`, and `pref_summary_accent_color` strings in every locale, and the `com.github.QuadFlask:colorpicker` dependency.
+`getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_COLOR`, `ColorPreference`, `ColorCircleDrawable`, `preference_color.xml`, `color_primary`, `color_accent`, the `pref_title_primary_color`, `pref_title_accent_color`, `pref_summary_primary_color`, and `pref_summary_accent_color` strings in every locale, and the `com.github.QuadFlask:colorpicker` dependency are deleted too.
+
+Checked on an API 36 emulator against a local mock server, in light, dark, and black with Indigo and Neutral, and in light and dark with Orange: the settings headers, fast scroller, mini player, sleep timer arc, downloads screen, and Snackbar action. The rail and player bar were checked above 840dp in dark Indigo and light Orange. Neutral's primary is plain white or black, so its settings headers only differ from the rest of the text by size.
 
 ### Picker
 
@@ -222,8 +222,7 @@ androidx.preference has no Material 3 theme, so style it directly.
 1. One preference theme overlay for all three themes, based on `PreferenceThemeOverlay`, which fixes today's light/dark mismatch. Category titles use `colorPrimary`, titles use `colorOnSurface`, and summaries use `colorOnSurfaceVariant`.
 2. The 9 `SwitchPreference`s become `SwitchPreferenceCompat` with a `widgetLayout` that holds a `MaterialSwitch`.
 3. `ListPreference` and the other built-in preference dialogs use AppCompat's `AlertDialog`. Set `alertDialogTheme` in the base themes to the M3 alert dialog overlay. If the shape or colors still don't match the `MaterialAlertDialogBuilder` dialogs, override `onDisplayPreferenceDialog` in `SettingsActivity` to build them with `MaterialAlertDialogBuilder`.
-4. `JellyPreferenceCategory` drops its hard-coded accent color (Phase 4).
-5. Settings keeps the content-width cap from the large-screen work.
+4. Settings keeps the content-width cap from the large-screen work.
 
 Done when: Settings matches the rest of the app in all three themes, including its dialogs.
 

@@ -66,10 +66,6 @@
     <string name="rename_action">Rename</string>
     <string name="create_action">Create</string>
     <string name="x_selected">%1$d selected</string>
-    <string name="pref_title_primary_color">Primary colour</string>
-    <string name="pref_title_accent_color">Accent colour</string>
-    <string name="pref_summary_primary_color">The primary theme color, defaults to indigo.</string>
-    <string name="pref_summary_accent_color">The accent theme color, defaults to pink.</string>
     <string name="no_playlists">No playlists</string>
     <string name="no_albums">No albums</string>
     <string name="no_songs">No songs</string>

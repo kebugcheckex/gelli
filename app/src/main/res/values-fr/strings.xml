@@ -70,10 +70,6 @@
     <string name="create_action">Créer</string>
     <string name="reset_action">Réinitialiser</string>
     <string name="x_selected">%1$d séléctionné(s)</string>
-    <string name="pref_title_primary_color">Couleur principale</string>
-    <string name="pref_title_accent_color">Couleur secondaire</string>
-    <string name="pref_summary_primary_color">La couleur principale du thème (indigo par défaut).</string>
-    <string name="pref_summary_accent_color">La couleur secondaire du thème (rose par défaut)</string>
     <string name="no_playlists">Aucune playlist</string>
     <string name="no_albums">Aucun album</string>
     <string name="no_songs">Aucun titre</string>

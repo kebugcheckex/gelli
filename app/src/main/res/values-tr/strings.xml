@@ -70,10 +70,6 @@
     <string name="create_action">Oluştur</string>
     <string name="reset_action">Sıfırla</string>
     <string name="x_selected">%1$d seçildi</string>
-    <string name="pref_title_primary_color">Ana renk</string>
-    <string name="pref_title_accent_color">Vurgu rengi</string>
-    <string name="pref_summary_primary_color">Varsayılan tema ana rengi mavi.</string>
-    <string name="pref_summary_accent_color">Varsayılan tema vurgu rengi pembe.</string>
     <string name="no_playlists">Çalma listesi yok</string>
     <string name="no_albums">Albüm yok</string>
     <string name="no_songs">Şarkı yok</string>

@@ -70,10 +70,6 @@
     <string name="create_action">إنشاء</string>
     <string name="reset_action">إعادة تعيين</string>
     <string name="x_selected">تم تحديد %1$d</string>
-    <string name="pref_title_primary_color">اللون الأساسي</string>
-    <string name="pref_title_accent_color">اللون الثانوي</string>
-    <string name="pref_summary_primary_color">لون التنسيق الأساسي، الافتراضي هو الأزرق النيلي.</string>
-    <string name="pref_summary_accent_color">لون التنسيق الثانوي، الافتراضي هو الزهري.</string>
     <string name="no_playlists">لا توجد قوائم تشغيل</string>
     <string name="no_albums">لا توجد ألبومات</string>
     <string name="no_songs">لا توجد أغاني</string>

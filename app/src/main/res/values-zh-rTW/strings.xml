@@ -73,10 +73,6 @@
     <string name="create_action">建立</string>
     <string name="reset_action">重設</string>
     <string name="x_selected">已選取 %1$d 個</string>
-    <string name="pref_title_primary_color">主色調</string>
-    <string name="pref_title_accent_color">重點色調</string>
-    <string name="pref_summary_primary_color">主色調，預設為靛青色。</string>
-    <string name="pref_summary_accent_color">重點色調，預設為粉紅色。</string>
     <string name="no_playlists">沒有播放清單</string>
     <string name="no_albums">沒有專輯</string>
     <string name="no_songs">沒有歌曲</string>

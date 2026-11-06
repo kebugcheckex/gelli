@@ -70,10 +70,6 @@
     <string name="create_action">作成</string>
     <string name="reset_action">リセット</string>
     <string name="x_selected">%1$dつ選択中</string>
-    <string name="pref_title_primary_color">メインカラー</string>
-    <string name="pref_title_accent_color">アクセントカラー</string>
-    <string name="pref_summary_primary_color">ツールバーなどの色を設定します。(デフォルトではインディゴ)</string>
-    <string name="pref_summary_accent_color">コントロールキーやシークバーなどの色を設定します。(デフォルトではピンク)</string>
     <string name="no_playlists">プレイリストなし</string>
     <string name="no_albums">アルバムなし</string>
     <string name="no_songs">楽曲なし</string>

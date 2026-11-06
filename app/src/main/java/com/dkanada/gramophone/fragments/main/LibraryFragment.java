@@ -20,13 +20,9 @@ import androidx.annotation.Nullable;
 import com.dkanada.gramophone.databinding.FragmentLibraryBinding;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.util.ShortcutUtil;
-import com.dkanada.gramophone.util.ThemeUtil;
 import com.google.android.material.appbar.AppBarLayout;
-import com.google.android.material.color.MaterialColors;
 import com.google.android.material.navigationrail.NavigationRailView;
 import com.dkanada.gramophone.model.Category;
-import android.content.res.ColorStateList;
-import androidx.core.graphics.ColorUtils;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.MusicLibraryPagerAdapter;
 import com.dkanada.gramophone.dialogs.CreatePlaylistDialog;
@@ -109,13 +105,6 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
 
     private void setUpRail() {
         NavigationRailView rail = binding.navigationRail;
-        int accentColor = PreferenceUtil.getInstance(requireActivity()).getAccentColor();
-        int normalColor = MaterialColors.getColor(rail, R.attr.colorOnSurfaceVariant);
-        int selectedColor = MaterialColors.getColor(rail, R.attr.colorOnSurface);
-
-        rail.setItemIconTintList(ThemeUtil.getColorStateList(normalColor, accentColor));
-        rail.setItemTextColor(ThemeUtil.getColorStateList(normalColor, selectedColor));
-        rail.setItemActiveIndicatorColor(ColorStateList.valueOf(ColorUtils.setAlphaComponent(accentColor, 0x3D)));
 
         View header = rail.getHeaderView();
         if (header != null) {

@@ -13,7 +13,6 @@ import com.dkanada.gramophone.BuildConfig;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.databinding.ActivityGenreDetailBinding;
 import com.dkanada.gramophone.util.NavigationUtil;
-import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
@@ -58,7 +57,7 @@ public class GenreDetailActivity extends AbsMusicContentActivity {
     }
 
     private void setUpRecyclerView() {
-        ViewUtil.setUpFastScrollRecyclerViewColor(this, binding.recyclerView, PreferenceUtil.getInstance(this).getAccentColor());
+        ViewUtil.setUpFastScrollRecyclerViewColor(this, binding.recyclerView);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         ViewUtil.capContentWidth(binding.recyclerView);
 

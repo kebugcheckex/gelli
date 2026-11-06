@@ -106,8 +106,6 @@
 
     <string name="pref_title_direct_play_codecs">可直接播放编码</string>
     <string name="pref_title_categories">媒体库类别</string>
-    <string name="pref_title_primary_color">主色调</string>
-    <string name="pref_title_accent_color">强调色</string>
     <string name="pref_title_theme">主题</string>
     <string name="pref_title_colored_shortcuts">多彩应用快捷方式</string>
     <string name="pref_title_show_album_art">显示专辑封面</string>
@@ -123,8 +121,6 @@
     <string name="pref_title_image_cache_size">图片缓存大小</string>
 
     <string name="pref_title_gain_adjustment">增益调节</string>
-    <string name="pref_summary_primary_color">主题主色调，默认为靛蓝色。</string>
-    <string name="pref_summary_accent_color">主题强调色，默认为粉色。</string>
     <string name="pref_summary_show_album_art">使用当前播放曲目的专辑封面作为锁屏壁纸。</string>
     <string name="pref_summary_blur_album_art">模糊化显示锁屏界面内的专辑封面。此功能或与第三方应用及桌面插件产生冲突。</string>
     <string name="pref_summary_classic_notification">使用经典通知样式。</string>
