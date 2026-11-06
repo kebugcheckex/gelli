@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp"
-    android:background="?rectSelector"
+    android:background="@drawable/selectable_item_activated"
     android:orientation="vertical"
     android:padding="8dp">
 

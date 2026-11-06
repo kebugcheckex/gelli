@@ -48,7 +48,7 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                 android:layout_marginStart="64dp"
                 android:layout_marginEnd="64dp"
                 android:layout_weight="1"
-                android:background="?attr/rectSelector"
+                android:background="?attr/selectableItemBackground"
                 android:contentDescription="@string/action_go_to_album"
                 android:gravity="center"
                 android:orientation="vertical">

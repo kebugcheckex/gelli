@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- selectableItemBackground, which also stays highlighted for an item chosen in multi-select -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+
+    <item
+        android:id="@android:id/mask"
+        android:drawable="@android:color/white" />
+
+    <item>
+        <selector>
+            <item android:state_activated="true">
+                <color android:color="?attr/colorControlHighlight" />
+            </item>
+        </selector>
+    </item>
+
+</ripple>

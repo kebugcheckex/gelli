@@ -14,7 +14,7 @@
         <item name="android:layout_width">48dp</item>
         <item name="android:layout_height">48dp</item>
         <item name="android:scaleType">center</item>
-        <item name="android:background">?attr/roundSelector</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
         <item name="android:focusableInTouchMode">false</item>
         <item name="android:focusable">false</item>
     </style>
@@ -79,11 +79,7 @@
         <item name="android:textColorPrimary">@color/text_primary_dark</item>
         <item name="android:textColorSecondary">@color/text_secondary_dark</item>
         <item name="android:textColorTertiary">@color/text_secondary_dark</item>
-        <item name="iconColor">#B3FFFFFF</item>
         <item name="dividerColor">#1AFFFFFF</item>
-        <item name="roundSelector">@drawable/round_selector_dark</item>
-        <item name="rectSelector">@drawable/rect_selector_dark</item>
-        <item name="rectSelectorStrong">@drawable/rect_selector_strong_dark</item>
         <item name="colorOnSurface">@android:color/white</item>
         <item name="colorOnSurfaceVariant">#B3FFFFFF</item>
         <item name="colorOutlineVariant">#40FFFFFF</item>

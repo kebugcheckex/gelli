@@ -4,13 +4,7 @@ import android.animation.Animator;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.RippleDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -49,19 +43,6 @@ public class ViewUtil {
 
         animator.setDuration(PHONOGRAPH_ANIM_TIME);
         return animator;
-    }
-
-    public static Drawable createSelectorDrawable(Context context, @ColorInt int color) {
-        final StateListDrawable baseSelector = new StateListDrawable();
-        baseSelector.addState(new int[]{android.R.attr.state_activated}, new ColorDrawable(color));
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return new RippleDrawable(ColorStateList.valueOf(color), baseSelector, new ColorDrawable(Color.WHITE));
-        }
-
-        baseSelector.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT));
-        baseSelector.addState(new int[]{android.R.attr.state_pressed}, new ColorDrawable(color));
-        return baseSelector;
     }
 
     public static boolean hitTest(View v, int x, int y) {

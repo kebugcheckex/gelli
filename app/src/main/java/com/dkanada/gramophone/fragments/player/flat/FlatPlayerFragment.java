@@ -356,7 +356,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
             currentSongViewHolder.separator.setVisibility(View.VISIBLE);
             currentSongViewHolder.shortSeparator.setVisibility(View.GONE);
             currentSongViewHolder.image.setScaleType(ImageView.ScaleType.CENTER);
-            currentSongViewHolder.image.setColorFilter(ThemeUtil.getColorResource(fragment.getActivity(), R.attr.iconColor), PorterDuff.Mode.SRC_IN);
+            currentSongViewHolder.image.setColorFilter(ThemeUtil.getColorResource(fragment.getActivity(), R.attr.colorOnSurfaceVariant), PorterDuff.Mode.SRC_IN);
             currentSongViewHolder.image.setImageResource(R.drawable.ic_volume_up_white_24dp);
             currentSongViewHolder.itemView.setOnClickListener(v -> {
                 if (binding.playerSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {

@@ -210,8 +210,8 @@ Checked in light, dark, and black on a phone, and the expanded player bar for re
 | Plain `ProgressBar` in `activity_splash.xml`, `activity_downloads.xml`, and `fragment_landscape_player.xml` | Done. The splash and the landscape ring are circular, and the downloads bars are linear. |
 | `SeekBar` for playback position | Done. Kept, because M3's `Slider` has no buffered-progress track. `Widget.Gelli.SeekBar` uses `colorPrimary` and `colorSurfaceContainerHighest` on the player bar. `Widget.Gelli.SeekBar.OnColor` is white for the flat and landscape players, which sit on the album color. |
 | `SeekArc` in the sleep timer | Done. A `Slider` from 1 to 120 minutes above the time text, with the "finish last song" checkbox below. The dependency is gone. |
-| `IconImageView` | Tint with `colorOnSurfaceVariant` in place of `iconColor`. Remove `iconColor` if nothing else reads it. |
-| `roundSelector`, `rectSelector`, `rectSelectorStrong` | Use `?attr/selectableItemBackgroundBorderless` and `?attr/selectableItemBackground`, so presses use M3's state layers. Delete the drawables and attributes once unused. |
+| `IconImageView` | Done. Tints with `colorOnSurfaceVariant`, and `iconColor` is gone. |
+| `roundSelector`, `rectSelector`, `rectSelectorStrong` | Done. `?attr/selectableItemBackgroundBorderless` and `?attr/selectableItemBackground`, so presses use M3's state layers. Rows and tiles that can be chosen in multi-select use `@drawable/selectable_item_activated`, because `selectableItemBackground` has no activated state. |
 
 The home-screen widgets (`app_widget_*.xml`) and the notification layouts are built from `RemoteViews` and stay as they are.
 

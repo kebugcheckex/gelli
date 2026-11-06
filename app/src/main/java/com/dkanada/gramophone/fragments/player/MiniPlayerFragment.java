@@ -2,7 +2,6 @@ package com.dkanada.gramophone.fragments.player;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -16,12 +15,10 @@ import androidx.annotation.Nullable;
 import com.dkanada.gramophone.activities.base.AbsMusicPanelActivity;
 import com.dkanada.gramophone.databinding.FragmentMiniPlayerBinding;
 import com.dkanada.gramophone.model.Song;
-import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.helper.MusicProgressViewUpdateHelper;
 import com.dkanada.gramophone.helper.PlayPauseButtonOnClickHandler;
 import com.dkanada.gramophone.fragments.AbsMusicServiceFragment;
-import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.views.PlayPauseDrawable;
 
 public class MiniPlayerFragment extends AbsMusicServiceFragment implements MusicProgressViewUpdateHelper.Callback {
@@ -62,7 +59,6 @@ public class MiniPlayerFragment extends AbsMusicServiceFragment implements Music
         miniPlayerPlayPauseDrawable = new PlayPauseDrawable(requireActivity());
 
         binding.miniPlayerPlayPauseButton.setImageDrawable(miniPlayerPlayPauseDrawable);
-        binding.miniPlayerPlayPauseButton.setColorFilter(ThemeUtil.getColorResource(requireActivity(), R.attr.iconColor), PorterDuff.Mode.SRC_IN);
         binding.miniPlayerPlayPauseButton.setOnClickListener(new PlayPauseButtonOnClickHandler());
     }
 

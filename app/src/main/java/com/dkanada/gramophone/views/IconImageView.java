@@ -27,6 +27,6 @@ public class IconImageView extends AppCompatImageView {
 
     private void init(Context context) {
         if (context == null) return;
-        setColorFilter(ThemeUtil.getColorResource(context, R.attr.iconColor), PorterDuff.Mode.SRC_IN);
+        setColorFilter(ThemeUtil.getColorResource(context, R.attr.colorOnSurfaceVariant), PorterDuff.Mode.SRC_IN);
     }
 }
