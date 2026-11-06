@@ -19,12 +19,12 @@ public abstract class AbsOffsetSongAdapter extends SongAdapter {
     protected static final int OFFSET_ITEM = 0;
     protected static final int SONG = 1;
 
-    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
-        super(activity, dataSet, itemLayoutRes, usePalette);
+    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes) {
+        super(activity, dataSet, itemLayoutRes);
     }
 
-    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, boolean showSectionName) {
-        super(activity, dataSet, itemLayoutRes, usePalette, showSectionName);
+    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean showSectionName) {
+        super(activity, dataSet, itemLayoutRes, showSectionName);
     }
 
     @NonNull

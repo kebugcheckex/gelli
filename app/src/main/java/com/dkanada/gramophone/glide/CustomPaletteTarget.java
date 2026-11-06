@@ -19,21 +19,17 @@ public abstract class CustomPaletteTarget extends BitmapPaletteTarget {
     @Override
     public void onLoadFailed(Drawable errorDrawable) {
         super.onLoadFailed(errorDrawable);
-        onColorReady(getDefaultFooterColor());
+        onColorReady(getFallbackColor());
     }
 
     @Override
     public void onResourceReady(@NonNull BitmapPaletteWrapper resource, Transition<? super BitmapPaletteWrapper> glideAnimation) {
         super.onResourceReady(resource, glideAnimation);
-        onColorReady(ThemeUtil.getColor(resource.getPalette(), getDefaultFooterColor()));
+        onColorReady(ThemeUtil.getColor(resource.getPalette(), getFallbackColor()));
     }
 
-    protected int getDefaultFooterColor() {
-        return ThemeUtil.getColorResource(getView().getContext(), R.attr.defaultFooterColor);
-    }
-
-    protected int getAlbumArtistFooterColor() {
-        return ThemeUtil.getColorResource(getView().getContext(), R.attr.cardBackgroundColor);
+    private int getFallbackColor() {
+        return ThemeUtil.getColorResource(getView().getContext(), R.attr.colorSurfaceContainerHighest);
     }
 
     public abstract void onColorReady(int color);

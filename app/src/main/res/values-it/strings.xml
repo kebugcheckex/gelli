@@ -93,7 +93,6 @@
     <string name="cancel_current_timer">Annulla questo timer</string>
     <string name="sleep_timer_canceled">Il timer di spegnimento è stato annullato.</string>
     <string name="sleep_timer_set">Timer di spegnimento impostato a %d minuti da adesso</string>
-    <string name="colored_footers">Riquadri colorati</string>
     <string name="special_thanks_to">Ringraziamenti speciali a</string>
     <string name="permissions_denied">Permesso negato.</string>
     <string name="support_development">Supporta lo sviluppo</string>

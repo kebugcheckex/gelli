@@ -15,14 +15,9 @@ public class HorizontalAdapterHelper {
     public static void applyMarginToLayoutParams(Context context, ViewGroup.MarginLayoutParams layoutParams, int viewType) {
         int listMargin = context.getResources().getDimensionPixelSize(R.dimen.default_item_margin);
 
-        layoutParams.leftMargin = listMargin / 4;
-        layoutParams.rightMargin = listMargin / 4;
-
-        if (viewType == TYPE_FIRST) {
-            layoutParams.leftMargin = listMargin;
-        } else if (viewType == TYPE_LAST) {
-            layoutParams.rightMargin = listMargin;
-        }
+        // the tile pads its cover by half the margin, so this lines the first cover up with the rest of the screen
+        layoutParams.leftMargin = viewType == TYPE_FIRST ? listMargin / 2 : 0;
+        layoutParams.rightMargin = viewType == TYPE_LAST ? listMargin / 2 : 0;
     }
 
     public static int getItemViewType(int position, int itemCount) {

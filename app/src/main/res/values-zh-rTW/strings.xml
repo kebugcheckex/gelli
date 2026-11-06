@@ -94,7 +94,6 @@
     <string name="cancel_current_timer">取消目前的計時器</string>
     <string name="sleep_timer_canceled">已取消睡眠定時器。</string>
     <string name="sleep_timer_set">%d分鐘後，音樂將會自動停止。</string>
-    <string name="colored_footers">彩色的註腳</string>
     <string name="special_thanks_to">特別感謝</string>
     <string name="permissions_denied">存取被拒</string>
     <string name="support_development">支援開發</string>

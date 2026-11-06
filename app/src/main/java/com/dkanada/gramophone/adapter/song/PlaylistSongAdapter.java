@@ -16,8 +16,8 @@ import com.dkanada.gramophone.util.ThemeUtil;
 import java.util.List;
 
 public class PlaylistSongAdapter extends AbsOffsetSongAdapter {
-    public PlaylistSongAdapter(AppCompatActivity activity, @NonNull List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
-        super(activity, dataSet, itemLayoutRes, usePalette, false);
+    public PlaylistSongAdapter(AppCompatActivity activity, @NonNull List<Song> dataSet, @LayoutRes int itemLayoutRes) {
+        super(activity, dataSet, itemLayoutRes, false);
         setMenu(R.menu.menu_select_playlist_song);
     }
 

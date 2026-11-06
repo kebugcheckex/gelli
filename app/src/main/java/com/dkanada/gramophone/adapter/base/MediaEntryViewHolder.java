@@ -39,9 +39,6 @@ public class MediaEntryViewHolder extends RecyclerView.ViewHolder implements Vie
     @Nullable
     public View dragView;
 
-    @Nullable
-    public View paletteColorContainer;
-
     public MediaEntryViewHolder(View itemView) {
         super(itemView);
 
@@ -54,7 +51,6 @@ public class MediaEntryViewHolder extends RecyclerView.ViewHolder implements Vie
         separator = itemView.findViewById(R.id.separator);
         shortSeparator = itemView.findViewById(R.id.short_separator);
         dragView = itemView.findViewById(R.id.drag_view);
-        paletteColorContainer = itemView.findViewById(R.id.palette_color_container);
 
         itemView.setOnClickListener(this);
         itemView.setOnLongClickListener(this);

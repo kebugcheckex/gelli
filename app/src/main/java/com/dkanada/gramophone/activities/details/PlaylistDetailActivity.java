@@ -75,7 +75,7 @@ public class PlaylistDetailActivity extends AbsMusicContentActivity {
 
         recyclerViewDragDropManager = new RecyclerViewDragDropManager();
         final GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
-        adapter = new OrderablePlaylistSongAdapter(this, new ArrayList<>(), R.layout.item_list, false, (fromPosition, toPosition) -> {
+        adapter = new OrderablePlaylistSongAdapter(this, new ArrayList<>(), R.layout.item_list, (fromPosition, toPosition) -> {
             PlaylistUtil.moveItem(playlist.id, (PlaylistSong) adapter.getDataSet().get(fromPosition), toPosition);
             Song song = adapter.getDataSet().remove(fromPosition);
             adapter.getDataSet().add(toPosition, song);

@@ -21,8 +21,8 @@ import java.util.List;
 public class OrderablePlaylistSongAdapter extends PlaylistSongAdapter implements DraggableItemAdapter<OrderablePlaylistSongAdapter.ViewHolder> {
     private final OrderableListener onMoveItemListener;
 
-    public OrderablePlaylistSongAdapter(@NonNull AppCompatActivity activity, @NonNull List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable OrderableListener onMoveItemListener) {
-        super(activity, dataSet, itemLayoutRes, usePalette);
+    public OrderablePlaylistSongAdapter(@NonNull AppCompatActivity activity, @NonNull List<Song> dataSet, @LayoutRes int itemLayoutRes, @Nullable OrderableListener onMoveItemListener) {
+        super(activity, dataSet, itemLayoutRes);
 
         this.onMoveItemListener = onMoveItemListener;
     }

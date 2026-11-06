@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class AlbumSongAdapter extends SongAdapter {
-    public AlbumSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
-        super(activity, dataSet, itemLayoutRes, usePalette);
+    public AlbumSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes) {
+        super(activity, dataSet, itemLayoutRes);
     }
 
     @Override

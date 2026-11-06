@@ -84,7 +84,6 @@
     <string name="cancel_current_timer">Hủy hẹn giờ hiện tại</string>
     <string name="sleep_timer_canceled">Đã hủy hẹn giờ ngủ</string>
     <string name="sleep_timer_set">Hẹn giờ ngủ được cài cho %d phút từ bây giờ.</string>
-    <string name="colored_footers">Màu cuối trang</string>
     <string name="special_thanks_to">Trân trọng cảm ơn</string>
     <string name="permissions_denied">Quyền hạn bị từ chối.</string>
     <string name="support_development">Hỗ trợ phát triển</string>

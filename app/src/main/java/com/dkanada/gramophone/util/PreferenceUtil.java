@@ -60,12 +60,6 @@ public final class PreferenceUtil {
     public static final String ARTIST_LAYOUT = "artist_layout";
     public static final String ALBUM_ARTISTS_LAYOUT = "album_artists_layout";
 
-    public static final String ALBUM_COLORED_FOOTERS = "album_colored_footers";
-    public static final String SONG_COLORED_FOOTERS = "song_colored_footers";
-    public static final String ARTIST_COLORED_FOOTERS = "artist_colored_footers";
-    public static final String ALBUM_ARTISTS_COLORED_FOOTERS = "album_artists_colored_footers";
-    public static final String ALBUM_ARTIST_COLORED_FOOTERS = "album_artist_colored_footers";
-
     public static final String CATEGORIES = "categories";
     public static final String PAGE_SIZE = "page_size";
     public static final String REMEMBER_LAST_TAB = "remember_last_tab";
@@ -436,46 +430,6 @@ public final class PreferenceUtil {
 
     private LibraryLayout getLibraryLayout(String key, LibraryLayout fallback) {
         return LibraryLayout.valueOf(mPreferences.getString(key, fallback.toString()));
-    }
-
-    public final boolean getAlbumColoredFooters() {
-        return mPreferences.getBoolean(ALBUM_COLORED_FOOTERS, true);
-    }
-
-    public void setAlbumColoredFooters(final boolean value) {
-        mPreferences.edit().putBoolean(ALBUM_COLORED_FOOTERS, value).apply();
-    }
-
-    public final boolean getSongColoredFooters() {
-        return mPreferences.getBoolean(SONG_COLORED_FOOTERS, true);
-    }
-
-    public void setSongColoredFooters(final boolean value) {
-        mPreferences.edit().putBoolean(SONG_COLORED_FOOTERS, value).apply();
-    }
-
-    public final boolean getArtistColoredFooters() {
-        return mPreferences.getBoolean(ARTIST_COLORED_FOOTERS, true);
-    }
-
-    public void setArtistColoredFooters(final boolean value) {
-        mPreferences.edit().putBoolean(ARTIST_COLORED_FOOTERS, value).apply();
-    }
-
-    public final boolean getAlbumArtistsColoredFooters() {
-        return mPreferences.getBoolean(ALBUM_ARTISTS_COLORED_FOOTERS, true);
-    }
-
-    public void setAlbumArtistsColoredFooters(final boolean value) {
-        mPreferences.edit().putBoolean(ALBUM_ARTISTS_COLORED_FOOTERS, value).apply();
-    }
-
-    public final boolean getAlbumArtistColoredFooters() {
-        return mPreferences.getBoolean(ALBUM_ARTIST_COLORED_FOOTERS, true);
-    }
-
-    public void setAlbumArtistColoredFooters(final boolean value) {
-        mPreferences.edit().putBoolean(ALBUM_ARTIST_COLORED_FOOTERS, value).apply();
     }
 
     /** Songs larger than this many bytes are saved transcoded, 0 saves every song as the original. */

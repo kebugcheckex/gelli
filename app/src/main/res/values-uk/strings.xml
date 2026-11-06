@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">Скасувати встановленний таймер</string>
     <string name="sleep_timer_canceled">Таймер сну скасовано.</string>
     <string name="sleep_timer_set">Таймер сну спрацює за %d хвилин.</string>
-    <string name="colored_footers">Фарбовані колонтитули</string>
     <string name="special_thanks_to">Особлива подяка</string>
     <string name="permissions_denied">У доступі відмовлено.</string>
     <string name="support_development">Підтримати розробника</string>

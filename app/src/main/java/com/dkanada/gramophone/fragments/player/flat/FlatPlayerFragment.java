@@ -199,8 +199,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
                 ((AppCompatActivity) getActivity()),
                 MusicPlayerRemote.getPlayingQueue(),
                 MusicPlayerRemote.getPosition(),
-                R.layout.item_list,
-                false);
+                R.layout.item_list);
         wrappedAdapter = recyclerViewDragDropManager.createWrappedAdapter(playingQueueAdapter);
 
         layoutManager = new LinearLayoutManager(getActivity());

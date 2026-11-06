@@ -94,7 +94,6 @@
     <string name="cancel_current_timer">Aktuellen Timer abbrechen</string>
     <string name="sleep_timer_canceled">Der Einschlaf Timer wurde abgebrochen.</string>
     <string name="sleep_timer_set">Der Schlaf Timer geht ab jetzt %d Minuten lang.</string>
-    <string name="colored_footers">Farbige Balken</string>
     <string name="special_thanks_to">Besonderes Dankeschön an</string>
     <string name="permissions_denied">Berechtigungen verweigert.</string>
     <string name="support_development">Unterstütze die Entwicklung</string>

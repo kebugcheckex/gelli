@@ -1,6 +1,5 @@
 package com.dkanada.gramophone.adapter.artist;
 
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,12 +11,10 @@ import androidx.core.util.Pair;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dkanada.gramophone.util.QueryUtil;
-import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.base.AbsMultiSelectAdapter;
 import com.dkanada.gramophone.adapter.base.MediaEntryViewHolder;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
-import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.menu.SongsMenuHelper;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.util.MusicUtil;
@@ -33,15 +30,13 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
 
     protected int itemLayoutRes;
 
-    protected boolean usePalette;
     private final boolean albumArtists;
 
-    public ArtistAdapter(@NonNull AppCompatActivity activity, List<Artist> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, boolean albumArtists) {
+    public ArtistAdapter(@NonNull AppCompatActivity activity, List<Artist> dataSet, @LayoutRes int itemLayoutRes, boolean albumArtists) {
         super(activity, R.menu.menu_select_media);
         this.activity = activity;
         this.dataSet = dataSet;
         this.itemLayoutRes = itemLayoutRes;
-        this.usePalette = usePalette;
         this.albumArtists = albumArtists;
         setHasStableIds(true);
     }
@@ -53,11 +48,6 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
 
     public List<Artist> getDataSet() {
         return dataSet;
-    }
-
-    public void usePalette(boolean usePalette) {
-        this.usePalette = usePalette;
-        notifyDataSetChanged();
     }
 
     @Override
@@ -102,41 +92,13 @@ public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolde
         loadArtistImage(artist, holder);
     }
 
-    private void setColors(int color, ViewHolder holder) {
-        if (holder.paletteColorContainer != null) {
-            holder.paletteColorContainer.setBackgroundColor(color);
-            if (holder.title != null) {
-                holder.title.setTextColor(ThemeUtil.getPrimaryTextColor(activity, color));
-            }
-
-            if (holder.text != null) {
-                holder.text.setTextColor(ThemeUtil.getSecondaryTextColor(activity, color));
-            }
-        }
-    }
-
     protected void loadArtistImage(Artist artist, final ViewHolder holder) {
         if (holder.image == null) return;
 
         CustomGlideRequest.Builder
                 .from(activity, artist.primary, artist.blurHash)
-                .palette().build()
-                .into(new CustomPaletteTarget(holder.image) {
-                    @Override
-                    public void onLoadCleared(Drawable placeholder) {
-                        super.onLoadCleared(placeholder);
-                        setColors(getDefaultFooterColor(), holder);
-                    }
-
-                    @Override
-                    public void onColorReady(int color) {
-                        if (usePalette) {
-                            setColors(color, holder);
-                        } else {
-                            setColors(getDefaultFooterColor(), holder);
-                        }
-                    }
-                });
+                .build()
+                .into(holder.image);
     }
 
     @Override

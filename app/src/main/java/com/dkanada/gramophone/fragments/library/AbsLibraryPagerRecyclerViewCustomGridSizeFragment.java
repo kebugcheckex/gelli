@@ -24,8 +24,6 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     private SortMethod sortMethod;
     private SortOrder sortOrder;
 
-    private boolean usePaletteInitialized;
-    private boolean usePalette;
     private int currentLayoutRes;
 
     public final LibraryLayout getLibraryLayout() {
@@ -34,15 +32,6 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
         }
 
         return libraryLayout;
-    }
-
-    public final boolean usePalette() {
-        if (!usePaletteInitialized) {
-            usePalette = loadUsePalette();
-            usePaletteInitialized = true;
-        }
-
-        return usePalette;
     }
 
     public final SortMethod getSortMethod() {
@@ -75,12 +64,6 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
         }
     }
 
-    public void setAndSaveUsePalette(final boolean usePalette) {
-        this.usePalette = usePalette;
-        saveUsePalette(usePalette);
-        setUsePalette(usePalette);
-    }
-
     public void setAndSaveSortMethod(final SortMethod sortMethod) {
         this.sortMethod = sortMethod;
         saveSortMethod(sortMethod);
@@ -93,11 +76,6 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
         saveSortOrder(sortOrder);
         setSortOrder(sortOrder);
         invalidateAdapter();
-    }
-
-    public boolean canUsePalette() {
-        // the expanded width grid tile puts its text below the cover, so it has no footer to colour
-        return getItemLayoutRes() == R.layout.item_grid && !getResources().getBoolean(R.bool.expanded_layout);
     }
 
     @LayoutRes
@@ -193,12 +171,6 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     protected abstract LibraryLayout loadLibraryLayout();
 
     protected abstract void saveLibraryLayout(LibraryLayout libraryLayout);
-
-    protected abstract void saveUsePalette(boolean usePalette);
-
-    protected abstract boolean loadUsePalette();
-
-    protected abstract void setUsePalette(boolean usePalette);
 
     protected abstract SortMethod loadSortMethod();
 

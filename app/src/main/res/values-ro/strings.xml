@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">Anulează timer curent.</string>
     <string name="sleep_timer_canceled">Cronometru pentru somn anulat.</string>
     <string name="sleep_timer_set">Cronometrul pentru somn setat pentru %d minute din acest moment.</string>
-    <string name="colored_footers">Subsoluri colorate</string>
     <string name="special_thanks_to">Mulțumiri speciale</string>
     <string name="permissions_denied">Permisiune refuzată.</string>
     <string name="support_development">Susţineţi dezvoltarea</string>

@@ -29,7 +29,7 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
         notifyLayoutResChanged(itemLayoutRes);
 
         List<Artist> dataSet = getAdapter() == null ? new ArrayList<>() : getAdapter().getDataSet();
-        return new ArtistAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, loadUsePalette(), isAlbumArtists());
+        return new ArtistAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, isAlbumArtists());
     }
 
     @Override
@@ -120,24 +120,4 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
         }
     }
 
-    @Override
-    protected void saveUsePalette(boolean usePalette) {
-        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
-        if (isAlbumArtists()) {
-            preferences.setAlbumArtistsColoredFooters(usePalette);
-        } else {
-            preferences.setArtistColoredFooters(usePalette);
-        }
-    }
-
-    @Override
-    public boolean loadUsePalette() {
-        PreferenceUtil preferences = PreferenceUtil.getInstance(getActivity());
-        return isAlbumArtists() ? preferences.getAlbumArtistsColoredFooters() : preferences.getArtistColoredFooters();
-    }
-
-    @Override
-    protected void setUsePalette(boolean usePalette) {
-        getAdapter().usePalette(usePalette);
-    }
 }

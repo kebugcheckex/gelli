@@ -1,60 +1,41 @@
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the grid tile at a fixed width, for a row that scrolls sideways -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="104dp"
-    android:layout_height="match_parent"
-    android:layout_margin="16dp"
-    android:foreground="?attr/rectSelectorStrong"
-    app:cardCornerRadius="0dp"
-    app:cardBackgroundColor="?cardBackgroundColor">
+    android:layout_width="120dp"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="?rectSelector"
+    android:orientation="vertical"
+    android:padding="8dp">
 
-    <LinearLayout
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="104dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Gelli.Cover"
+        app:srcCompat="@drawable/default_album_art"
+        tools:ignore="ContentDescription" />
 
-        <ImageView
-            android:id="@+id/image"
-            android:layout_width="104dp"
-            android:layout_height="104dp"
-            android:scaleType="centerCrop"
-            tools:ignore="ContentDescription" />
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:singleLine="true"
+        android:textAppearance="?textAppearanceTitleSmall"
+        android:textColor="?android:textColorPrimary" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:singleLine="true"
+        android:textAppearance="?textAppearanceBodySmall"
+        android:textColor="?android:textColorSecondary" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:orientation="vertical"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                tools:ignore="UnusedAttribute">
-
-                <TextView
-                    android:id="@+id/title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
+</LinearLayout>

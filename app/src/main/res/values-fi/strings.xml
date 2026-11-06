@@ -93,7 +93,6 @@
     <string name="cancel_current_timer">Peru tämänhetkinen ajastin</string>
     <string name="sleep_timer_canceled">Ajastin peruttu.</string>
     <string name="sleep_timer_set">Ajastin asetettu %d minuutin päähän tästä hetkestä.</string>
-    <string name="colored_footers">Värilliset alatunnisteet</string>
     <string name="special_thanks_to">Erikoiskiitokset</string>
     <string name="permissions_denied">Sinulla ei ole oikeuksia tähän.</string>
     <string name="support_development">Tue kehitystä</string>

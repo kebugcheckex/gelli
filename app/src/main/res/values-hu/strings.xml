@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">Az aktuális időzítő törlése</string>
     <string name="sleep_timer_canceled">Elalvás időzítő törölve.</string>
     <string name="sleep_timer_set">Elalvás időzítő beállítva, mostantól számított %d percre.</string>
-    <string name="colored_footers">Színes lábjegyzetek</string>
     <string name="special_thanks_to">Külön köszönet</string>
     <string name="permissions_denied">Jogosultságok megtagadva.</string>
     <string name="support_development">Fejlesztés támogatás</string>

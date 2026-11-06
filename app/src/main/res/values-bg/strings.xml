@@ -81,7 +81,6 @@
     <string name="cancel_current_timer">Премахни текущия таймер</string>
     <string name="sleep_timer_canceled">Таймерът бе премахнат</string>
     <string name="sleep_timer_set">Таймерът за заспиване бе зададен за %d минути от сега.</string>
-    <string name="colored_footers">Оцветени кутийки за имената</string>
     <string name="special_thanks_to">Специални благодарности към</string>
     <string name="permissions_denied">Достъпът е отказан.</string>
     <string name="support_development">Подкрепете развитието</string>

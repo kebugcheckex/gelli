@@ -1,6 +1,5 @@
 package com.dkanada.gramophone.adapter;
 
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.base.MediaEntryViewHolder;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
-import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
@@ -81,17 +79,8 @@ public class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.ViewHolder> 
 
         CustomGlideRequest.Builder
                 .from(activity, genre.primary, genre.blurHash)
-                .palette().build()
-                .into(new CustomPaletteTarget(holder.image) {
-                    @Override
-                    public void onLoadCleared(Drawable placeholder) {
-                        super.onLoadCleared(placeholder);
-                    }
-
-                    @Override
-                    public void onColorReady(int color) {
-                    }
-                });
+                .build()
+                .into(holder.image);
     }
 
     @Override

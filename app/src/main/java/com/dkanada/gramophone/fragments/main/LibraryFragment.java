@@ -198,10 +198,9 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
             menu.add(0, R.id.action_new_playlist, 0, R.string.action_new_playlist);
         }
 
-        // the rail has its own shuffle button and the expanded grid has no footers to colour
+        // the rail has its own shuffle button
         if (hasRail()) {
             menu.removeItem(R.id.action_shuffle_all);
-            menu.removeItem(R.id.action_colored_footers);
         }
 
         Fragment currentFragment = getCurrentFragment();
@@ -209,18 +208,10 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
             AbsLibraryPagerRecyclerViewCustomGridSizeFragment absLibraryRecyclerViewCustomGridSizeFragment = (AbsLibraryPagerRecyclerViewCustomGridSizeFragment) currentFragment;
 
             setUpLayoutMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_layout).getSubMenu());
-
-            MenuItem coloredFooters = menu.findItem(R.id.action_colored_footers);
-            if (coloredFooters != null) {
-                coloredFooters.setChecked(absLibraryRecyclerViewCustomGridSizeFragment.usePalette());
-                coloredFooters.setEnabled(absLibraryRecyclerViewCustomGridSizeFragment.canUsePalette());
-            }
-
             setUpSortMethodMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_sort_method).getSubMenu());
             setUpSortOrderMenu(absLibraryRecyclerViewCustomGridSizeFragment, menu.findItem(R.id.action_sort_order).getSubMenu());
         } else {
             menu.removeItem(R.id.action_layout);
-            menu.removeItem(R.id.action_colored_footers);
             menu.removeItem(R.id.action_sort_method);
             menu.removeItem(R.id.action_sort_order);
         }
@@ -231,12 +222,6 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         Fragment currentFragment = getCurrentFragment();
         if (currentFragment instanceof AbsLibraryPagerRecyclerViewCustomGridSizeFragment) {
             AbsLibraryPagerRecyclerViewCustomGridSizeFragment absLibraryRecyclerViewCustomGridSizeFragment = (AbsLibraryPagerRecyclerViewCustomGridSizeFragment) currentFragment;
-            if (item.getItemId() == R.id.action_colored_footers) {
-                item.setChecked(!item.isChecked());
-                absLibraryRecyclerViewCustomGridSizeFragment.setAndSaveUsePalette(item.isChecked());
-                return true;
-            }
-
             if (handleLayoutMenuItem(absLibraryRecyclerViewCustomGridSizeFragment, item)) {
                 return true;
             }
@@ -275,8 +260,6 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
             if (getLayoutMenuItemId(layout) == item.getItemId()) {
                 item.setChecked(true);
                 fragment.setAndSaveLibraryLayout(layout);
-                MenuItem coloredFooters = binding.toolbar.getMenu().findItem(R.id.action_colored_footers);
-                if (coloredFooters != null) coloredFooters.setEnabled(fragment.canUsePalette());
                 return true;
             }
         }

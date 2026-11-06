@@ -93,7 +93,6 @@
     <string name="cancel_current_timer">Отменить текущий таймер</string>
     <string name="sleep_timer_canceled">Таймер сна отменен.</string>
     <string name="sleep_timer_set">Таймер сна установлен на %d минут(ы) с текущего момента</string>
-    <string name="colored_footers">Окрашенные нижние колонтитулы</string>
     <string name="special_thanks_to">Особая благодарность</string>
     <string name="permissions_denied">В разрешениях отказано.</string>
     <string name="support_development">Поддержать разработку</string>

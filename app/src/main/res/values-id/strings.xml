@@ -93,7 +93,6 @@
     <string name="cancel_current_timer">Batalkan pewaktu yang sekarang</string>
     <string name="sleep_timer_canceled">"Pewaktu tidur dibatalkan. "</string>
     <string name="sleep_timer_set">"Pewaktu tidur diatur selama %d menit dari sekarang. "</string>
-    <string name="colored_footers">Bawahan berwarna</string>
     <string name="special_thanks_to">Terima kasih khusus kepada</string>
     <string name="permissions_denied">Izin ditolak</string>
     <string name="support_development">Dukung pengembangan</string>

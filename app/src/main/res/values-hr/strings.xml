@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">Otkaži trenutni tajmer</string>
     <string name="sleep_timer_canceled">Tajmer za spavanje je otkazan.</string>
     <string name="sleep_timer_set">Tajmer za spavanje postavljen je %d min od sada.</string>
-    <string name="colored_footers">Obojena podnožja</string>
     <string name="special_thanks_to">Posebne zahvale</string>
     <string name="permissions_denied">Pristup odbijen.</string>
     <string name="support_development">Podrži razvoj</string>

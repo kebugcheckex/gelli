@@ -28,8 +28,8 @@ public class PlayingQueueAdapter extends SongAdapter implements DraggableItemAda
     // the full players show the current song above the queue, so the queue row for it is dimmed like history
     private boolean dimCurrent = true;
 
-    public PlayingQueueAdapter(AppCompatActivity activity, List<Song> dataSet, int current, @LayoutRes int itemLayoutRes, boolean usePalette) {
-        super(activity, dataSet, itemLayoutRes, usePalette);
+    public PlayingQueueAdapter(AppCompatActivity activity, List<Song> dataSet, int current, @LayoutRes int itemLayoutRes) {
+        super(activity, dataSet, itemLayoutRes);
         this.current = current;
     }
 

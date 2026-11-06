@@ -61,7 +61,7 @@ public class GenreDetailActivity extends AbsMusicContentActivity {
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         ViewUtil.capContentWidth(binding.recyclerView);
 
-        adapter = new SongAdapter(this, new ArrayList<>(), R.layout.item_list, false);
+        adapter = new SongAdapter(this, new ArrayList<>(), R.layout.item_list);
         binding.recyclerView.setAdapter(adapter);
 
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {

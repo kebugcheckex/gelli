@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1, 2, 3, and 4 are done. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
+Written November 5, 2026. Phases 1, 2, 3, and 4 are done, and so are the grid tiles of Phase 5. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
 
 ## Goal
 
@@ -120,7 +120,7 @@ The *Model*, *Generated overlays*, *Applying the preset*, and *Picker* sections 
 
 - The picker is a plain `Preference` that opens `ColorPresetDialog`, so there is no `ColorPresetPreference` class.
 - The swatch ring is `colorPrimaryContainer`, because `colorSurfaceContainerHigh` nearly disappeared against the dialog.
-- The generated overlays also set `cardBackgroundColor` and `defaultFooterColor`. The dynamic overlay only sets Material roles, so `ThemeOverlay.Gelli.Color.Wallpaper` goes on top of it to fill in those two.
+- The generated overlays also set `cardBackgroundColor`. The dynamic overlay only sets Material roles, so `ThemeOverlay.Gelli.Color.Wallpaper` goes on top of it to fill that in.
 - `ThemeOverlay.Gelli.Black.Neutral` inherits from `ThemeOverlay.Gelli.Black` and adds the `#2E2E2E` containers.
 - The generator pins `@material/material-color-utilities` to exactly 0.3.0, because the ESM build of 0.4.0 doesn't load (an extensionless import in `color_spec_2025.js`). To regenerate, run `npm install` and `npm run colors` in `scripts/`.
 - `AppShortcutIconGenerator` already moved to `themedContext`. Shortcut icons only regenerate when the preset or theme changes in Settings, so with Wallpaper they keep their colors after a wallpaper change until then.
@@ -176,11 +176,13 @@ Done when: the phone and the expanded layout both follow the chosen preset in li
 
 ## Phase 5: Album colors
 
-### Grid tiles
+### Grid tiles (done)
 
-1. Move `layout-w840dp/item_grid.xml` (rounded cover, text below) to `layout/item_grid.xml` and delete the old phone tile. Check the 2-column phone grid at each cell size.
-2. Give `item_grid_card_horizontal.xml` (the artist screen's album row) the same look.
-3. Delete the colored footers: the `action_colored_footers` menu item and its handling in `LibraryFragment` and `ArtistDetailActivity`, the five `*_COLORED_FOOTERS` preferences, `usePalette`, `setUsePalette`, `loadUsePalette`, `saveUsePalette`, and `canUsePalette` in `AbsLibraryPagerRecyclerViewCustomGridSizeFragment` and its subclasses, `usePalette` in `AlbumAdapter`, `ArtistAdapter`, `SongAdapter`, and `HorizontalAlbumAdapter`, `paletteColorContainer` in `MediaEntryViewHolder`, and the `defaultFooterColor` attribute. The adapters still load covers with Glide, but they skip `.palette()` for grid items.
+- The expanded width tile moved to `layout/item_grid.xml`, so phones and large screens share one tile.
+- `item_grid_card_horizontal.xml` (the artist screen's album row) is that tile at a fixed width. `HorizontalAdapterHelper` lines its first cover up with the rest of the screen.
+- `grid_padding` went from 2dp to 4dp on phones, which puts the covers 16dp from the edge of the screen.
+- The colored footers, their menu item, and their five preferences are gone, along with `paletteColorContainer` and the `defaultFooterColor` attribute. The adapters load covers with Glide and skip `.palette()`.
+- `CustomPaletteTarget` falls back to `colorSurfaceContainerHighest` when an image has no usable color. The player, the widgets, and the notifications still use it.
 
 ### Detail headers
 
@@ -228,7 +230,7 @@ Done when: Settings matches the rest of the app in all three themes, including i
 
 ## Cleanup
 
-After the last phase, remove any attributes, drawables, and dimens nothing reads anymore (`defaultFooterColor`, `cardBackgroundColor`, the selector drawables, `toolbar_elevation`, and `toolbar_height` if unused). Then update `docs/large_screen_layout_plan.md` wherever it describes the pinned phone styles or the neutral-only theme.
+After the last phase, remove any attributes, drawables, and dimens nothing reads anymore (`cardBackgroundColor`, the selector drawables, `toolbar_elevation`, and `toolbar_height` if unused). Then update `docs/large_screen_layout_plan.md` wherever it describes the pinned phone styles or the neutral-only theme.
 
 ## Not changed
 

@@ -29,7 +29,6 @@ import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
-import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 
@@ -56,9 +55,6 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
         albumArtist = getIntent().getBooleanExtra(EXTRA_ALBUM_ARTIST, false);
 
         super.onCreate(savedInstanceState);
-
-        // must be loaded before album adapter
-        usePalette = PreferenceUtil.getInstance(this).getAlbumArtistColoredFooters();
 
         setUpObservableListViewParams();
         setUpToolbar();
@@ -94,8 +90,6 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
         return wrapSlidingMusicPanel(binding.getRoot());
     }
 
-    private boolean usePalette;
-
     private void setUpObservableListViewParams() {
         headerViewHeight = getResources().getDimensionPixelSize(R.dimen.detail_header_height);
     }
@@ -103,14 +97,14 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     private void setUpViews() {
         setUpSongListView();
         setUpAlbumRecyclerView();
-        setColors(ThemeUtil.getColorResource(this, R.attr.defaultFooterColor));
+        setColors(ThemeUtil.getColorResource(this, R.attr.colorSurfaceContainerHighest));
     }
 
     private void setUpSongListView() {
         // the w1200dp layout has a fixed side column instead of a collapsing header
         if (binding.appBarLayout != null) binding.appBarLayout.addOnOffsetChangedListener(this);
 
-        songAdapter = new SongAdapter(this, artist.songs, R.layout.item_list, false);
+        songAdapter = new SongAdapter(this, artist.songs, R.layout.item_list);
 
         binding.songs.setLayoutManager(new GridLayoutManager(this, 1));
         binding.songs.setAdapter(songAdapter);
@@ -121,7 +115,7 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
 
     private void setUpAlbumRecyclerView() {
         binding.albums.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        albumAdapter = new HorizontalAlbumAdapter(this, artist.albums, usePalette);
+        albumAdapter = new HorizontalAlbumAdapter(this, artist.albums);
         binding.albums.setAdapter(albumAdapter);
 
         // NestedScrollView will ignore horizontal RecyclerView without this line
@@ -134,12 +128,6 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
                 if (albumAdapter.getItemCount() == 0) finish();
             }
         });
-    }
-
-    protected void setUsePalette(boolean usePalette) {
-        albumAdapter.usePalette(usePalette);
-        PreferenceUtil.getInstance(this).setAlbumArtistColoredFooters(usePalette);
-        this.usePalette = usePalette;
     }
 
     private void loadArtistImage(Artist artist) {
@@ -192,7 +180,6 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_detail_artist, menu);
-        menu.findItem(R.id.action_colored_footers).setChecked(usePalette);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -218,10 +205,6 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
                 return true;
             case R.id.action_remove_from_device:
                 NavigationUtil.removeFromDevice(this, songs);
-                return true;
-            case R.id.action_colored_footers:
-                item.setChecked(!item.isChecked());
-                setUsePalette(item.isChecked());
                 return true;
         }
 

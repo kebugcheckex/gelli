@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">בטל טיימר נוכחי</string>
     <string name="sleep_timer_canceled">טיימר השינה בוטל.</string>
     <string name="sleep_timer_set">טיימר השינה נקבע לעוד %d דקות מעכשיו.</string>
-    <string name="colored_footers">תחתית צבעונית</string>
     <string name="special_thanks_to">תודות מיוחדות ל</string>
     <string name="permissions_denied">הרשאות נדחו.</string>
     <string name="support_development">תמיכה בפיתוח</string>

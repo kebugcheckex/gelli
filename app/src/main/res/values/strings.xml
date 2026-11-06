@@ -108,7 +108,6 @@
     <string name="layout_grid_medium">Medium grid</string>
     <string name="layout_grid_large">Large grid</string>
     <string name="action_sort_method">Sort method</string>
-    <string name="colored_footers">Colored footers</string>
 
     <string name="light_theme_name">Light</string>
     <string name="dark_theme_name">Dark</string>

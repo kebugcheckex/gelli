@@ -76,7 +76,6 @@
     <string name="cancel_current_timer">Cancelar temporizador atual</string>
     <string name="sleep_timer_canceled">Temporizador para dormir cancelado.</string>
     <string name="sleep_timer_set">Temporizador para dormir definido para %d minutos a partir de agora.</string>
-    <string name="colored_footers">Rodapés coloridos</string>
     <string name="special_thanks_to">Agradecimentos especiais a</string>
     <string name="permissions_denied">Permissões negadas.</string>
     <string name="support_development">Apoiar o desenvolvimento</string>

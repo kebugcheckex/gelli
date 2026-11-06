@@ -106,7 +106,7 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
             NavigationUtil.startArtist(AlbumDetailActivity.this, new Artist(album), null);
         });
 
-        setColors(ThemeUtil.getColorResource(this, R.attr.defaultFooterColor));
+        setColors(ThemeUtil.getColorResource(this, R.attr.colorSurfaceContainerHighest));
     }
 
     private void loadAlbumCover(Album album) {
@@ -164,7 +164,7 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
     }
 
     private void setUpSongsAdapter() {
-        adapter = new AlbumSongAdapter(this, album.songs, R.layout.item_list, false);
+        adapter = new AlbumSongAdapter(this, album.songs, R.layout.item_list);
         binding.list.setLayoutManager(new GridLayoutManager(this, 1));
         binding.list.setAdapter(adapter);
         ViewUtil.capContentWidth(binding.list);

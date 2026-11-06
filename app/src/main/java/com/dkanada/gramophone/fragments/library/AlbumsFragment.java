@@ -23,7 +23,7 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
         notifyLayoutResChanged(itemLayoutRes);
 
         List<Album> dataSet = getAdapter() == null ? new ArrayList<>() : getAdapter().getDataSet();
-        return new AlbumAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, loadUsePalette());
+        return new AlbumAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes);
     }
 
     @Override
@@ -75,16 +75,6 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
     }
 
     @Override
-    public boolean loadUsePalette() {
-        return PreferenceUtil.getInstance(getActivity()).getAlbumColoredFooters();
-    }
-
-    @Override
-    protected void setUsePalette(boolean usePalette) {
-        getAdapter().usePalette(usePalette);
-    }
-
-    @Override
     protected LibraryLayout loadLibraryLayout() {
         return PreferenceUtil.getInstance(getActivity()).getAlbumLayout();
     }
@@ -94,8 +84,4 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
         PreferenceUtil.getInstance(getActivity()).setAlbumLayout(libraryLayout);
     }
 
-    @Override
-    protected void saveUsePalette(boolean usePalette) {
-        PreferenceUtil.getInstance(getActivity()).setAlbumColoredFooters(usePalette);
-    }
 }

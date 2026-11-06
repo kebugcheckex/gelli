@@ -1,7 +1,5 @@
 package com.dkanada.gramophone.adapter.song;
 
-import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,12 +12,10 @@ import androidx.core.util.Pair;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.base.AbsMultiSelectAdapter;
 import com.dkanada.gramophone.adapter.base.MediaEntryViewHolder;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
-import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.helper.menu.SongMenuHelper;
 import com.dkanada.gramophone.helper.menu.SongsMenuHelper;
@@ -40,24 +36,22 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
 
     protected int itemLayoutRes;
 
-    protected boolean usePalette;
     protected boolean showSectionName;
 
     // badges follow the local library and the network while the list is on screen
     private final LocalLibrary.Listener libraryListener = this::notifyDataSetChanged;
     private final NetworkUtil.Listener networkListener = this::notifyDataSetChanged;
 
-    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
-        this(activity, dataSet, itemLayoutRes, usePalette, true);
+    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes) {
+        this(activity, dataSet, itemLayoutRes, true);
     }
 
-    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, boolean showSectionName) {
+    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean showSectionName) {
         super(activity, R.menu.menu_select_media);
 
         this.activity = activity;
         this.dataSet = dataSet;
         this.itemLayoutRes = itemLayoutRes;
-        this.usePalette = usePalette;
         this.showSectionName = showSectionName;
 
         setHasStableIds(true);
@@ -65,11 +59,6 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
 
     public void swapDataSet(List<Song> dataSet) {
         this.dataSet = dataSet;
-        notifyDataSetChanged();
-    }
-
-    public void usePalette(boolean usePalette) {
-        this.usePalette = usePalette;
         notifyDataSetChanged();
     }
 
@@ -172,23 +161,6 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
         if (holder.imageText != null) {
             holder.imageText.setAlpha(alpha);
         }
-
-        if (holder.paletteColorContainer != null) {
-            holder.paletteColorContainer.setAlpha(alpha);
-        }
-    }
-
-    private void setColors(int color, ViewHolder holder) {
-        if (holder.paletteColorContainer != null) {
-            holder.paletteColorContainer.setBackgroundColor(color);
-            if (holder.title != null) {
-                holder.title.setTextColor(ThemeUtil.getPrimaryTextColor(activity, color));
-            }
-
-            if (holder.text != null) {
-                holder.text.setTextColor(ThemeUtil.getSecondaryTextColor(activity, color));
-            }
-        }
     }
 
     protected void loadAlbumCover(Song song, final ViewHolder holder) {
@@ -196,23 +168,8 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
 
         CustomGlideRequest.Builder
                 .from(activity, song.primary, song.blurHash)
-                .palette().build()
-                .into(new CustomPaletteTarget(holder.image) {
-                    @Override
-                    public void onLoadCleared(Drawable placeholder) {
-                        super.onLoadCleared(placeholder);
-                        setColors(getDefaultFooterColor(), holder);
-                    }
-
-                    @Override
-                    public void onColorReady(int color) {
-                        if (usePalette) {
-                            setColors(color, holder);
-                        } else {
-                            setColors(getDefaultFooterColor(), holder);
-                        }
-                    }
-                });
+                .build()
+                .into(holder.image);
     }
 
     protected String getSongTitle(Song song) {

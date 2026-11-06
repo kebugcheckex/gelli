@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">Annuleer huidige timer</string>
     <string name="sleep_timer_canceled">Slaaptimer is geannuleerd.</string>
     <string name="sleep_timer_set">Slaaptimer gezet voor %d minuten vanaf nu.</string>
-    <string name="colored_footers">Gekleurde voetkaders</string>
     <string name="special_thanks_to">Speciale dank aan</string>
     <string name="permissions_denied">Machtiging geweigerd.</string>
     <string name="support_development">Ondersteun ontwikkeling</string>

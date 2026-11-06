@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">Zrušit ukončení přehrávání</string>
     <string name="sleep_timer_canceled">Ukončení přehrávání zrušeno.</string>
     <string name="sleep_timer_set">Přehrávání se ukončí za %d minut.</string>
-    <string name="colored_footers">"Barevné zápatí "</string>
     <string name="special_thanks_to">Zvláštní poděkování</string>
     <string name="permissions_denied">"Oprávnění zamítnuta. "</string>
     <string name="support_development">Podpořte vývoj</string>

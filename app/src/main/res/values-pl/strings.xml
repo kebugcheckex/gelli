@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">Anuluj wyłącznik</string>
     <string name="sleep_timer_canceled">Anulowano wyłącznik czasowy</string>
     <string name="sleep_timer_set">Wyłącznik czasowy ustawiony na %d minut od teraz</string>
-    <string name="colored_footers">Kolorowe stopki</string>
     <string name="special_thanks_to">Specjalne podziękowania dla</string>
     <string name="permissions_denied">Odmówiono zezwolenia</string>
     <string name="support_development">Wspomóż rozwój</string>

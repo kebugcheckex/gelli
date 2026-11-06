@@ -22,7 +22,6 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
     protected SongAdapter createAdapter() {
         int itemLayoutRes = getItemLayoutRes();
         notifyLayoutResChanged(itemLayoutRes);
-        boolean usePalette = loadUsePalette();
 
         List<Song> dataSet = getAdapter() == null ? new ArrayList<>() : getAdapter().getDataSet();
         SongAdapter adapter;
@@ -31,14 +30,12 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
             adapter = new ShuffleButtonSongAdapter(
                     getLibraryFragment().getMainActivity(),
                     dataSet,
-                    itemLayoutRes,
-                    usePalette);
+                    itemLayoutRes);
         } else {
             adapter = new SongAdapter(
                     getLibraryFragment().getMainActivity(),
                     dataSet,
-                    itemLayoutRes,
-                    usePalette);
+                    itemLayoutRes);
         }
 
         return adapter;
@@ -112,18 +109,4 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
         PreferenceUtil.getInstance(getActivity()).setSongLayout(libraryLayout);
     }
 
-    @Override
-    public void saveUsePalette(boolean usePalette) {
-        PreferenceUtil.getInstance(getActivity()).setSongColoredFooters(usePalette);
-    }
-
-    @Override
-    public boolean loadUsePalette() {
-        return PreferenceUtil.getInstance(getActivity()).getSongColoredFooters();
-    }
-
-    @Override
-    public void setUsePalette(boolean usePalette) {
-        getAdapter().usePalette(usePalette);
-    }
 }

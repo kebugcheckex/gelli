@@ -90,7 +90,6 @@
     <string name="cancel_current_timer">スリープタイマーを解除</string>
     <string name="sleep_timer_canceled">スリープタイマーを解除しました</string>
     <string name="sleep_timer_set">%d分後にスリープタイマーをセットしました</string>
-    <string name="colored_footers">色付きフッター</string>
     <string name="special_thanks_to">スペシャルサンクス</string>
     <string name="permissions_denied">権限が拒否されました</string>
     <string name="support_development">開発を支援</string>

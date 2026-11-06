@@ -84,7 +84,6 @@
     <string name="cancel_current_timer">Ακύρωση τρέχοντος χρονοδιακόπτη</string>
     <string name="sleep_timer_canceled">Ο χρονοδιακόπτης ύπνου έχει ακυρωθεί.</string>
     <string name="sleep_timer_set">Ο χρονοδιακόπτης ύπνου έχει οριστεί σε %d λεπτά από τώρα.</string>
-    <string name="colored_footers">Χρωματιστά υποσέλιδα</string>
     <string name="special_thanks_to">Ιδιαίτερες ευχαριστίες προς</string>
     <string name="permissions_denied">Άρνηση χορήγησης δικαιωμάτων.</string>
     <string name="support_development">Υποστηρίξτε την ανάπτυξη της εφαρμογής</string>

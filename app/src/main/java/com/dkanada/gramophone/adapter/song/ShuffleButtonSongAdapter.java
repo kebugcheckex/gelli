@@ -18,8 +18,8 @@ import java.util.List;
 public class ShuffleButtonSongAdapter extends AbsOffsetSongAdapter {
     private boolean isFavorite = false;
 
-    public ShuffleButtonSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
-        super(activity, dataSet, itemLayoutRes, usePalette);
+    public ShuffleButtonSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes) {
+        super(activity, dataSet, itemLayoutRes);
     }
 
     @Override

@@ -39,7 +39,7 @@
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
-    <!-- rounded covers on the expanded width grid and now playing pane -->
+    <!-- rounded covers on the grid tiles and the now playing pane -->
     <style name="ShapeAppearance.Gelli.Cover" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">12dp</item>
