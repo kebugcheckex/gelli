@@ -7,8 +7,8 @@
     android:clipToPadding="false"
     android:gravity="center_vertical"
     android:minHeight="?attr/listPreferredItemHeightSmall"
-    android:paddingStart="?attr/listPreferredItemPaddingStart"
-    android:paddingEnd="?attr/listPreferredItemPaddingEnd">
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
 
     <RelativeLayout
         android:layout_width="0dp"

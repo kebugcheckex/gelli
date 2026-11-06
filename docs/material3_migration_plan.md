@@ -223,7 +223,7 @@ androidx.preference has no Material 3 theme, so style it directly.
 
 1. One preference theme overlay for all three themes, based on `PreferenceThemeOverlay`, which fixes today's light/dark mismatch. Category titles use `colorPrimary`, titles use `colorOnSurface`, and summaries use `colorOnSurfaceVariant`.
 2. The 9 `SwitchPreference`s become `SwitchPreferenceCompat` with a `widgetLayout` that holds a `MaterialSwitch`.
-3. `ListPreference` and the other built-in preference dialogs use AppCompat's `AlertDialog`. Set `alertDialogTheme` in the base themes to the M3 alert dialog overlay. If the shape or colors still don't match the `MaterialAlertDialogBuilder` dialogs, override `onDisplayPreferenceDialog` in `SettingsActivity` to build them with `MaterialAlertDialogBuilder`.
+3. `ListPreference` is the only built-in preference dialog in use, and it builds a plain AppCompat `AlertDialog`. `MaterialAlertDialogBuilder` sets the rounded background itself, so a theme overlay can't match it. `onDisplayPreferenceDialog` in `SettingsActivity` shows `ListPreferenceDialog`, which keeps the library's logic and only swaps the builder.
 4. Settings keeps the content-width cap from the large-screen work.
 
 Done when: Settings matches the rest of the app in all three themes, including its dialogs.

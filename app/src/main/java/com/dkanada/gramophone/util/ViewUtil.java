@@ -89,7 +89,8 @@ public class ViewUtil {
         view.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
             int inset = Math.max(0, (right - left - baseLeft - baseRight - maxWidth) / 2);
             if (v.getPaddingLeft() != baseLeft + inset || v.getPaddingRight() != baseRight + inset) {
-                v.setPadding(baseLeft + inset, v.getPaddingTop(), baseRight + inset, v.getPaddingBottom());
+                // a layout request made while layout is still running can be dropped, so wait for it to finish
+                v.post(() -> v.setPadding(baseLeft + inset, v.getPaddingTop(), baseRight + inset, v.getPaddingBottom()));
             }
         });
     }
