@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -111,6 +112,9 @@ public class PlayPauseDrawable extends Drawable {
 
         final int saveCount = canvas.save();
 
+        // MaterialButton positions its icon with the bounds
+        canvas.translate(getBounds().left, getBounds().top);
+
         // Translate the play button a tiny bit to the right so it looks more centered.
         canvas.translate(lerp(0f, pauseBarHeight / 8f, progress), 0f);
 
@@ -162,6 +166,12 @@ public class PlayPauseDrawable extends Drawable {
     @Override
     public void setColorFilter(ColorFilter cf) {
         paint.setColorFilter(cf);
+        invalidateSelf();
+    }
+
+    @Override
+    public void setTintList(ColorStateList tint) {
+        paint.setColor(tint == null ? Color.WHITE : tint.getDefaultColor());
         invalidateSelf();
     }
 

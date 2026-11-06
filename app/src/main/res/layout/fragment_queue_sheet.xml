@@ -46,15 +46,15 @@
 
         </LinearLayout>
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/queue_sheet_close_button"
+            style="@style/Widget.Gelli.IconButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="?attr/roundSelector"
             android:contentDescription="@string/action_toggle_queue"
-            android:padding="12dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/ic_close_white_24dp" />
+            app:icon="@drawable/ic_close_white_24dp"
+            app:iconSize="24dp"
+            app:iconTint="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
 

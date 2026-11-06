@@ -1,6 +1,5 @@
 package com.dkanada.gramophone.fragments.player;
 
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +14,6 @@ import com.dkanada.gramophone.databinding.FragmentQueueSheetBinding;
 import com.dkanada.gramophone.fragments.AbsMusicServiceFragment;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.util.MusicUtil;
-import com.dkanada.gramophone.util.ThemeUtil;
 
 /**
  * The playing queue as a side sheet at the expanded width: a header with the remaining time over the queue list.
@@ -35,7 +33,6 @@ public class QueueSheetFragment extends AbsMusicServiceFragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.queueSheetCloseButton.setColorFilter(ThemeUtil.getColorResource(requireContext(), R.attr.colorOnSurfaceVariant), PorterDuff.Mode.SRC_IN);
         binding.queueSheetCloseButton.setOnClickListener(v -> ((AbsMusicPanelActivity) requireActivity()).setQueueSheetOpen(false));
     }
 

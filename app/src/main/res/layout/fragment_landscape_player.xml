@@ -32,15 +32,14 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
             android:paddingStart="8dp"
             android:paddingEnd="8dp">
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/landscape_player_close_button"
+                style="@style/Widget.Gelli.IconButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="?attr/roundSelector"
                 android:contentDescription="@string/action_close_player"
-                android:padding="10dp"
-                android:scaleType="fitCenter"
-                app:srcCompat="@drawable/ic_expand_more_white_24dp" />
+                app:icon="@drawable/ic_expand_more_white_24dp"
+                app:iconSize="28dp" />
 
             <LinearLayout
                 android:id="@+id/landscape_player_source"
@@ -74,15 +73,14 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
 
             </LinearLayout>
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/landscape_player_menu_button"
+                style="@style/Widget.Gelli.IconButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="?attr/roundSelector"
                 android:contentDescription="@string/abc_action_menu_overflow_description"
-                android:padding="12dp"
-                android:scaleType="fitCenter"
-                app:srcCompat="@drawable/ic_more_vert_white_24dp" />
+                app:icon="@drawable/ic_more_vert_white_24dp"
+                app:iconSize="24dp" />
 
         </LinearLayout>
 
@@ -172,16 +170,15 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
 
                     </LinearLayout>
 
-                    <ImageButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/landscape_player_favorite_button"
+                        style="@style/Widget.Gelli.IconButton"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:layout_marginStart="8dp"
-                        android:background="?attr/roundSelector"
                         android:contentDescription="@string/action_add_to_favorites"
-                        android:padding="10dp"
-                        android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_favorite_border_white_24dp" />
+                        app:icon="@drawable/ic_favorite_border_white_24dp"
+                        app:iconSize="28dp" />
 
                 </LinearLayout>
 
@@ -226,41 +223,41 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                     android:layoutDirection="ltr"
                     android:orientation="horizontal">
 
-                    <ImageButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/landscape_player_shuffle_button"
+                        style="@style/Widget.Gelli.IconButton"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:layout_marginStart="-12dp"
-                        android:background="?attr/roundSelector"
                         android:contentDescription="@string/action_shuffle"
-                        android:padding="12dp"
-                        android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_shuffle_white_24dp" />
+                        app:icon="@drawable/ic_shuffle_white_24dp"
+                        app:iconSize="24dp" />
 
-                    <ImageButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/landscape_player_prev_button"
+                        style="@style/Widget.Gelli.IconButton"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:layout_marginStart="16dp"
-                        android:background="?attr/roundSelector"
                         android:contentDescription="@string/action_previous"
-                        android:padding="12dp"
-                        android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_skip_previous_white_24dp" />
+                        app:icon="@drawable/ic_skip_previous_white_24dp"
+                        app:iconSize="32dp" />
 
                     <FrameLayout
                         android:layout_width="@dimen/landscape_player_play_size"
                         android:layout_height="@dimen/landscape_player_play_size"
                         android:layout_marginStart="16dp">
 
-                        <ImageButton
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/landscape_player_play_pause_button"
+                            style="@style/Widget.Gelli.IconButton.Filled"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@drawable/play_pause_filled_background"
                             android:contentDescription="@string/action_play_pause"
-                            android:padding="16dp"
-                            android:scaleType="fitCenter" />
+                            app:backgroundTint="@android:color/white"
+                            app:iconTint="#FF1A1A1A"
+                            app:rippleColor="#33000000"
+                            app:iconSize="24dp" />
 
                         <com.google.android.material.progressindicator.CircularProgressIndicator
                             android:id="@+id/landscape_player_buffering_indicator"
@@ -276,27 +273,25 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
 
                     </FrameLayout>
 
-                    <ImageButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/landscape_player_next_button"
+                        style="@style/Widget.Gelli.IconButton"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:layout_marginStart="16dp"
-                        android:background="?attr/roundSelector"
                         android:contentDescription="@string/action_next"
-                        android:padding="12dp"
-                        android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_skip_next_white_24dp" />
+                        app:icon="@drawable/ic_skip_next_white_24dp"
+                        app:iconSize="32dp" />
 
-                    <ImageButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/landscape_player_repeat_button"
+                        style="@style/Widget.Gelli.IconButton"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:layout_marginStart="16dp"
-                        android:background="?attr/roundSelector"
                         android:contentDescription="@string/action_repeat"
-                        android:padding="12dp"
-                        android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_repeat_white_24dp" />
+                        app:icon="@drawable/ic_repeat_white_24dp"
+                        app:iconSize="24dp" />
 
                 </LinearLayout>
 

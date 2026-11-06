@@ -2,7 +2,6 @@ package com.dkanada.gramophone.fragments.player;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,14 +65,12 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         view.setOnClickListener(v -> getPanelActivity().expandPanel());
 
         playPauseDrawable = new PlayPauseDrawable(context);
-        binding.playerBarPlayPauseButton.setImageDrawable(playPauseDrawable);
-        binding.playerBarPlayPauseButton.setBackgroundTintList(ColorStateList.valueOf(primaryColor));
-        binding.playerBarPlayPauseButton.setColorFilter(ThemeUtil.getColorResource(context, R.attr.colorOnPrimary), PorterDuff.Mode.SRC_IN);
+        binding.playerBarPlayPauseButton.setIcon(playPauseDrawable);
         binding.playerBarPlayPauseButton.setOnClickListener(new PlayPauseButtonOnClickHandler());
 
-        binding.playerBarPrevButton.setColorFilter(transportColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarPrevButton.setIconTint(ColorStateList.valueOf(transportColor));
         binding.playerBarPrevButton.setOnClickListener(v -> MusicPlayerRemote.back());
-        binding.playerBarNextButton.setColorFilter(transportColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarNextButton.setIconTint(ColorStateList.valueOf(transportColor));
         binding.playerBarNextButton.setOnClickListener(v -> MusicPlayerRemote.playNextSong());
 
         binding.playerBarShuffleButton.setOnClickListener(v -> MusicPlayerRemote.toggleShuffleMode());
@@ -87,7 +84,7 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         });
 
         binding.playerBarQueueButton.setOnClickListener(v -> getPanelActivity().toggleQueueSheet());
-        binding.playerBarExpandButton.setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarExpandButton.setIconTint(ColorStateList.valueOf(iconColor));
         binding.playerBarExpandButton.setOnClickListener(v -> getPanelActivity().expandPanel());
 
         setUpProgressSlider();
@@ -193,8 +190,8 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         Song song = MusicPlayerRemote.getCurrentSong();
         if (song == null || binding == null) return;
 
-        binding.playerBarFavoriteButton.setImageResource(song.favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp);
-        binding.playerBarFavoriteButton.setColorFilter(song.favorite ? primaryColor : iconColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarFavoriteButton.setIconResource(song.favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp);
+        binding.playerBarFavoriteButton.setIconTint(ColorStateList.valueOf(song.favorite ? primaryColor : iconColor));
         binding.playerBarFavoriteButton.setContentDescription(getString(song.favorite ? R.string.action_remove_from_favorites : R.string.action_add_to_favorites));
     }
 
@@ -202,7 +199,7 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         if (binding == null) return;
 
         boolean open = getPanelActivity().isQueueSheetOpen();
-        binding.playerBarQueueButton.setColorFilter(open ? primaryColor : iconColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarQueueButton.setIconTint(ColorStateList.valueOf(open ? primaryColor : iconColor));
         binding.playerBarQueueButton.setActivated(open);
     }
 
@@ -216,12 +213,12 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
 
     private void updateShuffleState() {
         boolean on = MusicPlayerRemote.getShuffleMode() == QueueManager.SHUFFLE_MODE_SHUFFLE;
-        binding.playerBarShuffleButton.setColorFilter(on ? primaryColor : iconColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarShuffleButton.setIconTint(ColorStateList.valueOf(on ? primaryColor : iconColor));
     }
 
     private void updateRepeatState() {
         int mode = MusicPlayerRemote.getRepeatMode();
-        binding.playerBarRepeatButton.setImageResource(mode == QueueManager.REPEAT_MODE_THIS ? R.drawable.ic_repeat_one_white_24dp : R.drawable.ic_repeat_white_24dp);
-        binding.playerBarRepeatButton.setColorFilter(mode == QueueManager.REPEAT_MODE_NONE ? iconColor : primaryColor, PorterDuff.Mode.SRC_IN);
+        binding.playerBarRepeatButton.setIconResource(mode == QueueManager.REPEAT_MODE_THIS ? R.drawable.ic_repeat_one_white_24dp : R.drawable.ic_repeat_white_24dp);
+        binding.playerBarRepeatButton.setIconTint(ColorStateList.valueOf(mode == QueueManager.REPEAT_MODE_NONE ? iconColor : primaryColor));
     }
 }

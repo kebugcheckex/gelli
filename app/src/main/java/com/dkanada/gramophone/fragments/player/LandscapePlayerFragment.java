@@ -4,7 +4,6 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -162,23 +161,21 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
 
     private void setUpControls() {
         playPauseDrawable = new PlayPauseDrawable(requireContext());
-        binding.landscapePlayerPlayPauseButton.setImageDrawable(playPauseDrawable);
-        binding.landscapePlayerPlayPauseButton.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
-        binding.landscapePlayerPlayPauseButton.setColorFilter(0xFF1A1A1A, PorterDuff.Mode.SRC_IN);
+        binding.landscapePlayerPlayPauseButton.setIcon(playPauseDrawable);
         binding.landscapePlayerPlayPauseButton.setOnClickListener(new PlayPauseButtonOnClickHandler());
         binding.landscapePlayerBufferingIndicator.setIndicatorColor(0xFF1A1A1A);
 
-        binding.landscapePlayerPrevButton.setColorFilter(ICON_COLOR, PorterDuff.Mode.SRC_IN);
+        binding.landscapePlayerPrevButton.setIconTint(ColorStateList.valueOf(ICON_COLOR));
         binding.landscapePlayerPrevButton.setOnClickListener(v -> MusicPlayerRemote.back());
-        binding.landscapePlayerNextButton.setColorFilter(ICON_COLOR, PorterDuff.Mode.SRC_IN);
+        binding.landscapePlayerNextButton.setIconTint(ColorStateList.valueOf(ICON_COLOR));
         binding.landscapePlayerNextButton.setOnClickListener(v -> MusicPlayerRemote.playNextSong());
 
         binding.landscapePlayerShuffleButton.setOnClickListener(v -> MusicPlayerRemote.toggleShuffleMode());
         binding.landscapePlayerRepeatButton.setOnClickListener(v -> MusicPlayerRemote.cycleRepeatMode());
 
-        binding.landscapePlayerCloseButton.setColorFilter(ICON_COLOR, PorterDuff.Mode.SRC_IN);
-        binding.landscapePlayerMenuButton.setColorFilter(ICON_COLOR, PorterDuff.Mode.SRC_IN);
-        binding.landscapePlayerFavoriteButton.setColorFilter(ICON_COLOR, PorterDuff.Mode.SRC_IN);
+        binding.landscapePlayerCloseButton.setIconTint(ColorStateList.valueOf(ICON_COLOR));
+        binding.landscapePlayerMenuButton.setIconTint(ColorStateList.valueOf(ICON_COLOR));
+        binding.landscapePlayerFavoriteButton.setIconTint(ColorStateList.valueOf(ICON_COLOR));
         binding.landscapePlayerFavoriteButton.setOnClickListener(v -> {
             Song song = MusicPlayerRemote.getCurrentSong();
             if (song != null) toggleFavorite(song);
@@ -275,7 +272,7 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         Song song = MusicPlayerRemote.getCurrentSong();
         if (song == null || binding == null) return;
 
-        binding.landscapePlayerFavoriteButton.setImageResource(song.favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp);
+        binding.landscapePlayerFavoriteButton.setIconResource(song.favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp);
         binding.landscapePlayerFavoriteButton.setContentDescription(getString(song.favorite ? R.string.action_remove_from_favorites : R.string.action_add_to_favorites));
     }
 
@@ -320,7 +317,7 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         if (binding == null) return;
 
         boolean on = MusicPlayerRemote.getShuffleMode() == QueueManager.SHUFFLE_MODE_SHUFFLE;
-        binding.landscapePlayerShuffleButton.setColorFilter(on ? ICON_COLOR : ICON_COLOR_OFF, PorterDuff.Mode.SRC_IN);
+        binding.landscapePlayerShuffleButton.setIconTint(ColorStateList.valueOf(on ? ICON_COLOR : ICON_COLOR_OFF));
         binding.landscapePlayerShuffleButton.setActivated(on);
     }
 
@@ -328,8 +325,8 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         if (binding == null) return;
 
         int mode = MusicPlayerRemote.getRepeatMode();
-        binding.landscapePlayerRepeatButton.setImageResource(mode == QueueManager.REPEAT_MODE_THIS ? R.drawable.ic_repeat_one_white_24dp : R.drawable.ic_repeat_white_24dp);
-        binding.landscapePlayerRepeatButton.setColorFilter(mode == QueueManager.REPEAT_MODE_NONE ? ICON_COLOR_OFF : ICON_COLOR, PorterDuff.Mode.SRC_IN);
+        binding.landscapePlayerRepeatButton.setIconResource(mode == QueueManager.REPEAT_MODE_THIS ? R.drawable.ic_repeat_one_white_24dp : R.drawable.ic_repeat_white_24dp);
+        binding.landscapePlayerRepeatButton.setIconTint(ColorStateList.valueOf(mode == QueueManager.REPEAT_MODE_NONE ? ICON_COLOR_OFF : ICON_COLOR));
     }
 
     /**

@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -121,7 +122,7 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
 
     private void setUpPlayPauseButton() {
         playPauseDrawable = new PlayPauseDrawable(requireActivity());
-        binding.playerPlayPauseButton.setImageDrawable(playPauseDrawable);
+        binding.playerPlayPauseButton.setIcon(playPauseDrawable);
         updatePlayPauseColor();
         binding.playerPlayPauseButton.setOnClickListener(new PlayPauseButtonOnClickHandler());
         binding.playerPlayPauseButton.post(() -> {
@@ -163,12 +164,12 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     }
 
     private void updatePrevNextColor() {
-        binding.playerNextButton.setColorFilter(lastPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
-        binding.playerPrevButton.setColorFilter(lastPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
+        binding.playerNextButton.setIconTint(ColorStateList.valueOf(lastPlaybackControlsColor));
+        binding.playerPrevButton.setIconTint(ColorStateList.valueOf(lastPlaybackControlsColor));
     }
 
     private void updatePlayPauseColor() {
-        binding.playerPlayPauseButton.setColorFilter(lastPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
+        binding.playerPlayPauseButton.setIconTint(ColorStateList.valueOf(lastPlaybackControlsColor));
     }
 
     private void setUpShuffleButton() {
@@ -178,11 +179,11 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     private void updateShuffleState() {
         switch (MusicPlayerRemote.getShuffleMode()) {
             case QueueManager.SHUFFLE_MODE_SHUFFLE:
-                binding.playerShuffleButton.setColorFilter(lastPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
+                binding.playerShuffleButton.setIconTint(ColorStateList.valueOf(lastPlaybackControlsColor));
                 break;
             case QueueManager.SHUFFLE_MODE_NONE:
             default:
-                binding.playerShuffleButton.setColorFilter(lastDisabledPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
+                binding.playerShuffleButton.setIconTint(ColorStateList.valueOf(lastDisabledPlaybackControlsColor));
                 break;
         }
     }
@@ -194,16 +195,16 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     private void updateRepeatState() {
         switch (MusicPlayerRemote.getRepeatMode()) {
             case QueueManager.REPEAT_MODE_NONE:
-                binding.playerRepeatButton.setImageResource(R.drawable.ic_repeat_white_24dp);
-                binding.playerRepeatButton.setColorFilter(lastDisabledPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
+                binding.playerRepeatButton.setIconResource(R.drawable.ic_repeat_white_24dp);
+                binding.playerRepeatButton.setIconTint(ColorStateList.valueOf(lastDisabledPlaybackControlsColor));
                 break;
             case QueueManager.REPEAT_MODE_ALL:
-                binding.playerRepeatButton.setImageResource(R.drawable.ic_repeat_white_24dp);
-                binding.playerRepeatButton.setColorFilter(lastPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
+                binding.playerRepeatButton.setIconResource(R.drawable.ic_repeat_white_24dp);
+                binding.playerRepeatButton.setIconTint(ColorStateList.valueOf(lastPlaybackControlsColor));
                 break;
             case QueueManager.REPEAT_MODE_THIS:
-                binding.playerRepeatButton.setImageResource(R.drawable.ic_repeat_one_white_24dp);
-                binding.playerRepeatButton.setColorFilter(lastPlaybackControlsColor, PorterDuff.Mode.SRC_IN);
+                binding.playerRepeatButton.setIconResource(R.drawable.ic_repeat_one_white_24dp);
+                binding.playerRepeatButton.setIconTint(ColorStateList.valueOf(lastPlaybackControlsColor));
                 break;
         }
     }
