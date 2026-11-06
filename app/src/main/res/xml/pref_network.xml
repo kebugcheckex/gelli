@@ -4,7 +4,7 @@
 
     <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_network">
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             android:defaultValue="false"
             android:key="offline_mode"

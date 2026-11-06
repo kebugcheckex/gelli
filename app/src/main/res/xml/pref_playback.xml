@@ -31,14 +31,14 @@
             android:positiveButtonText="@null"
             android:title="@string/pref_title_maximum_bitrate" />
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             android:defaultValue="true"
             android:key="remember_shuffle"
             android:summary="@string/pref_summary_remember_shuffle"
             android:title="@string/pref_title_remember_shuffle" />
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             android:defaultValue="true"
             android:key="remember_queue"

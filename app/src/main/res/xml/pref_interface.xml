@@ -20,7 +20,7 @@
             android:persistent="false"
             android:title="@string/pref_title_color_preset" />
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             android:defaultValue="true"
             android:key="colored_shortcuts"
