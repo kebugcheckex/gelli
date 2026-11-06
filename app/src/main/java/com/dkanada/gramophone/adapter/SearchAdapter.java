@@ -1,6 +1,5 @@
 package com.dkanada.gramophone.adapter;
 
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +19,6 @@ import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
-import com.dkanada.gramophone.util.ThemeUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,15 +99,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
 
             itemView.setOnLongClickListener(null);
 
-            if (itemViewType != HEADER) {
-                itemView.setBackgroundColor(ThemeUtil.getColorResource(activity, R.attr.cardBackgroundColor));
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    itemView.setElevation(activity.getResources().getDimensionPixelSize(R.dimen.card_elevation));
-                }
-
-                if (shortSeparator != null) {
-                    shortSeparator.setVisibility(View.GONE);
-                }
+            if (itemViewType != HEADER && shortSeparator != null) {
+                shortSeparator.setVisibility(View.GONE);
             }
 
             if (menu != null) {

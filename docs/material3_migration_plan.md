@@ -203,8 +203,8 @@ Checked in light, dark, and black on a phone, and the expanded player bar for re
 
 | Widget | Change |
 |---|---|
-| `CardView` in `card_about_app.xml`, `card_author.xml`, `card_special_thanks.xml`, `card_support_development.xml`, `activity_downloads.xml` | `MaterialCardView` (`Widget.Material3.CardView.Filled`). Remove `cardBackgroundColor` from the themes and the `androidx.cardview` dependency once unused. |
-| 8 `AppCompatButton`s in `card_special_thanks.xml` | `MaterialButton` with `Widget.Material3.Button.TextButton` |
+| `CardView` in `card_about_app.xml`, `card_author.xml`, `card_special_thanks.xml`, `card_support_development.xml`, `activity_downloads.xml` | Done. `MaterialCardView` (`Widget.Material3.CardView.Filled`). `cardBackgroundColor` and the `androidx.cardview` dependency are gone: the server card and the login button read `colorSurfaceContainerHigh`, and search rows sit on the surface like every other list. |
+| 8 `AppCompatButton`s in `card_special_thanks.xml` | Done. `MaterialButton` with `Widget.Material3.Button.TextButton`, in `colorPrimary` instead of brand colors. |
 | `ImageButton`s in the player controls, player bar, queue sheet, and landscape player | `MaterialButton` with the M3 icon button styles. Check that the animated play/pause drawable still runs through `setIcon`. If it doesn't, keep `ImageButton` with `?attr/selectableItemBackgroundBorderless`. |
 | `MaterialProgressBar` in `fragment_flat_player_playback_controls.xml` | `LinearProgressIndicator` for progress and `CircularProgressIndicator` for buffering. Remove the `materialprogressbar` dependency. |
 | Plain `ProgressBar` in `activity_splash.xml`, `activity_downloads.xml`, and `fragment_landscape_player.xml` | `CircularProgressIndicator` or `LinearProgressIndicator` |
@@ -230,7 +230,7 @@ Done when: Settings matches the rest of the app in all three themes, including i
 
 ## Cleanup
 
-After the last phase, remove any attributes, drawables, and dimens nothing reads anymore (`cardBackgroundColor`, the selector drawables, `toolbar_elevation`, and `toolbar_height` if unused). Then update `docs/large_screen_layout_plan.md` wherever it describes the pinned phone styles or the neutral-only theme.
+After the last phase, remove any attributes, drawables, and dimens nothing reads anymore (the selector drawables, `toolbar_elevation`, and `toolbar_height` if unused). Then update `docs/large_screen_layout_plan.md` wherever it describes the pinned phone styles or the neutral-only theme.
 
 ## Not changed
 

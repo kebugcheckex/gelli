@@ -35,7 +35,6 @@
         <item name="colorOnSurfaceInverse">#F2EFF7</item>
         <item name="colorOutline">#767680</item>
         <item name="colorOutlineVariant">#C7C5D0</item>
-        <item name="cardBackgroundColor">#E9E7EF</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Indigo.Dark" parent="">
@@ -70,7 +69,6 @@
         <item name="colorOnSurfaceInverse">#303036</item>
         <item name="colorOutline">#90909A</item>
         <item name="colorOutlineVariant">#46464F</item>
-        <item name="cardBackgroundColor">#29292F</item>
     </style>
 
     <!-- Blue #2196F3 -->
@@ -106,7 +104,6 @@
         <item name="colorOnSurfaceInverse">#EFF0F7</item>
         <item name="colorOutline">#73777F</item>
         <item name="colorOutlineVariant">#C3C7CF</item>
-        <item name="cardBackgroundColor">#E6E8EE</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Blue.Dark" parent="">
@@ -141,7 +138,6 @@
         <item name="colorOnSurfaceInverse">#2E3135</item>
         <item name="colorOutline">#8D9199</item>
         <item name="colorOutlineVariant">#43474E</item>
-        <item name="cardBackgroundColor">#272A2F</item>
     </style>
 
     <!-- Teal #009688 -->
@@ -177,7 +173,6 @@
         <item name="colorOnSurfaceInverse">#ECF2EF</item>
         <item name="colorOutline">#6F7977</item>
         <item name="colorOutlineVariant">#BEC9C6</item>
-        <item name="cardBackgroundColor">#E3EAE7</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Teal.Dark" parent="">
@@ -212,7 +207,6 @@
         <item name="colorOnSurfaceInverse">#2B3230</item>
         <item name="colorOutline">#899390</item>
         <item name="colorOutlineVariant">#3F4947</item>
-        <item name="cardBackgroundColor">#252B2A</item>
     </style>
 
     <!-- Green #4CAF50 -->
@@ -248,7 +242,6 @@
         <item name="colorOnSurfaceInverse">#EFF2E9</item>
         <item name="colorOutline">#72796F</item>
         <item name="colorOutlineVariant">#C2C9BD</item>
-        <item name="cardBackgroundColor">#E6E9E0</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Green.Dark" parent="">
@@ -283,7 +276,6 @@
         <item name="colorOnSurfaceInverse">#2D322C</item>
         <item name="colorOutline">#8C9388</item>
         <item name="colorOutlineVariant">#424940</item>
-        <item name="cardBackgroundColor">#272B25</item>
     </style>
 
     <!-- Amber #FFC107 -->
@@ -319,7 +311,6 @@
         <item name="colorOnSurfaceInverse">#F9EFE2</item>
         <item name="colorOutline">#7F7667</item>
         <item name="colorOutlineVariant">#D0C5B4</item>
-        <item name="cardBackgroundColor">#F1E7D9</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Amber.Dark" parent="">
@@ -354,7 +345,6 @@
         <item name="colorOnSurfaceInverse">#353027</item>
         <item name="colorOutline">#998F80</item>
         <item name="colorOutlineVariant">#4D4639</item>
-        <item name="cardBackgroundColor">#2E2921</item>
     </style>
 
     <!-- Orange #FF9800 -->
@@ -390,7 +380,6 @@
         <item name="colorOnSurfaceInverse">#FDEEE3</item>
         <item name="colorOutline">#837468</item>
         <item name="colorOutlineVariant">#D5C3B5</item>
-        <item name="cardBackgroundColor">#F4E5DB</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Orange.Dark" parent="">
@@ -425,7 +414,6 @@
         <item name="colorOnSurfaceInverse">#372F28</item>
         <item name="colorOutline">#9D8E81</item>
         <item name="colorOutlineVariant">#51453A</item>
-        <item name="cardBackgroundColor">#302822</item>
     </style>
 
     <!-- Red #F44336 -->
@@ -461,7 +449,6 @@
         <item name="colorOnSurfaceInverse">#FFEDEA</item>
         <item name="colorOutline">#857370</item>
         <item name="colorOutlineVariant">#D8C2BE</item>
-        <item name="cardBackgroundColor">#F7E4E1</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Red.Dark" parent="">
@@ -496,7 +483,6 @@
         <item name="colorOnSurfaceInverse">#392E2C</item>
         <item name="colorOutline">#A08C89</item>
         <item name="colorOutlineVariant">#534341</item>
-        <item name="cardBackgroundColor">#322826</item>
     </style>
 
     <!-- Pink #E91E63 -->
@@ -532,7 +518,6 @@
         <item name="colorOnSurfaceInverse">#FEEDEE</item>
         <item name="colorOutline">#847375</item>
         <item name="colorOutlineVariant">#D6C2C3</item>
-        <item name="cardBackgroundColor">#F5E4E5</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Pink.Dark" parent="">
@@ -567,7 +552,6 @@
         <item name="colorOnSurfaceInverse">#382E2F</item>
         <item name="colorOutline">#9F8C8E</item>
         <item name="colorOutlineVariant">#524345</item>
-        <item name="cardBackgroundColor">#312829</item>
     </style>
 
     <!-- Purple #9C27B0 -->
@@ -603,7 +587,6 @@
         <item name="colorOnSurfaceInverse">#F9EEF5</item>
         <item name="colorOutline">#7F747D</item>
         <item name="colorOutlineVariant">#D0C3CC</item>
-        <item name="cardBackgroundColor">#F0E5EC</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Purple.Dark" parent="">
@@ -638,7 +621,6 @@
         <item name="colorOnSurfaceInverse">#352F34</item>
         <item name="colorOutline">#998D96</item>
         <item name="colorOutlineVariant">#4D444C</item>
-        <item name="cardBackgroundColor">#2E282D</item>
     </style>
 
     <!-- Brown #795548 -->
@@ -674,7 +656,6 @@
         <item name="colorOnSurfaceInverse">#FFEDE7</item>
         <item name="colorOutline">#85736D</item>
         <item name="colorOutlineVariant">#D8C2BB</item>
-        <item name="cardBackgroundColor">#F7E4DF</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.Color.Brown.Dark" parent="">
@@ -709,7 +690,6 @@
         <item name="colorOnSurfaceInverse">#392E2B</item>
         <item name="colorOutline">#A08D86</item>
         <item name="colorOutlineVariant">#53433E</item>
-        <item name="cardBackgroundColor">#322824</item>
     </style>
 
 </resources>

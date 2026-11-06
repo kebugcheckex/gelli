@@ -56,7 +56,6 @@ const ROLES = {
     colorOutline: 'outline',
     colorOutlineVariant: 'outlineVariant',
     // the app's own surfaces, which would otherwise keep the greys of the base themes
-    cardBackgroundColor: 'surfaceContainerHigh',
 };
 
 function overlay(name, seed, dark) {
