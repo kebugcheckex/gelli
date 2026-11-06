@@ -28,7 +28,7 @@
             android:id="@+id/mini_player_fragment_container"
             android:layout_width="match_parent"
             android:layout_height="@dimen/mini_player_height"
-            android:background="?cardBackgroundColor" />
+            android:background="?attr/colorSurfaceContainer" />
 
     </FrameLayout>
 

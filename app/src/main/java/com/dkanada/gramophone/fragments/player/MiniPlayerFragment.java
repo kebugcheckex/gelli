@@ -2,7 +2,6 @@ package com.dkanada.gramophone.fragments.player;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.GestureDetector;
@@ -57,10 +56,6 @@ public class MiniPlayerFragment extends AbsMusicServiceFragment implements Music
 
     private void setUpMiniPlayer() {
         setUpPlayPauseButton();
-        int primaryColor = ThemeUtil.getColorResource(requireActivity(), R.attr.colorPrimary);
-
-        binding.progressBar.setSupportProgressTintList(ColorStateList.valueOf(primaryColor));
-        binding.progressBar.setSupportIndeterminateTintList(ColorStateList.valueOf(primaryColor));
     }
 
     private void setUpPlayPauseButton() {

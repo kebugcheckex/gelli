@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1, 2, 3, and 4 are done, and so are the grid tiles and detail headers of Phase 5. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
+Written November 5, 2026. Phases 1, 2, 3, 4, and 5 are done. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
 
 ## Goal
 
@@ -192,14 +192,12 @@ Done when: the phone and the expanded layout both follow the chosen preset in li
 - The shuffle icons in `menu_detail_album` and `menu_detail_artist` needed `app:iconTint`, because they were white and relied on the dark toolbar.
 - `ThemeOverlay.Gelli.ActionMode` no longer sets text and icon roles. They only undid the dark overlay on `Toolbar.OnColor`, and the detail screens were the last place an action mode sat on that toolbar.
 
-### Player panel
+### Player panel (done)
 
-- Mini player: `colorSurfaceContainer` background, `colorOnSurface` text, and a `LinearProgressIndicator` along the top edge (Phase 6 swaps the widget).
+- Mini player: `colorSurfaceContainer` background, `colorOnSurface` text, and a 2dp `LinearProgressIndicator` along the top edge. It uses the `Legacy` style, because the default style's gap and stop dot don't suit a line that thin. This came ahead of the rest of the Phase 6 widget swap, since the bar was moving anyway.
 - The Flat player keeps its palette background and status bar color (see *Not changed*), and its toolbar sits on that color as it does now.
 
-Expect to tune spacing on every phone screen after this phase. Check light, dark, and black on a phone, and the expanded layout for regressions.
-
-Done when: no phone screen shows the old primary-color toolbar or album-color backgrounds, and phone and expanded layouts share one look.
+Checked in light, dark, and black on a phone, and the expanded player bar for regressions.
 
 ## Phase 6: Remaining widgets
 
@@ -208,7 +206,7 @@ Done when: no phone screen shows the old primary-color toolbar or album-color ba
 | `CardView` in `card_about_app.xml`, `card_author.xml`, `card_special_thanks.xml`, `card_support_development.xml`, `activity_downloads.xml` | `MaterialCardView` (`Widget.Material3.CardView.Filled`). Remove `cardBackgroundColor` from the themes and the `androidx.cardview` dependency once unused. |
 | 8 `AppCompatButton`s in `card_special_thanks.xml` | `MaterialButton` with `Widget.Material3.Button.TextButton` |
 | `ImageButton`s in the player controls, player bar, queue sheet, and landscape player | `MaterialButton` with the M3 icon button styles. Check that the animated play/pause drawable still runs through `setIcon`. If it doesn't, keep `ImageButton` with `?attr/selectableItemBackgroundBorderless`. |
-| `MaterialProgressBar` in `fragment_mini_player.xml` and `fragment_flat_player_playback_controls.xml` | `LinearProgressIndicator` for progress and `CircularProgressIndicator` for buffering. Remove the `materialprogressbar` dependency. |
+| `MaterialProgressBar` in `fragment_flat_player_playback_controls.xml` | `LinearProgressIndicator` for progress and `CircularProgressIndicator` for buffering. Remove the `materialprogressbar` dependency. |
 | Plain `ProgressBar` in `activity_splash.xml`, `activity_downloads.xml`, and `fragment_landscape_player.xml` | `CircularProgressIndicator` or `LinearProgressIndicator` |
 | `SeekBar` for playback position | Keep it. M3's `Slider` has no buffered-progress track. Restyle the track and thumb with `colorPrimary` and `colorSurfaceContainerHighest`, and match the landscape player. |
 | `SeekArc` in the sleep timer | A `Slider` from 1 to 120 minutes (step 1) above the existing time text, with the "finish last song" checkbox below. Remove the `SeekArc` dependency. |

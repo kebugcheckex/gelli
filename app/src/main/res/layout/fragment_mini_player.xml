@@ -33,7 +33,8 @@
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+            android:textAppearance="?textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface" />
 
         <com.dkanada.gramophone.views.IconImageView
             android:id="@+id/mini_player_play_pause_button"
@@ -46,14 +47,12 @@
 
     </LinearLayout>
 
-    <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+    <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_bar"
+        style="@style/Widget.Material3.LinearProgressIndicator.Legacy"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_gravity="bottom"
-        app:mpb_progressStyle="horizontal"
-        app:mpb_useIntrinsicPadding="false"
-        app:mpb_setBothDrawables="true"
-        style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        app:trackThickness="2dp" />
 
 </FrameLayout>
