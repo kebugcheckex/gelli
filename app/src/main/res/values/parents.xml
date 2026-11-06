@@ -166,13 +166,6 @@
         <item name="colorTertiaryContainer">#2E2E2E</item>
     </style>
 
-    <style name="MusicProgressSliderParent">
-        <item name="android:progressDrawable">@android:color/transparent</item>
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:thumb">@drawable/slider_thumb</item>
-    </style>
-
     <style name="Widget.Gelli.ActionMode" parent="Widget.Material3.ActionMode">
         <item name="background">?attr/colorSurfaceContainer</item>
         <item name="titleTextStyle">@style/TextAppearance.Gelli.ActionMode.Title</item>

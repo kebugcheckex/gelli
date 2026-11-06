@@ -88,6 +88,8 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:paddingStart="@dimen/landscape_player_margin"
             android:paddingTop="8dp"
             android:paddingEnd="@dimen/landscape_player_margin"
@@ -128,6 +130,7 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_marginStart="@dimen/landscape_player_gap"
+                android:clipChildren="false"
                 android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -184,6 +187,7 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
 
                 <SeekBar
                     android:id="@+id/landscape_player_progress_slider"
+                    style="@style/Widget.Gelli.SeekBar.OnColor"
                     android:layout_width="match_parent"
                     android:layout_height="32dp"
                     android:layout_marginStart="-16dp"

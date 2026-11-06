@@ -102,11 +102,6 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
     }
 
     private void setUpProgressSlider() {
-        int trackColor = ThemeUtil.getColorResource(requireContext(), R.attr.colorOutlineVariant);
-        binding.playerBarProgressSlider.setThumbTintList(ColorStateList.valueOf(primaryColor));
-        binding.playerBarProgressSlider.setProgressTintList(ColorStateList.valueOf(primaryColor));
-        binding.playerBarProgressSlider.setProgressBackgroundTintList(ColorStateList.valueOf(trackColor));
-
         binding.playerBarProgressSlider.setOnSeekBarChangeListener(new SimpleOnSeekbarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

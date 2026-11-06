@@ -57,11 +57,11 @@
 
         <SeekBar
             android:id="@+id/player_progress_slider"
+            style="@style/Widget.Gelli.SeekBar.OnColor"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             app:layout_constraintStart_toEndOf="@id/player_song_current_progress"
-            app:layout_constraintEnd_toStartOf="@id/player_song_total_time"
-            style="@style/MusicProgressSlider" />
+            app:layout_constraintEnd_toStartOf="@id/player_song_total_time" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

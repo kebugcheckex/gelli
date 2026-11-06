@@ -183,10 +183,6 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
     }
 
     private void setUpProgressSlider() {
-        binding.landscapePlayerProgressSlider.setThumbTintList(ColorStateList.valueOf(Color.WHITE));
-        binding.landscapePlayerProgressSlider.setProgressTintList(ColorStateList.valueOf(Color.WHITE));
-        binding.landscapePlayerProgressSlider.setProgressBackgroundTintList(ColorStateList.valueOf(0x40FFFFFF));
-
         binding.landscapePlayerProgressSlider.setOnSeekBarChangeListener(new SimpleOnSeekbarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

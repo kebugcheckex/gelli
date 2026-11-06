@@ -173,6 +173,7 @@ and the queue and expand buttons on the right. tapping the bar outside the contr
 
                 <SeekBar
                     android:id="@+id/player_bar_progress_slider"
+                    style="@style/Widget.Gelli.SeekBar"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
