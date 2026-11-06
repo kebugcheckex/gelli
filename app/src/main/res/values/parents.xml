@@ -62,7 +62,7 @@
         <!-- necessary to find the overflow button later in the layout -->
         <item name="android:actionOverflowButtonStyle">@style/Widget.ActionButton.Overflow</item>
 
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="preferenceTheme">@style/ThemeOverlay.Gelli.Preference</item>
 
     </style>
 
@@ -123,7 +123,7 @@
         <!-- necessary to find the overflow button later in the layout -->
         <item name="android:actionOverflowButtonStyle">@style/Widget.ActionButton.Overflow</item>
 
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+        <item name="preferenceTheme">@style/ThemeOverlay.Gelli.Preference</item>
 
     </style>
 

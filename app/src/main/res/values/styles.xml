@@ -67,6 +67,25 @@
         <item name="android:thumbTint">@android:color/white</item>
     </style>
 
+    <!-- the library has no Material 3 theme, so its rows are replaced with our own layouts -->
+    <style name="ThemeOverlay.Gelli.Preference" parent="PreferenceThemeOverlay">
+        <item name="preferenceStyle">@style/Preference.Gelli</item>
+        <item name="dialogPreferenceStyle">@style/Preference.Gelli.Dialog</item>
+        <item name="seekBarPreferenceStyle">@style/Preference.Gelli.SeekBar</item>
+    </style>
+
+    <style name="Preference.Gelli" parent="Preference.Material">
+        <item name="android:layout">@layout/preference_row</item>
+    </style>
+
+    <style name="Preference.Gelli.Dialog" parent="Preference.DialogPreference.Material">
+        <item name="android:layout">@layout/preference_row</item>
+    </style>
+
+    <style name="Preference.Gelli.SeekBar" parent="Preference.SeekBarPreference.Material">
+        <item name="android:layout">@layout/preference_row_seekbar</item>
+    </style>
+
     <!-- rounded covers on the grid tiles and the now playing pane -->
     <style name="ShapeAppearance.Gelli.Cover" parent="">
         <item name="cornerFamily">rounded</item>
