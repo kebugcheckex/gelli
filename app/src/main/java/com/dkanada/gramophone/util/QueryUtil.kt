@@ -18,14 +18,18 @@ import kotlinx.coroutines.runBlocking
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.exception.ApiClientException
 import org.jellyfin.sdk.api.client.extensions.artistsApi
+import org.jellyfin.sdk.api.client.extensions.genresApi
 import org.jellyfin.sdk.api.client.extensions.itemsApi
+import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.request.GetAlbumArtistsRequest
 import org.jellyfin.sdk.model.api.request.GetArtistsRequest
+import org.jellyfin.sdk.model.api.request.GetGenresRequest
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import java.util.UUID
 
@@ -34,32 +38,24 @@ object QueryUtil {
 
     data class Library(
         val id: String,
-        val name: String,
-        val collectionType: String?
+        val name: String
     )
 
     @JvmField
     var currentLibrary: Library? = null
 
+    /** The user's music libraries. An items query for CollectionFolder returns no rows, so this reads the user views. */
     @JvmStatic
     fun getLibraries(callback: MediaCallback<Library>) {
-        fetchItems(
-            request = GetItemsRequest(
-                userId = currentUserUuidOrNull(),
-                includeItemTypes = listOf(BaseItemKind.COLLECTION_FOLDER),
-                recursive = false
-            ),
-            onErrorTag = "getLibraries",
-            mapper = { item ->
-                Library(
-                    id = uuidToId(item.id),
-                    name = item.name ?: "",
-                    collectionType = item.collectionType?.toString()
-                )
-            },
-            callback = callback
-        )
+        fetch("getLibraries", callback) { api ->
+            val result by api.userViewsApi.getUserViews(userId = currentUserUuidOrNull())
+            musicLibraries(result.items)
+        }
     }
+
+    internal fun musicLibraries(views: List<BaseItemDto>): List<Library> = views
+        .filter { it.collectionType == CollectionType.MUSIC }
+        .map { Library(id = uuidToId(it.id), name = it.name ?: "") }
 
     @JvmStatic
     fun getPlaylists(callback: MediaCallback<Playlist>) {
@@ -76,14 +72,14 @@ object QueryUtil {
         )
     }
 
+    /** Genres with songs in the current library. An items query for MusicGenre ignores parentId, so this reads /Genres. */
     @JvmStatic
     fun getGenres(startIndex: Int, callback: MediaCallback<Genre>) {
-        fetchItems(
-            request = genresRequest(startIndex, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary),
-            onErrorTag = "getGenres",
-            mapper = SdkMediaMapper::toGenre,
-            callback = callback
-        )
+        fetch("getGenres", callback) { api ->
+            val request = genresRequest(startIndex, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
+            val result by api.genresApi.getGenres(request)
+            result.items.map(SdkMediaMapper::toGenre)
+        }
     }
 
     @JvmStatic
@@ -123,7 +119,7 @@ object QueryUtil {
     /** People credited on individual tracks, including featured artists. */
     @JvmStatic
     fun getArtists(sortMethod: SortMethod?, sortOrder: AppSortOrder?, startIndex: Int, callback: MediaCallback<Artist>) {
-        fetchArtists("getArtists", callback) { api ->
+        fetch("getArtists", callback) { api ->
             val request = artistsRequest(sortMethod, sortOrder, startIndex, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
             val result by api.artistsApi.getArtists(request)
             result.items.map(SdkMediaMapper::toArtist)
@@ -133,7 +129,7 @@ object QueryUtil {
     /** Primary artists of albums. Distinct from [getArtists]. */
     @JvmStatic
     fun getAlbumArtists(sortMethod: SortMethod?, sortOrder: AppSortOrder?, startIndex: Int, callback: MediaCallback<Artist>) {
-        fetchArtists("getAlbumArtists", callback) { api ->
+        fetch("getAlbumArtists", callback) { api ->
             val request = albumArtistsRequest(sortMethod, sortOrder, startIndex, JellyfinSdkSession.getCurrentUserId(), defaultPageSize(), currentLibrary)
             val result by api.artistsApi.getAlbumArtists(request)
             result.items.map(SdkMediaMapper::toArtist)
@@ -381,13 +377,12 @@ object QueryUtil {
         userId: String?,
         pageSize: Int,
         library: Library?
-    ): GetItemsRequest = GetItemsRequest(
+    ): GetGenresRequest = GetGenresRequest(
         userId = toUuidOrNull(userId),
         parentId = toUuidOrNull(library?.id),
-        includeItemTypes = listOf(BaseItemKind.MUSIC_GENRE),
-        recursive = true,
         limit = pageSize,
-        startIndex = startIndex
+        startIndex = startIndex,
+        sortBy = listOf(ItemSortBy.SORT_NAME)
     )
 
     internal fun albumSongsRequest(albumId: String, userId: String?): GetItemsRequest = GetItemsRequest(
@@ -465,10 +460,10 @@ object QueryUtil {
         }
     }
 
-    private fun fetchArtists(
+    private fun <T> fetch(
         onErrorTag: String,
-        callback: MediaCallback<Artist>,
-        load: suspend (ApiClient) -> List<Artist>
+        callback: MediaCallback<T>,
+        load: suspend (ApiClient) -> List<T>
     ) {
         val api = JellyfinSdkSession.createApiOrNull()
         if (api == null) {
@@ -500,30 +495,9 @@ object QueryUtil {
         mapper: (BaseItemDto) -> T,
         callback: MediaCallback<T>
     ) {
-        val api = JellyfinSdkSession.createApiOrNull()
-        if (api == null) {
-            Log.w(TAG, "$onErrorTag: missing SDK session state")
-            callback.onLoadMedia(emptyList())
-            return
+        fetch(onErrorTag, callback) { api ->
+            val result by api.itemsApi.getItems(request)
+            result.items.map(mapper)
         }
-
-        Thread {
-            val mapped = try {
-                runBlocking {
-                    val result by api.itemsApi.getItems(request)
-                    result.items.map(mapper)
-                }
-            } catch (err: ApiClientException) {
-                Log.w(TAG, "$onErrorTag: API error: ${err.message}", err)
-                emptyList()
-            } catch (err: Exception) {
-                Log.w(TAG, "$onErrorTag: unexpected error: ${err.message}", err)
-                emptyList()
-            }
-
-            Handler(Looper.getMainLooper()).post {
-                callback.onLoadMedia(mapped)
-            }
-        }.start()
     }
 }

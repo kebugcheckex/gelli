@@ -75,8 +75,8 @@ public class GenreDetailActivity extends AbsMusicContentActivity {
     }
 
     private void setUpToolBar() {
-        setSupportActionBar(binding.toolbar);
         binding.toolbar.setTitle(genre.name);
+        setSupportActionBar(binding.toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 

@@ -15,7 +15,7 @@ class ServerSongInventoryTest {
         val otherMusic = BaseItemDto(id = id(2), type = BaseItemKind.COLLECTION_FOLDER, collectionType = CollectionType.MUSIC)
         val books = BaseItemDto(id = id(3), type = BaseItemKind.COLLECTION_FOLDER, collectionType = CollectionType.BOOKS)
         val requests = mutableListOf<UUID?>()
-        QueryUtil.currentLibrary = QueryUtil.Library(id(99).toString(), "Other", "music")
+        QueryUtil.currentLibrary = QueryUtil.Library(id(99).toString(), "Other")
         try {
             val ids = ServerSongInventory.loadSongIds(id(10), views = {
                 BaseItemDtoQueryResult(listOf(music, books, otherMusic, music), 4, 0)

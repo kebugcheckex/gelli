@@ -2,7 +2,9 @@ package com.dkanada.gramophone.util
 
 import com.dkanada.gramophone.model.SortMethod
 import com.dkanada.gramophone.model.SortOrder as AppSortOrder
+import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
@@ -25,11 +27,38 @@ class QueryUtilTest {
 
     private val library = QueryUtil.Library(
         id = "11111111111111111111111111111111",
-        name = "Music",
-        collectionType = "music"
+        name = "Music"
     )
 
     private val userId = "22222222222222222222222222222222"
+
+    @Test
+    fun musicLibraries_keepsOnlyMusicViewsInServerOrder() {
+        fun view(id: Long, name: String, type: CollectionType?) = BaseItemDto(
+            id = UUID(0, id),
+            name = name,
+            type = BaseItemKind.COLLECTION_FOLDER,
+            collectionType = type
+        )
+
+        val libraries = QueryUtil.musicLibraries(
+            listOf(
+                view(1, "Movies", CollectionType.MOVIES),
+                view(2, "Music", CollectionType.MUSIC),
+                view(3, "Mixed", null),
+                view(4, "Audiobooks", CollectionType.BOOKS),
+                view(5, "Live", CollectionType.MUSIC)
+            )
+        )
+
+        assertEquals(
+            listOf(
+                QueryUtil.Library("00000000000000000000000000000002", "Music"),
+                QueryUtil.Library("00000000000000000000000000000005", "Live")
+            ),
+            libraries
+        )
+    }
 
     // --- Regression: playlist queries must NOT inherit currentLibrary as parentId.
     // Jellyfin stores playlists outside any library, so scoping by the music
@@ -298,7 +327,7 @@ class QueryUtilTest {
         )
 
         assertEquals(UUID.fromString("11111111-1111-1111-1111-111111111111"), request.parentId)
-        assertEquals(listOf(BaseItemKind.MUSIC_GENRE), request.includeItemTypes)
+        assertEquals(listOf(ItemSortBy.SORT_NAME), request.sortBy)
         assertEquals(50, request.limit)
     }
 

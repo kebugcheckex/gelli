@@ -61,12 +61,10 @@ public class MainActivity extends AbsMusicContentActivity {
             libraries = media;
             menu.clear();
 
-            for (QueryUtil.Library itemDto : libraries) {
-                if (menu.size() == 0) {
-                    QueryUtil.currentLibrary = itemDto;
-                }
+            // queries are scoped to this library, so an account without one can't keep the previous account's
+            QueryUtil.currentLibrary = libraries.isEmpty() ? null : libraries.get(0);
 
-                if (itemDto.getCollectionType() == null || !itemDto.getCollectionType().equals("music")) continue;
+            for (QueryUtil.Library itemDto : libraries) {
                 menu.add(R.id.navigation_drawer_menu_category_sections, itemDto.getId().hashCode(), menu.size(), itemDto.getName());
                 menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_album_white_24dp).setCheckable(true);
             }
@@ -80,7 +78,7 @@ public class MainActivity extends AbsMusicContentActivity {
 
             setUpDrawerLayout();
 
-            menu.getItem(0).setChecked(true);
+            if (!libraries.isEmpty()) menu.getItem(0).setChecked(true);
             setCurrentFragment(LibraryFragment.newInstance());
         });
     }
