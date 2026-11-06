@@ -4,7 +4,6 @@
 
     <dimen name="detail_header_height">176dp</dimen>
     <dimen name="detail_header_image_height">144dp</dimen>
-    <dimen name="title_view_height">72dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="toolbar_elevation">4dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
@@ -18,8 +17,6 @@
     <dimen name="status_bar_padding">25dp</dimen>
 
     <dimen name="tab_height">48dp</dimen>
-
-    <dimen name="tagEditorHeaderVariableSpace">100dp</dimen>
 
     <!--
 Refer to App Widget Documentation for margin information
@@ -36,21 +33,14 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <!-- MUST BE THE RESULT OF WIDTH PLUS INSET -->
 
     <!-- ONLY 0dp WHILE THERE IS THE BUG IN DESIGN SUPPORT LIBRARY 22.2.0 -->
-    <dimen name="fab_margin_top_left_right">0dp</dimen>
 
     <!-- For use with 24dp drawables in the item_list layouts -->
-    <dimen name="list_item_image_icon_padding">8dp</dimen>
 
     <dimen name="mini_player_height">56dp</dimen>
 
     <dimen name="app_widget_classic_image_size">96dp</dimen>
     <dimen name="app_widget_classic_min_width">250dp</dimen>
     <dimen name="app_widget_classic_min_height">40dp</dimen>
-
-    <dimen name="app_widget_small_button_height">48dp</dimen>
-    <dimen name="app_widget_small_image_size">48dp</dimen>
-    <dimen name="app_widget_small_min_width">250dp</dimen>
-    <dimen name="app_widget_small_min_height">40dp</dimen>
 
     <dimen name="app_widget_big_min_width">250dp</dimen>
     <dimen name="app_widget_big_min_height">110dp</dimen>
@@ -66,8 +56,6 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
     <dimen name="item_text">16sp</dimen>
 
     <dimen name="dialog_margin">24dp</dimen>
-
-    <dimen name="card_on_app_bar_side_padding">8dp</dimen>
 
     <!-- target cell widths for the library grid layouts, the column count follows the available width -->
     <dimen name="grid_cell_small">128dp</dimen>
@@ -94,5 +82,4 @@ http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
 
     <!-- cover and metadata column on album and artist detail screens at w1200dp -->
     <dimen name="detail_side_column_width">320dp</dimen>
-
 </resources>

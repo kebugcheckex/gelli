@@ -108,8 +108,8 @@ The drawer holds library switching, Settings, About, and Logout. The real top-le
 
 This shipped as the Material version, together with a restyle of the expanded layout (option A in the landscape mocks).
 
-- **Material 3 theme.** `parents.xml` now builds on `Theme.Material3` with neutral grey color roles. The toolbar, tab, and app bar styles and the 56dp `actionBarSize` are pinned to the old widgets so phones keep their look. Popups, buttons, and the drawer pick up M3 styling everywhere.
-- **Navigation rail.** `layout-w840dp/fragment_library.xml` replaces the tabs with a `NavigationRailView`. Its items are rebuilt from the configured categories (each `Category` now has an icon) and drive the `ViewPager`. The rail header has a menu button that opens the existing drawer and a shuffle button. The rail scrolls, because its items don't all fit on a phone in landscape. The top bar is neutral and shows the current category, and the status bar uses the surface color.
+- **Material 3 theme.** `parents.xml` builds on `Theme.Material3`. The color roles come from the chosen preset, and phones and the expanded layout share the same M3 toolbar, tab, and app bar styles. See `material3_migration_plan.md`.
+- **Navigation rail.** `layout-w840dp/fragment_library.xml` replaces the tabs with a `NavigationRailView`. Its items are rebuilt from the configured categories (each `Category` now has an icon) and drive the `ViewPager`. The rail header has a menu button that opens the existing drawer and a shuffle button. The rail scrolls, because its items don't all fit on a phone in landscape. The top bar and the status bar use the surface color, and the top bar shows the current category.
 - **Grid tiles.** `layout-w840dp/item_grid.xml` is a rounded cover with the text below and no palette footer, so the colored-footers option is hidden at this width.
 - **Now-playing pane.** A plain flat-player stack on the surface with a palette wash at the top. Removed in Phase 5.
 

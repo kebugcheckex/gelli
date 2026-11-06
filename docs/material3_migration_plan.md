@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1, 2, 3, 4, and 5 are done. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
+Written November 5, 2026. All phases and the cleanup are done. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
 
 ## Goal
 
@@ -230,7 +230,7 @@ Done when: Settings matches the rest of the app in all three themes, including i
 
 ## Cleanup
 
-After the last phase, remove any attributes, drawables, and dimens nothing reads anymore (the selector drawables, `toolbar_elevation`, and `toolbar_height` if unused). Then update `docs/large_screen_layout_plan.md` wherever it describes the pinned phone styles or the neutral-only theme.
+Done. The attributes, drawables, and dimens nothing reads anymore are gone. `toolbar_elevation` and `toolbar_height` stay, because `Toolbar.OnColor` on the flat player still reads them. `docs/large_screen_layout_plan.md` no longer describes the pinned phone styles or the neutral-only theme.
 
 ## Not changed
 
