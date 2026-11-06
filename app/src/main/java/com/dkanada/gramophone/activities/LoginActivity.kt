@@ -22,7 +22,6 @@ import org.jellyfin.sdk.model.api.AuthenticateUserByName
 
 class LoginActivity : AbsBaseActivity(), View.OnClickListener {
     private lateinit var binding: ActivityLoginBinding
-    private var primaryColor: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,15 +36,8 @@ class LoginActivity : AbsBaseActivity(), View.OnClickListener {
     }
 
     private fun setUpViews() {
-        primaryColor = PreferenceUtil.getInstance(this).getPrimaryColor()
-        setUpToolbar()
-        setUpOnClickListeners()
-        binding.login.setBackgroundColor(primaryColor)
-    }
-
-    private fun setUpToolbar() {
-        binding.toolbar.setBackgroundColor(primaryColor)
         setSupportActionBar(binding.toolbar)
+        setUpOnClickListeners()
     }
 
     private fun setUpOnClickListeners() {
@@ -79,8 +71,6 @@ class LoginActivity : AbsBaseActivity(), View.OnClickListener {
         }
 
         binding.login.isEnabled = false
-        @Suppress("DEPRECATION")
-        binding.login.setBackgroundColor(resources.getColor(android.R.color.darker_gray))
 
         Thread {
             val result = runCatching {
@@ -100,7 +90,6 @@ class LoginActivity : AbsBaseActivity(), View.OnClickListener {
                     onSuccess = { (user, version) ->
                         if (version?.firstOrNull() != '1') {
                             binding.login.isEnabled = true
-                            binding.login.setBackgroundColor(primaryColor)
                             Toast.makeText(this, getString(R.string.error_version), Toast.LENGTH_SHORT).show()
                         } else {
                             App.getDatabase().userDao().insertUser(user)
@@ -116,7 +105,6 @@ class LoginActivity : AbsBaseActivity(), View.OnClickListener {
                     },
                     onFailure = { e ->
                         binding.login.isEnabled = true
-                        binding.login.setBackgroundColor(primaryColor)
                         val msgRes = if (e is InvalidStatusException && e.status == 401) {
                             R.string.error_login_credentials
                         } else {

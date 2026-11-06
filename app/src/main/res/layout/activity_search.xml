@@ -6,9 +6,9 @@
 
     <include layout="@layout/status_bar" />
 
-    <androidx.appcompat.widget.Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        style="@style/Toolbar" />
+        style="@style/Toolbar.Surface" />
 
     <FrameLayout
         android:layout_width="match_parent"

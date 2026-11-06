@@ -6,10 +6,9 @@
 
     <include layout="@layout/status_bar" />
 
-    <androidx.appcompat.widget.Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        style="@style/Toolbar"
-        android:background="@android:color/transparent" />
+        style="@style/Toolbar.Surface" />
 
     <FrameLayout
         android:id="@+id/content_frame"

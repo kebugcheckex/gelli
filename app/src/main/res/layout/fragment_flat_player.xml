@@ -64,7 +64,7 @@
 
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/player_toolbar"
-                    style="@style/Toolbar"
+                    style="@style/Toolbar.OnColor"
                     android:background="@android:color/transparent" />
 
             </FrameLayout>

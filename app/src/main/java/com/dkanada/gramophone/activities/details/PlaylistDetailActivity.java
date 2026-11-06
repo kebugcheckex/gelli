@@ -101,7 +101,6 @@ public class PlaylistDetailActivity extends AbsMusicContentActivity {
 
     private void setUpToolbar() {
         binding.toolbar.setTitle(playlist.name);
-        binding.toolbar.setBackgroundColor(PreferenceUtil.getInstance(this).getPrimaryColor());
         setSupportActionBar(binding.toolbar);
         // noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

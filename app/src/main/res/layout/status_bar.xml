@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.dkanada.gramophone.views.StatusBarView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/status_bar"
     android:layout_width="match_parent"
     android:layout_height="@dimen/status_bar_padding"
-    android:background="@android:color/transparent"
-    android:elevation="@dimen/toolbar_elevation"
-    tools:ignore="UnusedAttribute" />
+    android:background="@android:color/transparent" />

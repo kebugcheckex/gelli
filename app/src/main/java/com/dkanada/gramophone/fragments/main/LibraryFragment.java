@@ -27,7 +27,6 @@ import com.google.android.material.navigationrail.NavigationRailView;
 import com.dkanada.gramophone.model.Category;
 import android.content.res.ColorStateList;
 import androidx.core.graphics.ColorUtils;
-import androidx.core.view.MenuItemCompat;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.MusicLibraryPagerAdapter;
 import com.dkanada.gramophone.dialogs.CreatePlaylistDialog;
@@ -101,9 +100,6 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
 
     private void setUpToolbar() {
         if (!hasRail()) {
-            int primaryColor = PreferenceUtil.getInstance(requireActivity()).getPrimaryColor();
-            binding.appbar.setBackgroundColor(primaryColor);
-            binding.toolbar.setBackgroundColor(primaryColor);
             binding.toolbar.setNavigationIcon(R.drawable.ic_menu_white_24dp);
             binding.toolbar.setTitle(R.string.app_name);
         }
@@ -166,12 +162,6 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
 
         if (binding.tabs != null) {
             binding.tabs.setupWithViewPager(binding.pager);
-
-            int primaryColor = PreferenceUtil.getInstance(requireActivity()).getPrimaryColor();
-            int normalColor = ThemeUtil.getSecondaryTextColor(requireActivity(), primaryColor);
-            int selectedColor = ThemeUtil.getPrimaryTextColor(requireActivity(), primaryColor);
-            binding.tabs.setTabTextColors(normalColor, selectedColor);
-            binding.tabs.setSelectedTabIndicatorColor(PreferenceUtil.getInstance(requireActivity()).getAccentColor());
         }
 
         updateTabVisibility();
@@ -223,10 +213,6 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         if (hasRail()) {
             menu.removeItem(R.id.action_shuffle_all);
             menu.removeItem(R.id.action_colored_footers);
-
-            // the rail's toolbar sits on the surface, not the primary colour the white icon was drawn for
-            int iconColor = ThemeUtil.getColorResource(requireContext(), R.attr.colorOnSurfaceVariant);
-            MenuItemCompat.setIconTintList(menu.findItem(R.id.action_search), ColorStateList.valueOf(iconColor));
         }
 
         Fragment currentFragment = getCurrentFragment();

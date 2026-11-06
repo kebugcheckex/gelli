@@ -12,7 +12,6 @@ import com.dkanada.gramophone.activities.base.AbsBaseActivity;
 import com.dkanada.gramophone.adapter.SelectAdapter;
 import com.dkanada.gramophone.databinding.ActivitySelectBinding;
 import com.dkanada.gramophone.model.User;
-import com.dkanada.gramophone.util.PreferenceUtil;
 
 import java.util.List;
 
@@ -34,10 +33,6 @@ public class SelectActivity extends AbsBaseActivity {
 
         binding.add.setOnClickListener(v -> startActivity(new Intent(this, LoginActivity.class)));
 
-        int primaryColor = PreferenceUtil.getInstance(this).getPrimaryColor();
-
-        binding.add.setBackgroundColor(primaryColor);
-        binding.toolbar.setBackgroundColor(primaryColor);
         setSupportActionBar(binding.toolbar);
     }
 

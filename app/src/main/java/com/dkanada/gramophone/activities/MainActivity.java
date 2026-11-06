@@ -1,8 +1,6 @@
 package com.dkanada.gramophone.activities;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
@@ -19,8 +17,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.NavigationUtil;
-import com.dkanada.gramophone.util.PreferenceUtil;
-import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.databinding.ActivityMainContentBinding;
 import com.dkanada.gramophone.databinding.ActivityMainDrawerLayoutBinding;
 import com.dkanada.gramophone.databinding.NavigationDrawerHeaderBinding;
@@ -51,27 +47,7 @@ public class MainActivity extends AbsMusicContentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setColor(isExpandedLayout()
-            ? ThemeUtil.getColorResource(this, R.attr.colorSurface)
-            : PreferenceUtil.getInstance(this).getPrimaryColor());
         LocalLibrary.verifyAsync();
-    }
-
-    private boolean isExpandedLayout() {
-        return getResources().getBoolean(R.bool.expanded_layout);
-    }
-
-    @Override
-    public void setStatusBarColor(int color) {
-        if (!isExpandedLayout()) {
-            super.setStatusBarColor(color);
-            return;
-        }
-
-        // the neutral app bar continues into the status bar without the darker band
-        View statusBar = findViewById(R.id.status_bar);
-        if (statusBar != null) statusBar.setBackgroundColor(color);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
     }
 
     public void openDrawer() {
@@ -92,7 +68,7 @@ public class MainActivity extends AbsMusicContentActivity {
 
                 if (itemDto.getCollectionType() == null || !itemDto.getCollectionType().equals("music")) continue;
                 menu.add(R.id.navigation_drawer_menu_category_sections, itemDto.getId().hashCode(), menu.size(), itemDto.getName());
-                menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_album_white_24dp);
+                menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_album_white_24dp).setCheckable(true);
             }
 
             menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_settings, menu.size(), R.string.action_settings);
@@ -159,12 +135,6 @@ public class MainActivity extends AbsMusicContentActivity {
     }
 
     private void setUpNavigationView() {
-        int normalColor = ThemeUtil.getColorResource(this, android.R.attr.textColorPrimary);
-        int activeColor = PreferenceUtil.getInstance(this).getAccentColor();
-
-        binding.navigationView.setItemIconTintList(ThemeUtil.getColorStateList(normalColor, activeColor));
-        binding.navigationView.setItemTextColor(ThemeUtil.getColorStateList(normalColor, activeColor));
-
         binding.navigationView.setNavigationItemSelectedListener(menuItem -> {
             binding.drawerLayout.closeDrawers();
             switch (menuItem.getItemId()) {
@@ -194,9 +164,6 @@ public class MainActivity extends AbsMusicContentActivity {
                 }
             }
 
-            // setCheckable must be applied to the items on creation
-            // it also applies a tacky background color for the checked item
-            // this is a hack to check the current item without that
             if (menuItem.getGroupId() != R.id.navigation_drawer_menu_category_sections) return true;
 
             for (int i = 0; i < binding.navigationView.getMenu().size(); i++) {

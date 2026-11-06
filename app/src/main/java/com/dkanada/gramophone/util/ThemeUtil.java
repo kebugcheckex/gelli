@@ -3,7 +3,6 @@ package com.dkanada.gramophone.util;
 import android.content.res.ColorStateList;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
@@ -96,15 +95,6 @@ public class ThemeUtil {
     @ColorInt
     public static int getColorAlpha(Context context, int color, int alpha) {
         return MaterialColors.compositeARGBWithAlpha(ContextCompat.getColor(context, color), alpha);
-    }
-
-    @ColorInt
-    public static int getColorDark(int color) {
-        float[] hsv = new float[3];
-        Color.colorToHSV(color, hsv);
-        hsv[2] *= 0.8f;
-
-        return Color.HSVToColor(hsv);
     }
 
     private static class SwatchComparator implements Comparator<Palette.Swatch> {

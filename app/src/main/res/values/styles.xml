@@ -25,10 +25,12 @@
         <item name="android:thumbOffset">0dp</item>
     </style>
 
-    <style name="Toolbar">
+    <!-- for a toolbar on an album colour, with white icons and title whatever the theme -->
+    <style name="Toolbar.OnColor" parent="Widget.AppCompat.Toolbar">
         <item name="titleMarginStart">16dp</item>
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">?android:attr/actionBarSize</item>
+        <item name="android:layout_height">@dimen/toolbar_height</item>
+        <item name="android:minHeight">@dimen/toolbar_height</item>
         <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="android:popupTheme" tools:ignore="NewApi">?toolbarPopupTheme</item>
         <item name="android:elevation" tools:ignore="NewApi">@dimen/toolbar_elevation</item>
@@ -72,11 +74,11 @@
         <item name="android:minWidth">120dp</item>
     </style>
 
-    <!-- neutral surface toolbar for the expanded width -->
+    <!-- use with MaterialToolbar, which is what tints the navigation icon -->
     <style name="Toolbar.Surface" parent="Widget.Material3.Toolbar.Surface">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">?attr/actionBarSize</item>
-        <item name="titleMarginStart">24dp</item>
+        <item name="titleMarginStart">16dp</item>
     </style>
 
 </resources>

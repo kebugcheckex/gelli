@@ -46,6 +46,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     private int navigationBarColor;
     private int taskDescriptionColor;
     private boolean lightStatusBar;
+    private boolean lightNavigationBar;
 
     private AbsPlayerFragment playerFragment;
     // the mini player, or the player bar at the expanded width
@@ -92,7 +93,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         // TODO remove this once createContentView works with inheritance
         // any AbsMusicPanelActivity child without setColor has status bar issues
         // setDrawUnderStatusBar only works after content view has been set
-        setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
+        setColor(ThemeUtil.getColorResource(this, R.attr.colorSurface));
     }
 
     /**
@@ -210,6 +211,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
     public void onPanelCollapsed(View panel) {
         super.setLightStatusBar(lightStatusBar);
+        super.setLightNavigationBar(lightNavigationBar);
         super.setTaskDescriptionColor(taskDescriptionColor);
         super.setNavigationBarColor(navigationBarColor);
 
@@ -227,6 +229,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         int playerFragmentColor = playerFragment.getPaletteColor();
 
         super.setLightStatusBar(false);
+        super.setLightNavigationBar(false);
         super.setTaskDescriptionColor(playerFragmentColor);
         super.setNavigationBarColor(playerFragmentColor);
 
@@ -341,6 +344,15 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
         if (actionMode == null && getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
             super.setLightStatusBar(enabled);
+        }
+    }
+
+    @Override
+    public void setLightNavigationBar(boolean enabled) {
+        lightNavigationBar = enabled;
+
+        if (getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+            super.setLightNavigationBar(enabled);
         }
     }
 

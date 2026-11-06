@@ -8,7 +8,6 @@ import android.view.View;
 import androidx.annotation.NonNull;
 
 import com.dkanada.gramophone.util.NavigationUtil;
-import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.databinding.ActivityAboutBinding;
 import com.dkanada.gramophone.databinding.CardAboutAppBinding;
 import com.dkanada.gramophone.databinding.CardAuthorBinding;
@@ -70,7 +69,6 @@ public class AboutActivity extends AbsBaseActivity implements View.OnClickListen
     }
 
     private void setUpToolbar() {
-        binding.toolbar.setBackgroundColor(PreferenceUtil.getInstance(this).getPrimaryColor());
         setSupportActionBar(binding.toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }

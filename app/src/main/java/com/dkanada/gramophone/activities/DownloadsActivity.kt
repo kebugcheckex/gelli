@@ -39,7 +39,6 @@ class DownloadsActivity : AbsBaseActivity(), LocalLibrary.Listener, NetworkUtil.
         binding = ActivityDownloadsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewUtil.capContentWidth(binding.scrollView)
-        binding.toolbar.setBackgroundColor(preferences.primaryColor)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val accent = ColorStateList.valueOf(preferences.accentColor)

@@ -75,7 +75,6 @@ public class GenreDetailActivity extends AbsMusicContentActivity {
     }
 
     private void setUpToolBar() {
-        binding.toolbar.setBackgroundColor(PreferenceUtil.getInstance(this).getPrimaryColor());
         setSupportActionBar(binding.toolbar);
         binding.toolbar.setTitle(genre.name);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

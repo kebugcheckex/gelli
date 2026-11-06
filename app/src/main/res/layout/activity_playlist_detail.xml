@@ -9,19 +9,9 @@
 
     <include layout="@layout/status_bar" />
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?colorPrimary"
-        android:elevation="@dimen/toolbar_elevation"
-        tools:ignore="UnusedAttribute">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            style="@style/Toolbar"
-            android:background="@android:color/transparent" />
-
-    </FrameLayout>
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        style="@style/Toolbar.Surface" />
 
     <TextView
         android:id="@android:id/empty"

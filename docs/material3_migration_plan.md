@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1, 2, and 3 are done.
+Written November 5, 2026. Phases 1, 2, and 3 are done, and so is step 1 of Phase 4. The phone chrome moved out of Phase 5 and now comes before the presets, so each preset is checked on the final surfaces.
 
 ## Goal
 
@@ -14,9 +14,9 @@ Decisions already made:
 
 Backward compatibility isn't a goal. The old color, footer, and now-playing preferences are simply dropped.
 
-## Current state
+## Starting state
 
-The app theme already builds on `Theme.Material3` (`res/values/parents.xml`). Its color roles are neutral greys, and the user's colors are applied at runtime. The theme's view inflater already turns plain `<Button>`, `<CheckBox>`, and `<TextView>` tags into their Material versions. Four theme items hold the phone look in place:
+This section records the app as it was when the plan was written. The app theme already builds on `Theme.Material3` (`res/values/parents.xml`). Its color roles are neutral greys, and the user's colors are applied at runtime. The theme's view inflater already turns plain `<Button>`, `<CheckBox>`, and `<TextView>` tags into their Material versions. Four theme items hold the phone look in place:
 
 ```xml
 <item name="actionBarSize">@dimen/toolbar_height</item>                <!-- 56dp -->
@@ -32,7 +32,7 @@ What's still legacy:
 | Dialogs | `com.afollestad.material-dialogs` 0.9.6 (`core` and `commons`) | 13 dialogs, listed in Phase 2 |
 | Multi-select bar | `com.afollestad:material-cab` 2.0.1 | `AbsMultiSelectAdapter.kt`, `CabHolder`, `MainActivity`, and the album, artist, genre, and playlist detail activities |
 | Colors | `PRIMARY_COLOR` and `ACCENT_COLOR` preferences picked with the QuadFlask color wheel (`ColorPreference`), applied by hand in more than 15 places | See Phase 4 |
-| Phone toolbar, tabs, and app bar | Pinned old styles, primary-color background, `Toolbar` style with a dark action bar overlay and a 4dp shadow | 13 layouts use `@style/Toolbar` |
+| Phone toolbar, tabs, and app bar | Pinned old styles, primary-color background, `Toolbar` style with a dark action bar overlay and a 4dp shadow | 14 layouts use `@style/Toolbar` |
 | Status bar | Primary color darkened by 20% (`ThemeUtil.getColorDark`), drawn by `StatusBarView` | `AbsThemeActivity`, `AbsMusicPanelActivity`. `MainActivity` overrides this at expanded width. |
 | Grid tiles | Square cover with a palette-colored footer (`palette_color_container`) | `layout/item_grid.xml`, `layout/item_grid_card_horizontal.xml` |
 | Detail headers | Palette color on the app bar, status bar, and CAB | `AlbumDetailActivity`, `ArtistDetailActivity` |
@@ -82,7 +82,7 @@ Done when: no `com.afollestad.materialdialogs` imports remain, and every dialog 
 Replace material-cab with AppCompat's `ActionMode`, styled by the M3 theme.
 
 1. Theme: set `windowActionModeOverlay` to true and `actionModeStyle` to a surface-colored style (`colorSurfaceContainer` background, `colorOnSurface` title), so the action mode covers the toolbar instead of pushing the content down.
-   The mode inherits from the toolbar's context, so `@style/Toolbar`'s dark overlay would turn its icons white in the light theme. `actionModeTheme` sets those roles back to match the surface and clears the popup theme, which would otherwise replace the neutral roles. The mode also covers the status bar, so `AbsMusicPanelActivity` matches the status icons to the mode's surface while it is open.
+   The mode inherits from the toolbar's context, so `@style/Toolbar.OnColor`'s dark overlay would turn its icons white in the light theme. `actionModeTheme` sets those roles back to match the surface and clears the popup theme, which would otherwise replace the neutral roles. The mode also covers the status bar, so `AbsMusicPanelActivity` matches the status icons to the mode's surface while it is open.
 2. `AbsMultiSelectAdapter.kt` starts the mode with `activity.startSupportActionMode(callback)`, updates `mode.title`, and calls `mode.finish()` when nothing is checked. The `onCreateActionMode`, `onActionItemClicked`, and `onDestroyActionMode` callbacks map onto today's `onCreate`, `onSelection`, and `onDestroy`.
 3. AppCompat allows one mode at a time, because starting a mode finishes the open one, and it closes the open mode on Back by itself. `CabHolder` and the Back handling in `MainActivity` and the detail activities are therefore removed.
    The mode is drawn above the whole window rather than inside each layout, so `AbsMusicPanelActivity` tracks it and closes it whenever the player panel changes state. `MainActivity` and `LibraryFragment` also close it on a library switch and on a tab change.
@@ -92,7 +92,27 @@ Check on a device that the mode covers the toolbar in each activity that has one
 
 Done when: multi-select works in the library tabs and every detail screen, and material-cab is gone.
 
-## Phase 4: Color presets
+## Phase 4: Surface chrome and color presets
+
+The work runs in three steps, each with its own commit:
+
+1. Move the phone chrome onto the surface color, using the existing greys. Done.
+2. Add the presets: the generator, the overlays, `ColorPreset`, the black overlay, the earlier `setTheme` call, and the picker.
+3. Remove the remaining hand tinting and the old color preferences.
+
+### Step 1: Phone chrome (done)
+
+- The four pinned theme items are gone, so the top bar is the M3 default of 64dp on `colorSurface` with no shadow.
+- There are still two toolbar styles, on purpose. `Toolbar.Surface` is used by the library, playlist, genre, about, downloads, search, login, select, and settings layouts. `Toolbar.OnColor` keeps the dark overlay and the 56dp `toolbar_height` for the album, artist, and Flat player layouts, because they sit on album color. Album and artist move to the surface in Phase 5, and Flat keeps `Toolbar.OnColor`.
+- The phone album and artist layouts pin `Widget.Design.AppBarLayout` until Phase 5, so the app bar doesn't replace their palette color with the surface.
+- Lift on scroll is off (`liftOnScroll="false"`) in the library, and a `MaterialDivider` sits under the tabs. Updating the lift target on every page change would add code for very little visible effect.
+- Tabs and the navigation drawer use M3 defaults. Library rows in the drawer are checkable, because the M3 pill only shows on a checkable item. The drawer header is on `colorSurfaceContainerLow`.
+- `AbsThemeActivity.setColor` uses `colorSurface` with no darker band, so the `MainActivity` override and `ThemeUtil.getColorDark` are gone.
+- `setColor` now calls `setDrawUnderStatusBar` before the light flags. That call replaces every system UI flag, so light status bar icons never took effect, which the old dark status band had hidden.
+- `AbsMusicPanelActivity` only applies a light navigation bar while the panel is collapsed. Below Android 15 the expanded panel's bar takes the palette color, so the light flag stays off there.
+- Toolbar menu icons have white fills, so `menu_main`, `menu_downloads`, `menu_detail_genre`, and `menu_detail_playlist` tint them with `colorOnSurfaceVariant`.
+
+Android 15 ignores the window bar colors, so with 3-button navigation the system draws its own contrast scrim. On the Flat player in the light theme, that's a grey scrim with dark icons, at about 3:1 contrast. This isn't a regression, and it belongs with the edge-to-edge work (see *Not changed*).
 
 ### Model
 
@@ -104,29 +124,27 @@ Done when: multi-select works in the library tabs and every detail screen, and m
 
 Theme attributes can't be set to arbitrary values at runtime below Android 12, so every preset is a pre-built theme overlay.
 
-- `scripts/generate_color_presets.mjs` uses `@material/material-color-utilities` (`SchemeTonalSpot`, standard contrast). For each seed it writes `ThemeOverlay.Gelli.Color.<Name>.Light` and `.Dark` with the full role set (`colorPrimary` through `colorOutlineVariant`, including the surface container roles) into `res/values/color_presets.xml`. The output file is committed. Run the script by hand when the preset list changes.
+- `scripts/generate_color_presets.mjs` uses `@material/material-color-utilities` (`SchemeTonalSpot`, standard contrast). For each seed it writes `ThemeOverlay.Gelli.Color.<Name>.Light` and `.Dark` with the full role set (`colorPrimary` through `colorOutlineVariant`, including the surface container roles, plus `android:colorBackground`, `colorOnBackground`, and `colorAccent`, which the base themes set separately) into `res/values/color_presets.xml`. The output file is committed. Run the script by hand when the preset list changes.
 - `NEUTRAL` has no overlay: the grey roles stay in the base themes.
-- The black theme becomes an overlay, `ThemeOverlay.Gelli.Black`, that forces the surface roles to the current black values and is applied *after* the preset. Today `Theme.Phonograph.Black` is a base theme, and a preset applied on top of it would bring back grey surfaces. `Theme` keeps `LIGHT`, `DARK`, and `BLACK`. `BLACK` maps to the dark base theme plus this overlay.
+- The black theme becomes an overlay, `ThemeOverlay.Gelli.Black`, that forces the surface roles to the current black values and is applied *after* the preset. Today `Theme.Phonograph.Black` is a base theme, and a preset applied on top of it would bring back grey surfaces. `Theme` keeps `LIGHT`, `DARK`, and `BLACK`. `BLACK` maps to the dark base theme plus this overlay. The overlay only sets surfaces, so the preset's containers stay tinted. `NEUTRAL` with `BLACK` gets a small overlay of its own for the containers (`#2E2E2E`).
 
 ### Applying the preset
 
 - `AbsThemeActivity.onCreate` calls `setTheme`, then `getTheme().applyStyle(preset overlay, true)`, then the black overlay, all **before** `super.onCreate`. Today `setTheme` runs after `super.onCreate`, so fragments restored in `super.onCreate` can inflate with the wrong theme. For `WALLPAPER`, call `DynamicColors.applyToActivityIfAvailable(this)` in place of the preset overlay. It applies the base theme's `dynamicColorThemeOverlay`, which the M3 light and dark themes already set, so the light or dark scheme follows the base theme.
-- `onResume` recreates the activity when the theme or the preset changes, as it does for the colors today.
+- `onResume` recreates the activity when the theme or the preset changes, as it does for the colors today. It has to compare the `Theme` value and the preset, not the style ID, because `BLACK` and `DARK` will share a base style.
+- `SettingsActivity`'s `PRIMARY_COLOR` and `ACCENT_COLOR` case becomes `COLOR_PRESET`.
 - Code outside an activity resolves colors through a new `ThemeUtil.themedContext(context)`, a `ContextThemeWrapper` with the base theme and the preset applied. `AppShortcutIconGenerator` uses it for the colored shortcuts (`colorPrimaryContainer` and `colorOnPrimaryContainer`).
-- `LoginScreen` becomes a child of the app theme, so the login screen picks up the preset.
+- `LoginScreen` becomes a child of the app theme, so the login screen picks up the preset. Recheck the select button, which sets `?colorOnSurface` by hand since step 1, against the presets.
 
 ### Removing the hand tinting
 
-Every `getPrimaryColor()` and `getAccentColor()` call goes away. Most become nothing at all, because the M3 component already reads the right role.
+Every remaining `getPrimaryColor()` and `getAccentColor()` call goes away. Most become nothing at all, because the M3 component already reads the right role. Step 1 already removed the status bar, toolbar, tab, drawer, login, and select sites.
 
 | Site | Today | After |
 |---|---|---|
-| `AbsThemeActivity`, `AbsMusicPanelActivity`, `MainActivity` | Status bar from primary color | Status bar is `colorSurface` (Phase 5) |
-| `LibraryFragment` toolbar, app bar, tabs | Primary background, text colors from its luminance, accent indicator | Theme defaults (Phase 5) |
+| `AbsThemeActivity` | Tracks the primary and accent colors to recreate on a change | Tracks the preset |
 | `LibraryFragment.setUpRail` | Accent icon tint and indicator | Remove. The M3 rail defaults use `colorSecondaryContainer` and `colorOnSecondaryContainer`. |
-| `MainActivity.setUpNavigationView` | Accent tint for the checked item | Remove (M3 `NavigationView` defaults) |
-| `AboutActivity`, `SearchActivity`, `SettingsActivity`, `GenreDetailActivity`, `PlaylistDetailActivity` | `toolbar.setBackgroundColor(primary)` | Remove |
-| `SelectActivity`, `LoginActivity` | Primary color for the background or buttons | Theme roles |
+| `DownloadsActivity` | Accent for `coverageProgress` and `loading` | `colorPrimary` |
 | Fast scroller (`ViewUtil.setUpFastScrollRecyclerViewColor`) | Accent | `colorPrimary` |
 | `ShuffleButtonSongAdapter` | Accent | `colorPrimary` |
 | `MiniPlayerFragment`, `PlayerBarFragment` | Accent for the progress | `colorPrimary` |
@@ -134,7 +152,7 @@ Every `getPrimaryColor()` and `getAccentColor()` call goes away. Most become not
 | `SleepTimerDialog` | Accent arc | The slider's default colors (Phase 6) |
 | `JellyPreferenceCategory` | `R.color.color_accent` | `colorPrimary` |
 
-Then delete `getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_COLOR`, `ColorPreference`, `ColorCircleDrawable` (check for other users first), `preference_color.xml`, `color_primary`, `color_accent`, `ThemeUtil.getColorDark`, and the `com.github.QuadFlask:colorpicker` dependency.
+Then delete `getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_COLOR`, `ColorPreference`, `ColorCircleDrawable` (check for other users first), `preference_color.xml`, `color_primary`, `color_accent`, and the `com.github.QuadFlask:colorpicker` dependency.
 
 ### Picker
 
@@ -142,16 +160,7 @@ Then delete `getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_CO
 
 Done when: the phone and the expanded layout both follow the chosen preset in light, dark, and black. Changing the preset recreates the open screens. No code reads a user color directly.
 
-## Phase 5: Phone chrome and album colors
-
-### Toolbars, tabs, and app bars
-
-1. Remove the four pinned items from both base themes. The top bar becomes the M3 default: 64dp, `colorSurface`, no shadow. Check the two other uses of `toolbar_height`, and every layout that offsets content by `?actionBarSize`.
-2. `@style/Toolbar` (13 layouts) loses the `ThemeOverlay.AppCompat.Dark.ActionBar` theme and the 4dp elevation. Then merge it with `Toolbar.Surface`, so there's one toolbar style.
-3. `LibraryFragment` phone layout: the toolbar, app bar, and `TabLayout` sit on the surface with M3 tab styling and keep `tabMode="scrollable"`. Remove the programmatic colors in `setUpToolbar` and `setUpViewPager`.
-4. Lift on scroll: the M3 app bar changes to `colorSurfaceContainer` when its content scrolls, and it needs the current page's scrolling view. Every page's RecyclerView shares the `recycler_view` ID, so `liftOnScrollTargetViewId` would find the wrong one. Either update the target on page changes or turn off lift-on-scroll and rely on the tab divider. Decide on a device.
-5. Status bar: every activity uses `colorSurface` with no darker band, as `MainActivity` already does at expanded width. Move that behavior into `AbsThemeActivity.setColor` and delete the `MainActivity` override. Light status bar icons follow the surface color. The player panel's navigation bar blend with the palette color in `AbsMusicPanelActivity` stays, starting from the surface color.
-6. Navigation drawer: M3 `NavigationView` defaults, and `navigation_drawer_header.xml` on `colorSurfaceContainerLow`.
+## Phase 5: Album colors
 
 ### Grid tiles
 
@@ -161,10 +170,9 @@ Done when: the phone and the expanded layout both follow the chosen preset in li
 
 ### Detail headers
 
-1. `AlbumDetailActivity` and `ArtistDetailActivity`: the header, app bar, and status bar use the surface, with `colorOnSurface` and `colorOnSurfaceVariant` text and icons. Delete `setColors` and the palette load for the header. The cover still loads into `image`, and the transition names stay.
+1. `AlbumDetailActivity` and `ArtistDetailActivity`: the header, app bar, and status bar use the surface, with `colorOnSurface` and `colorOnSurfaceVariant` text and icons. Move the layouts to `Toolbar.Surface`, drop the pinned `Widget.Design.AppBarLayout`, and delete `setColors` and the palette load for the header. The cover still loads into `image`, and the transition names stay. Until this step, their status band isn't darker than the toolbar, and their 64dp action mode covers a 56dp toolbar.
 2. Neither activity implements `PaletteColorHolder` anymore. Only `AbsPlayerFragment` keeps it.
 3. The `layout-w1200dp` two-column layouts get the same treatment. Today they color `header` with the palette.
-4. `GenreDetailActivity` and `PlaylistDetailActivity` only lose the primary-color toolbar.
 
 ### Player panel
 

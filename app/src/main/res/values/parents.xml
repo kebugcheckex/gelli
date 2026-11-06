@@ -61,12 +61,6 @@
         <item name="colorOutline">#8C8C8C</item>
         <item name="colorOutlineVariant">#4A4A4A</item>
 
-        <!-- the phone layouts were built around these sizes and styles -->
-        <item name="actionBarSize">@dimen/toolbar_height</item>
-        <item name="toolbarStyle">@style/Widget.AppCompat.Toolbar</item>
-        <item name="tabStyle">@style/Widget.Design.TabLayout</item>
-        <item name="appBarLayoutStyle">@style/Widget.Design.AppBarLayout</item>
-
         <!-- the multi-select bar covers the toolbar instead of pushing the content down -->
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeStyle">@style/Widget.Gelli.ActionMode</item>
@@ -135,12 +129,6 @@
         <item name="colorOutline">#8C8C8C</item>
         <item name="colorOutlineVariant">#E0E0E0</item>
 
-        <!-- the phone layouts were built around these sizes and styles -->
-        <item name="actionBarSize">@dimen/toolbar_height</item>
-        <item name="toolbarStyle">@style/Widget.AppCompat.Toolbar</item>
-        <item name="tabStyle">@style/Widget.Design.TabLayout</item>
-        <item name="appBarLayoutStyle">@style/Widget.Design.AppBarLayout</item>
-
         <!-- the multi-select bar covers the toolbar instead of pushing the content down -->
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeStyle">@style/Widget.Gelli.ActionMode</item>
@@ -190,7 +178,7 @@
     </style>
 
     <!--
-    The bar inherits from the toolbar's context, and @style/Toolbar applies a dark overlay whatever the theme,
+    The bar inherits from the toolbar's context, and @style/Toolbar.OnColor applies a dark overlay whatever the theme,
     so the roles that overlay changes are set back to match the bar's surface. The overflow popup has no theme of
     its own, because the Material one would replace the neutral colour roles.
     -->
