@@ -1,156 +1,211 @@
 # Live Lyrics
 
-High-level design. No code in this document is a commitment to start the work. The feature is large; the point of this note is to decide what is feasible against the current player, which libraries are worth taking, and which problems belong to the architecture rather than to lyrics formats.
+Revised November 5, 2026, after the Card player was removed and the landscape player was rebuilt. Not started.
+
+High-level design. No code in this document is a commitment to start the work. The point of this note is to decide what is feasible against the current player, which libraries are worth taking, and which problems belong to the architecture rather than to lyrics formats.
 
 ## Goal
 
 While a song plays, the expanded player can show lyrics that follow playback. The user can turn this on and off. It is off by default.
 
-Two presentations, chosen by orientation:
+The current line of a synced lyric always fills: a second color gradually covers the base color as time moves through the line, the way a karaoke system does. Two presentations use that same line:
 
-- **Portrait: line scroll.** The current line is highlighted and kept in view. Neighboring lines are visible and dimmed. The list moves when the line changes.
-- **Landscape: karaoke fill.** The current line is large. A second color gradually covers the base color as time moves through the line, the way a karaoke system does. Previous and next lines may sit above and below at a smaller size, but the fill is the point of this layout.
+- **Portrait: line scroll.** Neighboring lines are visible and dimmed. The list keeps the current line centered and moves when the line changes.
+- **Landscape: focused line.** The current line is large. Previous and next lines sit above and below at a smaller size when there is room.
 
-Orientation picks the presentation. It is not a second preference. Rotating the device recreates the activity (`AndroidManifest` does not set `configChanges` for orientation), so each layout can choose its presentation at inflate time.
+Orientation picks the presentation. It is not a second preference. `R.bool.landscape_player` already picks `FlatPlayerFragment` or `LandscapePlayerFragment`, and rotating recreates the activity because `AndroidManifest` does not set `configChanges`.
 
-Unsynced lyrics (no timestamps) use the scroll presentation in both orientations. A color sweep with nothing to sweep against is a fake.
+Unsynced lyrics (no timestamps) use a plain list in both orientations, with no fill and no auto-follow. A color sweep with nothing to sweep against is a fake.
 
-## What the server already gives us
+## What the server gives us
 
-Jellyfin, since 10.9, serves lyrics at `GET /Audio/{itemId}/Lyrics`. A missing lyric is `404`. The body is `LyricDto`:
+The target server is Jellyfin 12.2. Older servers aren't a target, so nothing here works around their behavior. GitHub's comparison lists no lyric-named files changed between v12.2 and v12.4, so the latest release should behave the same.
+
+The server serves lyrics at `GET /Audio/{itemId}/Lyrics`. A missing lyric is `404`. The body is `LyricDto`:
 
 | Field | Meaning |
 |---|---|
-| `Lyrics[]` | Lines, in order |
-| `Lyrics[].Text` | The line, after the server's own whitespace cleanup |
+| `Lyrics[]` | Lines, sorted by start time when synced |
+| `Lyrics[].Text` | The line. A timed line with no text is an instrumental break. |
 | `Lyrics[].Start` | Start time in **ticks**, or null when the line is not synced. 1 ms = 10,000 ticks. Same unit as `positionTicks` in `PlaybackReporter` and `EventListener`. |
-| `Lyrics[].Cues[]` | Optional word-or-slice timing inside the line. Each cue is a character range (`Position`, `EndPosition`) into `Text`, plus `Start` and optional `End` in ticks. |
-| `Metadata.Offset` | Lyric-versus-audio offset in ticks, from an LRC `[offset:]` tag. |
-| `Metadata.IsSynced` | False for a plain `.txt` or an unsynced embedded lyric. |
+| `Lyrics[].Cues[]` | Optional word-or-slice timing inside the line. Each cue is a character range (`Position`, `EndPosition`) into `Text`, plus `Start` and optional `End` in ticks. Empty for ordinary LRC, and null for plain text. |
 
-The server, not the app, reads the well-known files. Sidecar `.lrc` and `.elrc` next to the audio, a plain `.txt`, and embedded lyrics (ID3 `USLT` / `SYLT`, Vorbis, FLAC) are normalized into this DTO. A lyrics plugin such as LrcLib writes a sidecar; the app then sees it through the same endpoint. The current LRC parser (`LrcLyricParser` on Jellyfin master) already turns enhanced-LRC word tags into `Cues`.
+**Do not read `Metadata`.** `Offset` and `IsSynced` still exist in the DTO, but nothing fills them for local lyrics. In v12.2 the LRC parser returns `new LyricDto { Lyrics = lyricList }`, and the `[offset:]` tag line is dropped as an untimed line. jellyfin-web's lyrics page doesn't read `Offset` either. So a lyric is synced when every line has a `Start`, and there is no offset to apply.
 
-That is the contract to build on. Do not also call LrcLib, Musixmatch, or a scraper from the app. Those need a second identity, a second cache, and a policy for songs the server already has lyrics for. Remote search and upload exist on the server (`/Audio/{itemId}/RemoteSearch/Lyrics`, `POST /Audio/{itemId}/Lyrics`) but require the lyric-management policy. They are library administration, not playback.
+v12.2 serves cues, so word-level fill needs no server work. It depends only on having enhanced LRC files. A missing or empty list falls back to a line-level fill.
 
-An open server PR (jellyfin/jellyfin#17011) adds TTML, YRC, KRC, syllable objects, and translation tracks. It is not shipped. Do not block on it. A client model of "ordered lines, each with optional timed spans" can absorb syllables later without a second UI.
+### Where lyrics come from
+
+The server reads the files, and the app sees one DTO whatever the source. This is from reading the v12.2 source. It hasn't been run against a real server yet.
+
+- **Sidecar file.** A `.lrc`, `.elrc`, or `.txt` next to the audio file. This takes priority over tags.
+- **Tags.** When a scan finds no sidecar, the server extracts embedded lyrics and saves them as `.lrc`, in the media folder or the internal metadata folder (the `SaveLyricsWithMedia` library option). Synced tags take priority over plain ones. Once extracted, a later edit to the tag isn't picked up without a full metadata replacement.
+- **Plain text saved as `.lrc`.** The LRC parser drops untimed lines, finds nothing, and falls through to the text parser, which returns lines with a null `Start`. So unsynced tags arrive correctly as unsynced.
+- **Repeated timestamps.** `[00:10.00][01:20.00]Chorus` becomes two lines, sorted into place, with no cues.
+- **Word timing.** Enhanced LRC, such as `[00:12.00]<00:12.00>Every <00:12.50>night`, is the only source confirmed to produce cues. Whether word timing survives extraction from tags is unconfirmed.
+- **Plugins.** `jellyfin-plugin-lrclib` fetches lyrics on the server, and the app sees them through the same endpoint. Check that it supports 12.2 before relying on it.
+
+That is the contract to build on. Do not also call LrcLib, Musixmatch, or a scraper from the app. Those need a second identity, a second cache, and a policy for songs the server already has lyrics for. Remote search and upload exist on the server but require the lyric-management policy. They are library administration, not playback.
+
+An open server PR (jellyfin/jellyfin#17011) adds TTML, YRC, KRC, syllable objects, and translation tracks. It is not merged. Do not block on it. A client model of "ordered lines, each with optional timed spans" can absorb syllables later without a second UI.
 
 ## Feasibility
 
 Feasible, and it does not require a playback-stack change.
 
-The clock is already there. `MusicPlayerRemote.getSongProgressMillis()` reads `MusicService`, which reads Media3 in-process (`MusicService` has no `android:process`). Position is per media item, and each item's `mediaId` is `song.id` (`LocalPlayer.createMediaItem`). Gapless transitions stay valid as long as lyrics are keyed to the current item, not to a session-wide clock. Repeat-one stays on the same lyric. There is no user-facing playback speed, so the clock does not have to scale.
+The clock is already there. `MusicPlayerRemote.getSongProgressMillis()` reads `MusicService`, which reads Media3 in-process. On the main thread `LocalPlayer.getProgress()` calls `exoPlayer.getCurrentPosition()` directly (`getOnMain` short-circuits). Position is per media item, and each item's `mediaId` is `song.id`. Gapless transitions stay valid as long as lyrics are keyed to the current item, not to a session-wide clock. Repeat-one stays on the same lyric. There is no user-facing playback speed, so the clock does not have to scale.
 
-The data path fits the migration already in progress. New server calls go through `JellyfinSdkSession.createApiOrNull()` and the Kotlin SDK (`jellyfin-core` 1.8.8), as `QueryUtil` and `PlaybackReporter` do. `GET /Audio/{itemId}/Lyrics` maps to the generated `lyricApi`. Confirm, when implementation starts, that the generated `LyricLine` still has `cues`. Line text and `start` have been stable since 10.9; cues are the field a stale OpenAPI snapshot would drop. Line-level scroll and a line-level sweep do not need cues. Word-level fill does.
+The data path fits the migration already in progress. The call goes through `JellyfinSdkSession.createApiOrNull()` and `lyricsApi.getLyrics(UUID)` in `jellyfin-core` 1.8.8. The jar's `LyricLine` has `text`, `start`, and `cues`. `LyricLineCue` has `position`, `endPosition`, `start`, and `end`.
 
 What is not feasible as a drop-in:
 
-- The progress views update once a second (`MusicProgressViewUpdateHelper`, `UPDATE_INTERVAL_PLAYING = 1000`). A karaoke fill driven by that timer steps. Scroll mode also skips lines that are shorter than the poll, which is common in fast passages.
-- `LocalPlayer` logs `onPositionDiscontinuity` and does not tell the UI. A seek from the slider updates the controls immediately; a seek from the session (`EventListener`) only shows up on the next poll. Lyrics have to sample position themselves, not wait for the progress helper.
-- Nothing in `Song`, `LocalSong`, or the queue stores lyrics. That is correct. Do not add them there (see below).
+- The progress views update once a second (`MusicProgressViewUpdateHelper`, `UPDATE_INTERVAL_PLAYING = 1000`). A fill driven by that timer steps, and a list driven by it skips short lines.
+- `LocalPlayer` logs `onPositionDiscontinuity` and does not tell the UI. A seek from the session (`EventListener`) only shows up on the next poll, so lyrics have to read position themselves.
+- Nothing in `Song`, `LocalSong`, or the queue stores lyrics. That is correct. Do not add them there (see *Cache and offline*).
 
 ## Library choice
 
 No third-party lyrics view.
 
-The usual Android LRC widgets (`lrcview` and its forks) parse LRC themselves, highlight a whole line, and scroll. They do not know Jellyfin ticks or `Cues`, they do not follow palette colors, and the maintained-looking ones still sit on old support libraries. Taking one means re-parsing a file the server has already parsed, then fighting the widget to get a real color sweep.
+The usual Android LRC widgets (`lrcview` and its forks) parse LRC themselves, highlight a whole line, and scroll. They do not know Jellyfin ticks or `Cues`, and they do not follow the player's colors. Taking one means re-parsing a file the server has already parsed, then fighting the widget to get a real color sweep.
 
-Media3's subtitle `Cue` and `SubtitleView` are the wrong surface. Sidecar and plugin lyrics are not in the stream the player opens, a transcode would drop them even if they were embedded, and the subtitle view is a caption strip at the bottom. Injecting a text track into `LocalPlayer` would couple a UI feature to gapless queue rebuilds for no gain.
+Media3's subtitle `Cue` and `SubtitleView` are the wrong surface. Sidecar and plugin lyrics are not in the stream the player opens, a transcode would drop them even if they were embedded, and the subtitle view is a caption strip. Injecting a text track into `LocalPlayer` would couple a UI feature to gapless queue rebuilds for no gain.
 
-Parsing LRC in the app is also the wrong layer. The server already did it, including enhanced LRC. A local parser is only justified later, if offline playback must show lyrics for a song that was saved before this feature existed and the normalized DTO was never cached. Even then it should be a small internal parser, not a dependency.
+Parsing LRC in the app is also the wrong layer. The server already did it, including enhanced LRC.
 
-The view is custom, and small. Two techniques cover both presentations:
+The view is custom, and small:
 
-- **Scroll.** A `RecyclerView` (already a dependency) of lines. Current line uses the accent color and a larger style. `smoothScrollToPosition` on line change. No per-frame work.
-- **Karaoke fill.** One custom `View` for the current line. Draw the text twice, base color then accent color, and clip the accent pass with `canvas.clipRect` from the start edge by the fraction of the line that has elapsed. That is the "second color gradually covers the first" effect, and it needs no library. Word-level fill uses the same clip; only the fraction changes (see below). Clip from the start edge in the current layout direction, not hard-coded from the left, so RTL lyrics fill the right way.
+- **`LyricLineView`.** One line, in either presentation. It holds a `StaticLayout`, draws it in the base color, then draws it again in the fill color with one `canvas.clipRect` for each visual line. This is what lets a wrapped line fill properly, so there's no need to refuse wrapping or to switch presentation in the middle of a song.
+- **Line scroll.** A `RecyclerView` (already a dependency) of `LyricLineView` rows, with a center-snapping `LinearSmoothScroller` on line change. Every row has the same text size, so a line change doesn't reflow the list. The current row's position and fill mark it.
+- **Focused line.** One large `LyricLineView`, with optional dimmer neighbors.
 
-Colors come from the theme and from the palette callback the player already has (`PaletteColorHolder`). No new color system.
+The fill is a fraction of the laid-out width, not of the character count. For each visual line in order, fill it completely if the filled width reaches past its end, and otherwise clip it partway. Clip from the start edge given by `getParagraphDirection`, so RTL fills the right way. Mixed-direction lines are approximate.
 
-The fetch is a coroutine on the SDK client the app already uses. No Retrofit endpoint, no Volley call.
+Colors are passed to the view, which has no color logic of its own. There's no new color system, and nothing reads `getAccentColor()`, which Material 3 Phase 4 removes.
 
 ## Where it sits in the player
 
-This is the expensive part. The player is four hand-built layouts, and all four are built around a square cover and a queue.
+There are two players, and they share little layout:
 
-| Layout | Cover | Everything else |
-|---|---|---|
-| `layout/fragment_flat_player.xml` | `WidthFitSquareLayout` (`album_cover_container`), full width | Controls and queue in an inner `SlidingUpPanelLayout` |
-| `layout/fragment_card_player.xml` | Same square, over a palette `color_background` | Controls over the art; queue is an overlay panel |
-| `layout-land/fragment_flat_player.xml` | `HeightFitSquareLayout` (`cover_container`) on the left | Controls and queue in the column to the end of the cover |
-| `layout-land/fragment_card_player.xml` | Same left square | Controls in the right column; queue slides over them |
+| Player | Layout | Lyrics host | Colors |
+|---|---|---|---|
+| `FlatPlayerFragment` | `layout/fragment_flat_player.xml` | The cover slot, `album_cover_container` | Palette background, text color from `MaterialColors.isColorLight` |
+| `LandscapePlayerFragment` | `layout/fragment_landscape_player.xml` | The tab content, `landscape_player_tab_content` | White over the existing dark gradient |
 
-`FlatPlayerFragment` and `CardPlayerFragment` each branch on `Util.isLandscape()` into a portrait and a landscape implementation. Portrait measures the cover and then forces the inner panel tall enough for the controls (`setUpPanelAndAlbumCoverHeight`). The cover is not just an image: `PlayerAlbumCoverFragment` is a `ViewPager` that calls `MusicPlayerRemote.playSongAt` on swipe.
+One `LyricsController` owns the current song's lyric, the clock, and whether lyrics are showing. Both fragments reach it through `AbsPlayerFragment`. A shared `LyricsView` holds the two presentations, and each fragment supplies only its host and colors.
 
-Lyrics must not be copied into those four implementations.
+### Portrait
 
-Recommended placement:
+- **The cover slot.** Put `LyricsView` beside the cover fragment in `album_cover_container`. `WidthFitSquareLayout` measures itself from its width, so the panel height math in `setUpPanelAndAlbumCoverHeight` doesn't change.
+- **Hide the cover with `INVISIBLE`, not `GONE`.** The palette color comes from the cover page's image load, and that must keep working while lyrics are up. Hiding the pager also removes swipe-to-change-song while lyrics are showing. That's acceptable, because previous and next are still on the controls. Do not overlay text on the art.
+- **Background.** Paint the slot with the palette color, as a third target in `createDefaultColorChangeAnimatorSet`, so the status bar, slot, and controls read as one surface. Choose text color by the rule the controls use.
+- **The toolbar.** It floats over the slot, so the list needs top padding of `toolbar_scrim_height`. Tapping the cover can hide the toolbar, and the toolbar holds the lyrics toggle, so entering lyrics mode forces it visible.
+- **Scrolling.** The outer panel's anti-drag view is `player_panel`, set in `setUpPanelAndAlbumCoverHeight`, and the slot is outside it. A vertical drag on the list will probably drag the player closed. Unsynced lyrics have to scroll by hand, so this must work in the first slice. `setAntiDragView` takes one view, so try `requestDisallowInterceptTouchEvent` from the list first, and settle it on a device.
+- **Auto-follow.** A manual scroll pauses following for a few seconds. The next line change after that scrolls back.
 
-- **One host, one controller.** A `LyricsView` (or a one-layout fragment) with the same id in all four player layouts. Visibility and which presentation to use are decided in one place, called from `AbsPlayerFragment`, not reimplemented in `FlatPlayerFragment` and `CardPlayerFragment`. The two skins keep their own backgrounds and palette animation; the lyrics view only asks for an accent color.
-- **Portrait: the cover slot.** The square is already most of the expanded player above the controls, which is the right shape for several visible lines. When lyrics are showing, hide `player_album_cover_fragment` and show the scroll view in that slot. Do not overlay text on the art. Overlay fights contrast, and the cover pager would still steal horizontal swipes and change the song. Hiding the pager removes that gesture while lyrics are up; that is acceptable.
-- **Landscape: the right column, not the square.** A height-fit square is the wrong shape for one long line. On a phone in landscape the column to the end of the cover is the wide region. Put the karaoke line there and keep the cover on the left so the song is still recognizable and both skins still look like themselves. Controls stay. The queue remains reachable (it already lives in that column, as a list or as a sliding panel) but it is not the lyrics surface: lyrics replace the queue list while the mode is on, and the queue comes back when lyrics are off or the user opens the queue. If a line cannot fit at a readable size even with autosize, that line falls back to the scroll presentation instead of wrapping. A wrapped line breaks a single horizontal clip.
-- **Do not grow the portrait cover slot.** `setUpPanelAndAlbumCoverHeight` sizes the queue panel from whatever is left under the cover. A lyrics view that takes the cover's measured height avoids reopening that math. A lyrics view that wants "the rest of the screen" has to be taught to both portrait implementations, in both skins. Not worth it for a first version.
-- **Mini player shows nothing.** `AbsPlayerFragment.onShow` / `onHide` already track the outer panel. The frame or poll clock runs only while the expanded player is visible and lyrics are on. Notification, lock screen, widget, and the Media3 session migration do not carry lyrics.
+### Landscape
 
-The toolbar already handles player actions in `AbsPlayerFragment.onMenuItemClick`, and `menu_player.xml` has one icon (`action_toggle_favorite`). A lyrics action next to it is the on/off control. Persist it with `PreferenceUtil`, and mirror it under Now Playing (`pref_now_playing.xml`) so it can be found with the other player preferences. One preference, two entry points.
+- **Tall windows (h480dp, `landscape_player_tabs`).** A third tab: Up next, Lyrics, Details. `setUpTabs` becomes a three-way switch. `landscape_player_tab_content` is already the panel's anti-drag view, so scrolling is safe.
+- **Short windows (most phones).** There are no tabs, so `menu_landscape_player.xml` gets a checkable Lyrics item, visible only then, as Details is. It swaps lyrics into the queue's slot, and turning it off brings the queue back. By arithmetic the slot is about 100–150dp tall and 450dp wide. Measure it on a device.
+- **Text size.** About 35 characters fit at 24sp in 450dp, so wrapping is normal. Autosize each line within a small range. A line that still overflows at the minimum is ellipsized, and it gets a line-level fill if its cues no longer land in the visible text.
+- **Neighbors.** Only when the host has room. In a short window, show the current line alone.
+- **The cover stays.** It keeps its pager and gestures, and the song stays recognizable.
 
-When the preference is on but the current song has no lyrics, keep the cover. Do not swap in an empty panel. The toolbar icon can show "on, nothing for this song" without moving layout. Playback never waits on lyrics.
+### Toggle and preference
+
+One preference, off by default, with no Settings entry. The player is where it's used.
+
+- **Portrait.** A toolbar action in `menu_player.xml`, next to the favorite.
+- **Landscape, short window.** The overflow item. Both this and the toolbar action are handled in `AbsPlayerFragment.onMenuItemClick`.
+- **Landscape, tabs.** Selecting Lyrics turns the preference on, and selecting either other tab turns it off. The tab is restored from the preference when the fragment is created, so lyrics stay on across a rotation.
+
+Nothing is fetched while the preference is off.
+
+When the current song has no lyrics, or they haven't arrived yet, portrait keeps the cover and a short landscape window keeps the queue. Do not swap in an empty panel. The Lyrics tab is the exception: the user chose it, so it shows a short "no lyrics" message. Playback never waits on lyrics.
+
+The mini player shows nothing. `onShow` and `onHide` already track the outer panel, and the clock runs only while the expanded player is visible and lyrics are showing. Notification, lock screen, widget, and the Media3 session do not carry lyrics.
 
 ## Clock
 
-One sampler for both presentations. Do not reuse `MusicProgressViewUpdateHelper` as the driver; the seek bar can keep its 1-second updates.
+One clock for both presentations. Do not reuse `MusicProgressViewUpdateHelper` as the driver. The seek bar keeps its 1-second updates.
 
-- Sample `getSongProgressMillis()` about every 100 ms while lyrics are visible and the song is playing. That is enough to catch seeks, including session seeks that today are invisible until the next progress tick, and enough that scroll mode never skips a short line.
-- Karaoke does not redraw only on that sample. On each sample, remember `(position, elapsedRealtime)`. A `Choreographer` frame callback extrapolates `position + (now - sampledAt)` while `isPlaying()`, and stops extrapolating on pause. Resample also on `onPlayMetadataChanged` and `onPlayStateChanged`. Extrapolation is wrong for at most one sample after a seek, then it snaps. That is a better trade than calling into the player every frame, and a much better trade than adding a position listener to `MusicService` for a UI feature.
-- Convert with integer division by 10,000. Apply `Metadata.Offset` in the same unit before comparing. **Verify the sign against a file with a known `[offset:]` rather than assuming it.** The server parser does not bake the offset into `Start`; it is left for the client, and LRC players disagree about the sign.
-- Line lookup is a binary search on `Start`. The end of a line is the next line's start, or the song duration for the last line. Empty LRC lines are real lines (instrumental breaks) and must be kept, so the highlight can clear.
-- A fetch is tied to a song id. Drop the result if `MusicPlayerRemote.getCurrentSong()` has moved on. Prefetch the next queue item while lyrics are on, so a gapless transition does not flash the cover.
+- **Playing, synced.** A `Choreographer` frame callback reads `getSongProgressMillis()` each frame, updates the current line if the position has left it, and invalidates only that line's view.
+- **Paused, synced.** Poll about every 250 ms, so a seek made while paused still moves the lyric.
+- **Unsynced.** No clock.
+- **Also resample** on `onPlayMetadataChanged` and `onPlayStateChanged`.
 
-Word-level fraction, only when rendering the landscape fill and the current line has cues whose character ranges fall inside `Text`:
+Reading position directly avoids extrapolating between samples, which is what would lag behind a seek. Check two things on a device in the first slice: that the per-frame read is cheap, and that position advances smoothly enough to draw from. If it steps visibly, extrapolate from the last read instead. Do not add a position listener to `MusicService` for a UI feature.
 
-- Find the cue that contains the position.
-- The filled width is the width of the text before `cue.Position`, plus the fraction of this cue's own width corresponding to the time between `cue.Start` and `cue.End` (if `End` is null, use the next cue's start or the line end).
-- Measure with the same paint the view draws with. Do not assume a monospace advance.
+Timing rules:
 
-If cues are missing, empty, or their indices do not land in `Text`, sweep the whole line linearly from its start to the next line's start. Say so only in code comments; the user still sees a fill. Jellyfin issue 14254 is real: the LRC parser trims and collapses whitespace, which can desync cue indices from the displayed string. Falling back is the mitigation. Do not try to re-trim on the client to "fix" the indices.
+- Convert ticks to milliseconds once, with integer division by 10,000, when the lyric is loaded.
+- Line lookup is a binary search on `Start`. Before the first line, nothing is current.
+- A line ends at the next line's start, or at the song's duration for the last line. Plain LRC has no line end, so a line before a long instrumental break sweeps slowly across it. That's accepted for now.
+- Timed lines with no text are real lines and must be kept, so the highlight can clear.
+- A fetch is tied to a song id. Drop the result if `MusicPlayerRemote.getCurrentSong()` has moved on.
+
+Word-level fill applies when the current line has cues whose character ranges fall inside `Text`:
+
+- Find the cue that contains the position. Whitespace-only slices have no cue, so between cues the fill holds at the end of the previous one.
+- The fill position is the character position interpolated between `cue.Position` and `cue.EndPosition` over the cue's time. If `End` is null, use the next line's start, or the duration.
+- `Layout.getLineForOffset` and `getPrimaryHorizontal` turn that into a visual line and an x position, using the same layout the view draws. Earlier visual lines are fully filled.
+
+If cues are missing, empty, or their indices do not land in `Text`, sweep the whole line linearly from its start to its end. In v12.2 the parser computes cue positions from the same string it returns as `Text`, so the indices should line up, but a range check is cheap and a bad file shouldn't break the fill. Do not try to re-trim on the client to "fix" the indices.
 
 ## Cache and offline
 
 `Song` is a Room entity, a `Parcelable` copied through the queue, and compared by id. A lyric blob does not belong on it, and it does not belong on `LocalSong` either. Lyrics are large, optional, and useless to every list.
 
-Cache the normalized DTO, not the original `.lrc`. Key it by account and item id, same identity as `local_songs`. A JSON file under the library root (`<root>/<account>/lyrics/<itemId>.json`) matches the "files keyed by item id" rule in the local-library plan and needs no Room migration. A negative entry (404, with a timestamp) belongs in the same store so a song with no lyrics is not refetched on every play, but it should expire (a day is enough) so a lyric added on the server shows up later.
+Cache the app's own normalized model, not the DTO or the original `.lrc`, so an SDK bump doesn't invalidate the files. Key it by account and item id, the same identity as `local_songs`. A JSON file at `<root>/<account>/lyrics/<itemId>.json`, through a new `LocalLibrary.getLyricsDir`, matches the "files keyed by item id" rule and needs no Room migration.
 
-Fetch only when the preference is on. Use the same network gate as browsing, not the streaming gate: lyrics are a small JSON request, and a saved song should still be able to pick up lyrics on a network that is not allowed to stream. When the network is unavailable, show the cached DTO or keep the cover. Never fail playback because lyrics failed.
+Every entry records when it was fetched:
 
-Saving a song does not need to download lyrics inside `SaveWorker`. The player fetch writes the cache as a side effect. A song that was saved and is then played offline without ever having been played online with lyrics on will have no lyrics. That is acceptable. Backfilling lyrics for the whole local library is out of scope.
+- **Lyrics found.** Show the cached copy immediately. After about a week, refresh in the background when online, so a corrected lyric on the server eventually shows up.
+- **`404`.** Store a negative entry that expires after a day, so a lyric added on the server shows up later.
+- **Any other failure.** Store nothing. A network error must not look like a song with no lyrics, and it must not replace a good cached copy.
+
+Fetch only when the preference is on. There's no browsing network policy to share. `NetworkPolicy` covers streaming and saving, so follow `PlaybackReporter`: skip the call in offline mode, and otherwise let it try. Lyrics are a small JSON request, so a saved song can still pick them up on a network that isn't allowed to stream. Never fail playback because lyrics failed.
+
+Saving a song does not download lyrics inside `SaveWorker`. The player fetch writes the cache as a side effect. A song that is saved and then played offline, without ever having been played online with lyrics on, has no lyrics. That is acceptable. Backfilling the whole local library is out of scope.
 
 ## Challenges that are actually architectural
 
-1. **Four layouts, two skins, inconsistent ids.** Portrait uses `album_cover_container`. Landscape uses `cover_container`. Card landscape overlays the queue; flat landscape does not. A shared lyrics host only stays shared if the four XMLs grow the same id and the show/hide logic does not learn Flat versus Card. The moment karaoke measurement is copied into `LandscapeImpl` in both fragments, the feature will drift. This is the main reason to do the host first and the fill second.
+1. **The cover pager is a transport control.** Hiding it while lyrics are up also hides swipe-to-change-song. Do not keep both gesture targets in the same rectangle.
 
-2. **The cover pager is a transport control.** Hiding it while lyrics are up also hides swipe-to-change-song. Do not keep both gesture targets in the same rectangle. Previous and next still exist on the controls.
+2. **Nested panels own vertical drags.** The outer panel, the inner queue panel, and the lyrics list all want the same gesture in portrait. This is the main unknown in the first slice.
 
-3. **Panel height is derived from the cover.** Replacing the cover with a different-sized child in portrait will shrink or grow the queue panel and can push the controls off-screen. First version: same slot, same height.
+3. **Panel height is derived from the cover.** First version: same slot, same height. A lyrics view that wants "the rest of the screen" would reopen `setUpPanelAndAlbumCoverHeight`. Not worth it yet.
 
-4. **The progress helper is the wrong clock, and seek is not an event.** Solved by sampling, not by a new `MusicService` callback. Do not add lyrics state to the session or the notification as part of this work. `docs/media3_session_migration_plan.md` is already the place where session state gets more honest; lyrics should not become another hand-built extra.
+4. **The progress helper is the wrong clock, and seek is not an event.** Solved by reading position, not by a new `MusicService` callback. Do not add lyrics state to the session or the notification.
 
-5. **Timestamp trust.** Ticks versus milliseconds is a one-line bug with a silent symptom (lyrics stuck at the first line, or finished immediately). Offset sign is the second. Transcoded playback can also drift from the original file's timestamps; v1 does not try to estimate that drift. Local original files and direct play should match. A per-song manual offset is a reasonable later addition and should be a client-only adjustment on top of `Metadata.Offset`, not a write back to the server.
+5. **Timestamp trust.** Ticks versus milliseconds is a one-line bug with a silent symptom (lyrics stuck at the first line, or finished immediately). Transcoded playback can also drift from the original file's timestamps, and v1 does not try to estimate that. A badly timed file has no server-side offset to help it. A per-song manual offset is a reasonable later addition, as a client-only adjustment.
 
-6. **Word-level data is best-effort.** Standard LRC, plain text, and unsynced embedded lyrics have no cues. Enhanced LRC does, when the server parser succeeds. The landscape fill must look intentional in both cases. Linear line sweep is the normal case, not a degraded mode to apologize for.
+6. **Word-level data is best-effort.** Standard LRC and plain text have no cues. The fill must look intentional either way. Linear line sweep is the normal case, not a degraded mode to apologize for.
 
-7. **Text measurement.** Autosize, RTL, and CJK all change the clip position. The fill fraction is a fraction of measured width, not of character count. A line that wraps cannot be clipped as one rectangle; refuse to wrap in the karaoke presentation.
+7. **Accessibility.** Color alone cannot be the current-line signal. In the list, position carries it. The focused line should expose the current line as a content description updated on line change, not on every frame, so TalkBack doesn't re-announce continuously.
 
-8. **Accessibility.** Color alone cannot be the current-line signal. Scroll mode already has size and position. Karaoke mode should expose the current line as a content description updated on line change, not on every frame, and should not animate in a way that makes TalkBack re-announce continuously.
+8. **Stale responses and gapless.** The queue can move on before the HTTP call returns. Key by `song.id` and ignore mismatches.
 
-9. **Stale responses and gapless.** The queue can move on before the HTTP call returns. Key by `song.id` and ignore mismatches. Prefetch the next item only; do not prefetch the whole queue.
+## Working alongside Material 3
+
+This work runs in parallel with Phases 4–7 of `docs/material3_migration_plan.md`. Neither blocks the other, but they touch some of the same files:
+
+- **Colors (Phase 4).** Lyrics never reads `getAccentColor()` or `getPrimaryColor()`. Both players use palette or fixed colors, so removing those calls doesn't affect it.
+- **Toolbar (Phase 5).** `@style/Toolbar` loses its dark overlay. The player toolbar's icons, including the new lyrics action, need checking on the palette background afterward.
+- **Widgets (Phase 6).** New layouts use `?attr/selectableItemBackground` and `?attr/selectableItemBackgroundBorderless`, not `roundSelector` or `rectSelector`, and don't add `ImageButton`, `iconColor`, or `MaterialProgressBar` uses that Phase 6 would have to convert.
+- **Merges.** `fragment_flat_player.xml`, `fragment_landscape_player.xml`, and `LandscapePlayerFragment` are the likely conflict points. Keep lyrics changes to them small, with the logic in the controller and the view.
 
 ## Suggested order
 
 The feature can land in slices that each leave playback alone.
 
-1. **Data and scroll.** SDK fetch, tick conversion, offset (once the sign is verified), file cache, negative cache, portrait scroll in the cover slot, toolbar toggle, cover kept when there is nothing to show. Both skins, portrait only is acceptable for this slice if landscape simply keeps the cover. This proves the clock and the cache without the custom draw path.
+1. **Data and scroll.** SDK fetch, tick conversion, file cache, negative cache, `LyricsController`, the toggle, and the list in both players, with the current line highlighted but not yet filled. Includes the portrait gesture work. This proves the data path and the cache without the custom draw path.
 
-2. **Landscape fill.** Shared host in the right column, line-level clip, autosize, fallback to scroll when a line does not fit or has no timestamps. Cue-level clip in the same view once a song with real cues is in hand to test against. If the generated SDK model has no `cues`, decode that array from the raw response or bump the SDK; do not block slice 1 on it.
+2. **Line-level fill.** `LyricLineView` with per-visual-line clipping and the frame clock, in the portrait list and the landscape focused line. Autosize and neighbors. Includes the device check on the per-frame read.
 
-3. **Polish, only if the first two are used.** Next-track prefetch, a quiet manual offset, TalkBack pass, and a decision about whether the queue in landscape should be a second toggle or stay hidden for the whole time lyrics are on.
+3. **Word-level fill.** Cue-level position in the same view. Do this only once an enhanced LRC file is in hand to test against, and only if the library actually has such files.
+
+4. **Polish, only if the first slices are used.** Next-track prefetch so a gapless transition doesn't flash the cover, a manual offset, tap-to-seek on a line, and a TalkBack pass.
 
 ## Out of scope
 
@@ -160,11 +215,23 @@ The feature can land in slices that each leave playback alone.
 - Lyrics on the mini player, notification, lock screen, widget, or in `MusicService`.
 - Editing timestamps, and writing an offset back to the server.
 - Backfilling lyrics for every saved song.
-- A third now-playing skin. Flat and Card stay as they are; lyrics is a mode inside both.
 - Changing the Media3 session. The session migration stays a separate plan.
 
 ## Open points to settle before implementation
 
-- Confirm `lyricApi.getLyrics` and `LyricLine.cues` in the resolved `jellyfin-core` 1.8.8 artifact. If cues were generated under a different name, or dropped, line-level still proceeds.
-- Confirm `Metadata.Offset` sign with one real file.
-- Decide whether landscape lyrics hide the queue for the whole time the mode is on, or whether the existing queue handle brings the queue back over the lyric. Recommendation: hide the list, keep the handle, so the queue is one gesture away and the fill has the column.
+**Test data**, which only needs the server's admin access. The server is 12.2, and no LRC files have been collected yet:
+
+- Find or make LRC files. A hand-written `.lrc` for one song is enough to start.
+- Put together a few test songs:
+  - A `.lrc` sidecar with the same base name as the audio file.
+  - A file with synced lyrics in its tags.
+  - A file with plain lyrics in its tags.
+  - A `.txt` sidecar, or any song with no lyrics, to check the unsynced and `404` paths.
+  - One hand-made `.elrc` with word timing, only if slice 3 is wanted.
+- Rescan the library, then confirm what `GET /Audio/{itemId}/Lyrics` returns for each one. This checks the source-reading conclusions above, including that `Metadata` is empty.
+
+**On a device, during slices 1 and 2:**
+
+- How to stop the outer panel taking vertical drags from the portrait list.
+- Whether a per-frame position read is cheap and smooth enough.
+- The real size of the queue slot in phone landscape, which sets the minimum text size.
