@@ -27,6 +27,7 @@ import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.fragments.main.LibraryFragment;
 import com.dkanada.gramophone.util.MusicUtil;
+import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -61,8 +62,15 @@ public class MainActivity extends AbsMusicContentActivity {
             libraries = media;
             menu.clear();
 
+            // the last library may belong to another account, so fall back to the first
+            int selected = 0;
+            String lastLibrary = PreferenceUtil.getInstance(this).getLastLibrary();
+            for (int i = 0; i < libraries.size(); i++) {
+                if (libraries.get(i).getId().equals(lastLibrary)) selected = i;
+            }
+
             // queries are scoped to this library, so an account without one can't keep the previous account's
-            QueryUtil.currentLibrary = libraries.isEmpty() ? null : libraries.get(0);
+            QueryUtil.currentLibrary = libraries.isEmpty() ? null : libraries.get(selected);
 
             for (QueryUtil.Library itemDto : libraries) {
                 menu.add(R.id.navigation_drawer_menu_category_sections, itemDto.getId().hashCode(), menu.size(), itemDto.getName());
@@ -78,7 +86,7 @@ public class MainActivity extends AbsMusicContentActivity {
 
             setUpDrawerLayout();
 
-            if (!libraries.isEmpty()) menu.getItem(0).setChecked(true);
+            if (!libraries.isEmpty()) menu.getItem(selected).setChecked(true);
             setCurrentFragment(LibraryFragment.newInstance());
         });
     }
@@ -157,6 +165,7 @@ public class MainActivity extends AbsMusicContentActivity {
             for (QueryUtil.Library itemDto : libraries) {
                 if (menuItem.getItemId() == itemDto.getId().hashCode()) {
                     QueryUtil.currentLibrary = itemDto;
+                    PreferenceUtil.getInstance(this).setLastLibrary(itemDto.getId());
                     setCurrentFragment(LibraryFragment.newInstance());
                     break;
                 }

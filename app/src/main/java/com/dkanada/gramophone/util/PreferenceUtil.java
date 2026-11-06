@@ -37,6 +37,7 @@ public final class PreferenceUtil {
     public static final String POSITION = "position";
     public static final String PROGRESS = "progress";
     public static final String TAB = "tab";
+    public static final String LAST_LIBRARY = "last_library";
     public static final String QUEUE_SHEET_OPEN = "queue_sheet_open";
 
     public static final String SLEEP_TIMER_LAST_VALUE = "sleep_timer_last_value";
@@ -255,6 +256,14 @@ public final class PreferenceUtil {
 
     public void setLastTab(final int value) {
         mPreferences.edit().putInt(TAB, value).apply();
+    }
+
+    public final String getLastLibrary() {
+        return mPreferences.getString(LAST_LIBRARY, null);
+    }
+
+    public void setLastLibrary(final String id) {
+        mPreferences.edit().putString(LAST_LIBRARY, id).apply();
     }
 
     public final boolean getQueueSheetOpen() {
