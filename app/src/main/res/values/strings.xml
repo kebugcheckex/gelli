@@ -126,6 +126,19 @@
 
     <string name="pref_title_direct_play_codecs">Direct Play Codecs</string>
     <string name="pref_title_categories">Categories</string>
+    <string name="pref_title_color_preset">Color</string>
+    <string name="color_preset_neutral">Neutral</string>
+    <string name="color_preset_indigo">Indigo</string>
+    <string name="color_preset_blue">Blue</string>
+    <string name="color_preset_teal">Teal</string>
+    <string name="color_preset_green">Green</string>
+    <string name="color_preset_amber">Amber</string>
+    <string name="color_preset_orange">Orange</string>
+    <string name="color_preset_red">Red</string>
+    <string name="color_preset_pink">Pink</string>
+    <string name="color_preset_purple">Purple</string>
+    <string name="color_preset_brown">Brown</string>
+    <string name="color_preset_wallpaper">Wallpaper</string>
     <string name="pref_title_primary_color">Primary Color</string>
     <string name="pref_title_accent_color">Accent Color</string>
     <string name="pref_title_theme">Theme</string>

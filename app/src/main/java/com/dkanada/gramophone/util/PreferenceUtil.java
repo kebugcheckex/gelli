@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
 
+import com.dkanada.gramophone.model.ColorPreset;
 import com.dkanada.gramophone.model.Theme;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.SortMethod;
@@ -16,6 +17,7 @@ import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.NetworkPolicy;
 import com.dkanada.gramophone.interfaces.base.PreferenceMigration;
 import com.dkanada.gramophone.service.SaveTrigger;
+import com.google.android.material.color.DynamicColors;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -72,6 +74,7 @@ public final class PreferenceUtil {
     public static final String GENERAL_THEME = "general_theme";
     public static final String PRIMARY_COLOR = "primary_color";
     public static final String ACCENT_COLOR = "accent_color";
+    public static final String COLOR_PRESET = "color_preset";
     public static final String COLORED_SHORTCUTS = "colored_shortcuts";
 
     public static final String CLASSIC_NOTIFICATION = "classic_notification";
@@ -232,6 +235,14 @@ public final class PreferenceUtil {
 
     public Theme getTheme() {
         return Theme.valueOf(mPreferences.getString(GENERAL_THEME, Theme.DARK.toString()));
+    }
+
+    public ColorPreset getColorPreset() {
+        return ColorPreset.parse(mPreferences.getString(COLOR_PRESET, null), DynamicColors.isDynamicColorAvailable());
+    }
+
+    public void setColorPreset(ColorPreset preset) {
+        mPreferences.edit().putString(COLOR_PRESET, preset.name()).apply();
     }
 
     public int getPrimaryColor() {

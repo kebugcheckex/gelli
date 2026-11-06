@@ -2,8 +2,8 @@
 <resources>
 
     <!--
-    Material 3 themes with neutral colour roles. The user-chosen primary and accent colours are applied at
-    runtime, so the roles here are greys that match the surfaces the app had under AppCompat.
+    Material 3 themes with neutral colour roles, which are the Neutral preset. The other presets replace these
+    roles with an overlay from color_presets.xml, and ThemeUtil applies it right after the theme.
     -->
     <style name="Theme.Phonograph.Base" parent="Theme.Material3.Dark.NoActionBar">
 
@@ -141,7 +141,14 @@
 
     </style>
 
-    <style name="Theme.Phonograph.Base.Black" parent="@style/Theme.Phonograph.Base">
+    <!-- the system's dynamic overlay only sets the Material roles, so this moves the app's own surfaces onto them -->
+    <style name="ThemeOverlay.Gelli.Color.Wallpaper" parent="">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainerHigh</item>
+        <item name="defaultFooterColor">?attr/colorSurfaceContainerHighest</item>
+    </style>
+
+    <!-- goes on top of the color preset, and only sets surfaces so that the preset's containers stay tinted -->
+    <style name="ThemeOverlay.Gelli.Black" parent="">
         <item name="android:colorBackground">@android:color/black</item>
         <item name="android:windowBackground">@android:color/black</item>
 
@@ -149,9 +156,6 @@
         <item name="defaultFooterColor">#424242</item>
         <item name="cardBackgroundColor">#212121</item>
 
-        <item name="colorPrimaryContainer">#2E2E2E</item>
-        <item name="colorSecondaryContainer">#2E2E2E</item>
-        <item name="colorTertiaryContainer">#2E2E2E</item>
         <item name="colorSurface">@android:color/black</item>
         <item name="colorSurfaceVariant">#1E1E1E</item>
         <item name="colorSurfaceDim">@android:color/black</item>
@@ -163,6 +167,13 @@
         <item name="colorSurfaceContainerHighest">#2A2A2A</item>
         <item name="colorOnSurfaceInverse">@android:color/black</item>
         <item name="colorOutlineVariant">#262626</item>
+    </style>
+
+    <!-- the neutral containers are too light on black, and there's no preset to tint them -->
+    <style name="ThemeOverlay.Gelli.Black.Neutral">
+        <item name="colorPrimaryContainer">#2E2E2E</item>
+        <item name="colorSecondaryContainer">#2E2E2E</item>
+        <item name="colorTertiaryContainer">#2E2E2E</item>
     </style>
 
     <style name="MusicProgressSliderParent">

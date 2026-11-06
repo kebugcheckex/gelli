@@ -9,6 +9,8 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.dkanada.gramophone.model.ColorPreset;
+import com.dkanada.gramophone.model.Theme;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.R;
@@ -17,37 +19,30 @@ import com.dkanada.gramophone.util.Util;
 import com.google.android.material.color.MaterialColors;
 
 public abstract class AbsThemeActivity extends AppCompatActivity {
-    private int currentTheme;
-    private int primaryColor;
-    private int accentColor;
+    private Theme currentTheme;
+    private ColorPreset currentPreset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = PreferenceUtil.getInstance(this).getTheme();
+        currentPreset = PreferenceUtil.getInstance(this).getColorPreset();
+
+        // the fragments restored by super.onCreate inflate with this theme
+        ThemeUtil.applyTheme(this, currentTheme, currentPreset);
+
         super.onCreate(savedInstanceState);
 
-        setTheme(PreferenceUtil.getInstance(this).getTheme().style);
         setColor(ThemeUtil.getColorResource(this, R.attr.colorSurface));
-
-        primaryColor = PreferenceUtil.getInstance(this).getPrimaryColor();
-        accentColor = PreferenceUtil.getInstance(this).getAccentColor();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (PreferenceUtil.getInstance(this).getTheme().style != currentTheme
-                || PreferenceUtil.getInstance(this).getPrimaryColor() != primaryColor
-                || PreferenceUtil.getInstance(this).getAccentColor() != accentColor) {
+        if (PreferenceUtil.getInstance(this).getTheme() != currentTheme
+                || PreferenceUtil.getInstance(this).getColorPreset() != currentPreset) {
             NavigationUtil.recreateMain(this);
         }
-    }
-
-    @Override
-    public void setTheme(int resId) {
-        super.setTheme(resId);
-
-        currentTheme = resId;
     }
 
     public void setColor(int color) {

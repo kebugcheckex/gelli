@@ -17,6 +17,7 @@ import com.dkanada.gramophone.databinding.ActivitySettingsBinding;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.views.shortcuts.DynamicShortcutManager;
 import com.dkanada.gramophone.dialogs.preferences.CategoryPreferenceDialog;
+import com.dkanada.gramophone.dialogs.preferences.ColorPresetDialog;
 import com.dkanada.gramophone.activities.base.AbsBaseActivity;
 import com.dkanada.gramophone.service.SaveTrigger;
 import com.dkanada.gramophone.service.SaveWorker;
@@ -84,6 +85,7 @@ public class SettingsActivity extends AbsBaseActivity {
             final TwoStatePreference coloredNotification = findPreference(PreferenceUtil.COLORED_NOTIFICATION);
             final TwoStatePreference colorAppShortcuts = findPreference(PreferenceUtil.COLORED_SHORTCUTS);
             final Preference categoryPreference = findPreference(PreferenceUtil.CATEGORIES);
+            final Preference colorPresetPreference = findPreference(PreferenceUtil.COLOR_PRESET);
             final Preference showAlbumCoverPreference = findPreference(PreferenceUtil.SHOW_ALBUM_COVER);
             final Preference blurAlbumCoverPreference = findPreference(PreferenceUtil.BLUR_ALBUM_COVER);
 
@@ -117,6 +119,12 @@ public class SettingsActivity extends AbsBaseActivity {
                 return false;
             });
 
+            colorPresetPreference.setSummary(PreferenceUtil.getInstance(requireContext()).getColorPreset().title);
+            colorPresetPreference.setOnPreferenceClickListener(preference -> {
+                ColorPresetDialog.create().show(getParentFragmentManager(), ColorPresetDialog.TAG);
+                return true;
+            });
+
             // use this to set default state for notification style and save trigger
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
 
@@ -131,11 +139,8 @@ public class SettingsActivity extends AbsBaseActivity {
                 case PreferenceUtil.COLORED_SHORTCUTS:
                     new DynamicShortcutManager(requireContext()).updateDynamicShortcuts();
                     break;
-                case PreferenceUtil.PRIMARY_COLOR:
-                case PreferenceUtil.ACCENT_COLOR:
+                case PreferenceUtil.COLOR_PRESET:
                 case PreferenceUtil.GENERAL_THEME:
-                    // apply theme before reloading shortcuts to apply the new icon colors
-                    requireActivity().setTheme(PreferenceUtil.getInstance(getContext()).getTheme().style);
                     new DynamicShortcutManager(requireContext()).updateDynamicShortcuts();
 
                     requireActivity().recreate();

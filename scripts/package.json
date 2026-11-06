@@ -1,0 +1,12 @@
+{
+  "name": "gelli-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Generates the committed color preset resources. Not part of the Gradle build.",
+  "scripts": {
+    "colors": "node generate_color_presets.mjs"
+  },
+  "dependencies": {
+    "@material/material-color-utilities": "0.3.0"
+  }
+}

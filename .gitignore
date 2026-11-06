@@ -27,3 +27,6 @@ captures/
 # Decompiled bytecode (used for migration reference)
 androidx/
 
+
+# Node, for the generator scripts
+node_modules/

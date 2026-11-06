@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
-import android.util.TypedValue;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.graphics.drawable.IconCompat;
@@ -14,6 +13,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.util.ImageUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
+import com.dkanada.gramophone.util.ThemeUtil;
 
 @RequiresApi(Build.VERSION_CODES.O)
 public final class AppShortcutIconGenerator {
@@ -34,14 +34,12 @@ public final class AppShortcutIconGenerator {
     }
 
     private static IconCompat generateUserThemedIcon(Context context, int iconId) {
-        // Get background color from context's theme
-        final TypedValue typedColorBackground = new TypedValue();
-        context.getTheme().resolveAttribute(android.R.attr.colorBackground, typedColorBackground, true);
+        // the shortcut manager runs from the application context too, which doesn't have the theme
+        Context themed = ThemeUtil.themedContext(context);
 
-        // Return an Icon of iconId with those colors
         return generateThemedIcon(context, iconId,
-                PreferenceUtil.getInstance(context).getPrimaryColor(),
-                typedColorBackground.data
+                ThemeUtil.getColorResource(themed, R.attr.colorOnPrimaryContainer),
+                ThemeUtil.getColorResource(themed, R.attr.colorPrimaryContainer)
         );
     }
 

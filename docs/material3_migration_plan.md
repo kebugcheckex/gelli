@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1, 2, and 3 are done, and so is step 1 of Phase 4. The phone chrome moved out of Phase 5 and now comes before the presets, so each preset is checked on the final surfaces.
+Written November 5, 2026. Phases 1, 2, and 3 are done, and so are steps 1 and 2 of Phase 4. The phone chrome moved out of Phase 5 and now comes before the presets, so each preset is checked on the final surfaces.
 
 ## Goal
 
@@ -97,7 +97,7 @@ Done when: multi-select works in the library tabs and every detail screen, and m
 The work runs in three steps, each with its own commit:
 
 1. Move the phone chrome onto the surface color, using the existing greys. Done.
-2. Add the presets: the generator, the overlays, `ColorPreset`, the black overlay, the earlier `setTheme` call, and the picker.
+2. Add the presets: the generator, the overlays, `ColorPreset`, the black overlay, the earlier `setTheme` call, and the picker. Done.
 3. Remove the remaining hand tinting and the old color preferences.
 
 ### Step 1: Phone chrome (done)
@@ -113,6 +113,21 @@ The work runs in three steps, each with its own commit:
 - Toolbar menu icons have white fills, so `menu_main`, `menu_downloads`, `menu_detail_genre`, and `menu_detail_playlist` tint them with `colorOnSurfaceVariant`.
 
 Android 15 ignores the window bar colors, so with 3-button navigation the system draws its own contrast scrim. On the Flat player in the light theme, that's a grey scrim with dark icons, at about 3:1 contrast. This isn't a regression, and it belongs with the edge-to-edge work (see *Not changed*).
+
+### Step 2: Presets (done)
+
+The *Model*, *Generated overlays*, *Applying the preset*, and *Picker* sections below describe what was built, except for these changes:
+
+- The picker is a plain `Preference` that opens `ColorPresetDialog`, so there is no `ColorPresetPreference` class.
+- The swatch ring is `colorPrimaryContainer`, because `colorSurfaceContainerHigh` nearly disappeared against the dialog.
+- The generated overlays also set `cardBackgroundColor` and `defaultFooterColor`. The dynamic overlay only sets Material roles, so `ThemeOverlay.Gelli.Color.Wallpaper` goes on top of it to fill in those two.
+- `ThemeOverlay.Gelli.Black.Neutral` inherits from `ThemeOverlay.Gelli.Black` and adds the `#2E2E2E` containers.
+- The generator pins `@material/material-color-utilities` to exactly 0.3.0, because the ESM build of 0.4.0 doesn't load (an extensionless import in `color_spec_2025.js`). To regenerate, run `npm install` and `npm run colors` in `scripts/`.
+- `AppShortcutIconGenerator` already moved to `themedContext`. Shortcut icons only regenerate when the preset or theme changes in Settings, so with Wallpaper they keep their colors after a wallpaper change until then.
+
+Checked on an Android 15 emulator in light, dark, and black, including Wallpaper with the Monet overlays enabled. That image ships with them disabled, which makes the wallpaper roles fall back to heavy framework defaults. Android 14 and below are untested, and the path where Wallpaper is unavailable is only covered by `ColorPresetTest`.
+
+Until step 3, the settings headers, progress bars, fast scroller, and Snackbar action keep the old pink accent.
 
 ### Model
 
@@ -142,21 +157,20 @@ Every remaining `getPrimaryColor()` and `getAccentColor()` call goes away. Most 
 
 | Site | Today | After |
 |---|---|---|
-| `AbsThemeActivity` | Tracks the primary and accent colors to recreate on a change | Tracks the preset |
 | `LibraryFragment.setUpRail` | Accent icon tint and indicator | Remove. The M3 rail defaults use `colorSecondaryContainer` and `colorOnSecondaryContainer`. |
 | `DownloadsActivity` | Accent for `coverageProgress` and `loading` | `colorPrimary` |
-| Fast scroller (`ViewUtil.setUpFastScrollRecyclerViewColor`) | Accent | `colorPrimary` |
+| Fast scroller (`ViewUtil.setUpFastScrollRecyclerViewColor`, called from `PlaylistDetailActivity`, `GenreDetailActivity`, and `AbsLibraryPagerRecyclerViewFragment`) | Accent, passed in by each caller | `colorPrimary` |
 | `ShuffleButtonSongAdapter` | Accent | `colorPrimary` |
 | `MiniPlayerFragment`, `PlayerBarFragment` | Accent for the progress | `colorPrimary` |
 | `AbsBaseActivity` Snackbar | Accent action text | Remove (M3 uses `colorPrimaryInverse`) |
 | `SleepTimerDialog` | Accent arc | The slider's default colors (Phase 6) |
-| `JellyPreferenceCategory` | `R.color.color_accent` | `colorPrimary` |
+| `JellyPreferenceCategory` | `ACCENT_COLOR`, falling back to `R.color.color_accent` | `colorPrimary` |
 
-Then delete `getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_COLOR`, `ColorPreference`, `ColorCircleDrawable` (check for other users first), `preference_color.xml`, `color_primary`, `color_accent`, and the `com.github.QuadFlask:colorpicker` dependency.
+Then delete `getPrimaryColor()`, `getAccentColor()`, `PRIMARY_COLOR`, `ACCENT_COLOR`, `ColorPreference`, `ColorCircleDrawable` (check for other users first), `preference_color.xml`, `color_primary`, `color_accent`, the `pref_title_primary_color`, `pref_title_accent_color`, `pref_summary_primary_color`, and `pref_summary_accent_color` strings in every locale, and the `com.github.QuadFlask:colorpicker` dependency.
 
 ### Picker
 
-`ColorPresetPreference` replaces the two color preferences in `pref_interface.xml`. It opens a `MaterialAlertDialogBuilder` dialog with a grid of swatches. Each swatch shows the preset's `colorPrimary` on its `colorSurfaceContainerHigh`, resolved through a `ContextThemeWrapper` for the current light or dark theme. A check mark shows the current choice. The wallpaper swatch is shown only when dynamic color is available.
+A `color_preset` preference replaces the two color preferences in `pref_interface.xml`. It opens `ColorPresetDialog`, a `MaterialAlertDialogBuilder` dialog with a grid of swatches. Each swatch shows the preset's `colorPrimary` on its `colorPrimaryContainer`, resolved through `ThemeUtil.themedContext` for the current theme. A check mark shows the current choice. The wallpaper swatch is shown only when dynamic color is available.
 
 Done when: the phone and the expanded layout both follow the chosen preset in light, dark, and black. Changing the preset recreates the open screens. No code reads a user color directly.
 
