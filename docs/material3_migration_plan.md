@@ -209,7 +209,7 @@ Checked in light, dark, and black on a phone, and the expanded player bar for re
 | `MaterialProgressBar` in `fragment_flat_player_playback_controls.xml` | Done. A `LinearProgressIndicator` fills the buffering strip behind the slider, and the dependency is gone. |
 | Plain `ProgressBar` in `activity_splash.xml`, `activity_downloads.xml`, and `fragment_landscape_player.xml` | Done. The splash and the landscape ring are circular, and the downloads bars are linear. |
 | `SeekBar` for playback position | Keep it. M3's `Slider` has no buffered-progress track. Restyle the track and thumb with `colorPrimary` and `colorSurfaceContainerHighest`, and match the landscape player. |
-| `SeekArc` in the sleep timer | A `Slider` from 1 to 120 minutes (step 1) above the existing time text, with the "finish last song" checkbox below. Remove the `SeekArc` dependency. |
+| `SeekArc` in the sleep timer | Done. A `Slider` from 1 to 120 minutes above the time text, with the "finish last song" checkbox below. The dependency is gone. |
 | `IconImageView` | Tint with `colorOnSurfaceVariant` in place of `iconColor`. Remove `iconColor` if nothing else reads it. |
 | `roundSelector`, `rectSelector`, `rectSelectorStrong` | Use `?attr/selectableItemBackgroundBorderless` and `?attr/selectableItemBackground`, so presses use M3's state layers. Delete the drawables and attributes once unused. |
 

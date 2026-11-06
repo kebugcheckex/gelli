@@ -13,7 +13,6 @@ import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -26,17 +25,17 @@ import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.service.MusicService;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
-import com.dkanada.gramophone.util.ThemeUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.triggertrap.seekarc.SeekArc;
+import com.google.android.material.slider.Slider;
 
 public class SleepTimerDialog extends DialogFragment {
+    private static final int MIN_MINUTES = 1;
+    private static final int MAX_MINUTES = 120;
+
     private DialogSleepTimerBinding binding;
 
     private TimerUpdater timerUpdater;
     private AlertDialog dialog;
-
-    private int seekArcProgress;
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
@@ -58,7 +57,7 @@ public class SleepTimerDialog extends DialogFragment {
                 .setPositiveButton(R.string.action_set, (d, which) -> {
                     PreferenceUtil.getInstance(getActivity()).setSleepTimerFinishMusic(binding.shouldFinishLastSong.isChecked());
 
-                    final int minutes = seekArcProgress;
+                    final int minutes = getMinutes();
 
                     PendingIntent pi = makeTimerPendingIntent(PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
@@ -99,52 +98,32 @@ public class SleepTimerDialog extends DialogFragment {
         boolean finishMusic = PreferenceUtil.getInstance(getActivity()).getSleepTimerFinishMusic();
         binding.shouldFinishLastSong.setChecked(finishMusic);
 
-        int primaryColor = ThemeUtil.getColorResource(requireActivity(), R.attr.colorPrimary);
-
-        binding.seekArc.setProgressColor(primaryColor);
-        binding.seekArc.setThumbColor(primaryColor);
-
-        binding.seekArc.post(() -> {
-            int width = binding.seekArc.getWidth();
-            int height = binding.seekArc.getHeight();
-            int small = Math.min(width, height);
-
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(binding.seekArc.getLayoutParams());
-            layoutParams.height = small;
-            binding.seekArc.setLayoutParams(layoutParams);
-        });
-
-        seekArcProgress = PreferenceUtil.getInstance(getActivity()).getLastSleepTimerValue();
+        // the slider throws on a value outside its range, and the arc let a stored value through
+        int lastMinutes = PreferenceUtil.getInstance(getActivity()).getLastSleepTimerValue();
+        binding.timerSlider.setValue(Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, lastMinutes)));
         updateTimeDisplayTime();
-        binding.seekArc.setProgress(seekArcProgress);
 
-        binding.seekArc.setOnSeekArcChangeListener(new SeekArc.OnSeekArcChangeListener() {
+        binding.timerSlider.addOnChangeListener((slider, value, fromUser) -> updateTimeDisplayTime());
+        binding.timerSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
-            public void onProgressChanged(@NonNull SeekArc seekArc, int i, boolean b) {
-                if (i < 1) {
-                    seekArc.setProgress(1);
-                    return;
-                }
-
-                seekArcProgress = i;
-                updateTimeDisplayTime();
+            public void onStartTrackingTouch(@NonNull Slider slider) {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekArc seekArc) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekArc seekArc) {
-                PreferenceUtil.getInstance(getActivity()).setLastSleepTimerValue(seekArcProgress);
+            public void onStopTrackingTouch(@NonNull Slider slider) {
+                PreferenceUtil.getInstance(getActivity()).setLastSleepTimerValue(getMinutes());
             }
         });
 
         return dialog;
     }
 
+    private int getMinutes() {
+        return (int) binding.timerSlider.getValue();
+    }
+
     private void updateTimeDisplayTime() {
-        binding.timerDisplay.setText(getString(R.string.sleep_timer_display, seekArcProgress));
+        binding.timerDisplay.setText(getString(R.string.sleep_timer_display, getMinutes()));
     }
 
     private void scheduleSleepTimer(AlarmManager alarmManager, long triggerAtMillis, PendingIntent pendingIntent) {
