@@ -64,6 +64,8 @@ public class PlayerBarFragment extends AbsMusicServiceFragment implements MusicP
         iconColor = ThemeUtil.getColorResource(context, R.attr.colorOnSurfaceVariant);
         int transportColor = ThemeUtil.getColorResource(context, R.attr.colorOnSurface);
 
+        view.setOnClickListener(v -> getPanelActivity().expandPanel());
+
         playPauseDrawable = new PlayPauseDrawable(context);
         binding.playerBarPlayPauseButton.setImageDrawable(playPauseDrawable);
         binding.playerBarPlayPauseButton.setBackgroundTintList(ColorStateList.valueOf(accentColor));

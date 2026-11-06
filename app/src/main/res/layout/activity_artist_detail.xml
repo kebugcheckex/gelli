@@ -20,12 +20,6 @@
             style="@style/Toolbar"
             android:background="@android:color/transparent" />
 
-        <ViewStub
-            android:id="@+id/cab_stub"
-            android:saveEnabled="false"
-            android:layout_width="match_parent"
-            android:layout_height="?android:attr/actionBarSize" />
-
     </FrameLayout>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout

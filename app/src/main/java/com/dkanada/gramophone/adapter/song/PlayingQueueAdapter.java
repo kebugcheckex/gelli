@@ -5,7 +5,6 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemAdapter;
@@ -15,7 +14,6 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange;
 import com.h6ah4i.android.widget.advrecyclerview.draggable.annotation.DraggableItemStateFlags;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.ViewUtil;
 
@@ -30,8 +28,8 @@ public class PlayingQueueAdapter extends SongAdapter implements DraggableItemAda
     // the full players show the current song above the queue, so the queue row for it is dimmed like history
     private boolean dimCurrent = true;
 
-    public PlayingQueueAdapter(AppCompatActivity activity, List<Song> dataSet, int current, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
-        super(activity, dataSet, itemLayoutRes, usePalette, cabHolder);
+    public PlayingQueueAdapter(AppCompatActivity activity, List<Song> dataSet, int current, @LayoutRes int itemLayoutRes, boolean usePalette) {
+        super(activity, dataSet, itemLayoutRes, usePalette);
         this.current = current;
     }
 

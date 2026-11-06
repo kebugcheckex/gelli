@@ -5,14 +5,12 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.ShortcutUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Song;
 
 import java.util.List;
@@ -20,8 +18,8 @@ import java.util.List;
 public class ShuffleButtonSongAdapter extends AbsOffsetSongAdapter {
     private boolean isFavorite = false;
 
-    public ShuffleButtonSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
-        super(activity, dataSet, itemLayoutRes, usePalette, cabHolder);
+    public ShuffleButtonSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
+        super(activity, dataSet, itemLayoutRes, usePalette);
     }
 
     @Override

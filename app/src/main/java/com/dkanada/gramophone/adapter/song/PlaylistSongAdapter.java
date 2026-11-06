@@ -5,12 +5,10 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dkanada.gramophone.dialogs.RemoveFromPlaylistDialog;
 import com.dkanada.gramophone.R;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.ThemeUtil;
@@ -18,8 +16,8 @@ import com.dkanada.gramophone.util.ThemeUtil;
 import java.util.List;
 
 public class PlaylistSongAdapter extends AbsOffsetSongAdapter {
-    public PlaylistSongAdapter(AppCompatActivity activity, @NonNull List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
-        super(activity, dataSet, itemLayoutRes, usePalette, cabHolder, false);
+    public PlaylistSongAdapter(AppCompatActivity activity, @NonNull List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
+        super(activity, dataSet, itemLayoutRes, usePalette, false);
         setMenu(R.menu.menu_select_playlist_song);
     }
 

@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1 and 2 are done.
+Written November 5, 2026. Phases 1, 2, and 3 are done.
 
 ## Goal
 
@@ -82,9 +82,11 @@ Done when: no `com.afollestad.materialdialogs` imports remain, and every dialog 
 Replace material-cab with AppCompat's `ActionMode`, styled by the M3 theme.
 
 1. Theme: set `windowActionModeOverlay` to true and `actionModeStyle` to a surface-colored style (`colorSurfaceContainer` background, `colorOnSurface` title), so the action mode covers the toolbar instead of pushing the content down.
+   The mode inherits from the toolbar's context, so `@style/Toolbar`'s dark overlay would turn its icons white in the light theme. `actionModeTheme` sets those roles back to match the surface and clears the popup theme, which would otherwise replace the neutral roles. The mode also covers the status bar, so `AbsMusicPanelActivity` matches the status icons to the mode's surface while it is open.
 2. `AbsMultiSelectAdapter.kt` starts the mode with `activity.startSupportActionMode(callback)`, updates `mode.title`, and calls `mode.finish()` when nothing is checked. The `onCreateActionMode`, `onActionItemClicked`, and `onDestroyActionMode` callbacks map onto today's `onCreate`, `onSelection`, and `onDestroy`.
-3. `CabHolder` keeps its role: the adapter asks the activity before it opens a mode, so only one mode is active at a time. Its methods take `ActionMode` in place of `AttachedCab`. `MainActivity` and the detail activities close the mode on Back and on page changes, as they do today.
-4. Remove the `cab_stub` `ViewStub`s (`activity_album_detail.xml`, `activity_artist_detail.xml`, `activity_genre_detail.xml`, `activity_playlist_detail.xml`, `fragment_library.xml`, and their `layout-w840dp`/`layout-w1200dp` versions), the `R.id.cab_stub` argument in the `AlbumAdapter`, `ArtistAdapter`, `PlaylistAdapter`, and `SongAdapter` constructors, the `cab.backgroundColor(null, getPaletteColor())` calls in the detail activities, and the `com.afollestad:material-cab` dependency.
+3. AppCompat allows one mode at a time, because starting a mode finishes the open one, and it closes the open mode on Back by itself. `CabHolder` and the Back handling in `MainActivity` and the detail activities are therefore removed.
+   The mode is drawn above the whole window rather than inside each layout, so `AbsMusicPanelActivity` tracks it and closes it whenever the player panel changes state. `MainActivity` and `LibraryFragment` also close it on a library switch and on a tab change.
+4. Remove the `cab_stub` `ViewStub`s (`activity_album_detail.xml`, `activity_artist_detail.xml`, `activity_genre_detail.xml`, `activity_playlist_detail.xml`, `fragment_library.xml`, and their `layout-w840dp`/`layout-w1200dp` versions), the `R.id.cab_stub` argument in the `AlbumAdapter`, `ArtistAdapter`, `PlaylistAdapter`, and `SongAdapter` constructors, the unused `cabHolder` parameter in the adapter constructors, the `cab.backgroundColor(null, getPaletteColor())` calls in the detail activities, and the `com.afollestad:material-cab` dependency.
 
 Check on a device that the mode covers the toolbar in each activity that has one (`setSupportActionBar`), including the expanded layout with the rail.
 

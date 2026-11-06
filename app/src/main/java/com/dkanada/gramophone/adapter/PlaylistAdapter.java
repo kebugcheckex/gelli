@@ -9,7 +9,6 @@ import android.widget.PopupMenu;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dkanada.gramophone.R;
@@ -20,7 +19,6 @@ import com.dkanada.gramophone.dialogs.RenamePlaylistDialog;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
 import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.menu.SongsMenuHelper;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
@@ -33,8 +31,8 @@ public class PlaylistAdapter extends AbsMultiSelectAdapter<PlaylistAdapter.ViewH
     protected List<Playlist> dataSet;
     protected int itemLayoutRes;
 
-    public PlaylistAdapter(AppCompatActivity activity, List<Playlist> dataSet, @LayoutRes int itemLayoutRes, @Nullable CabHolder cabHolder) {
-        super(activity, R.id.cab_stub, R.menu.menu_select_playlist);
+    public PlaylistAdapter(AppCompatActivity activity, List<Playlist> dataSet, @LayoutRes int itemLayoutRes) {
+        super(activity, R.menu.menu_select_playlist);
 
         this.activity = activity;
         this.dataSet = dataSet;

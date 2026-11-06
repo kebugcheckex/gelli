@@ -27,6 +27,7 @@ import com.google.android.material.navigationrail.NavigationRailView;
 import com.dkanada.gramophone.model.Category;
 import android.content.res.ColorStateList;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.view.MenuItemCompat;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.MusicLibraryPagerAdapter;
 import com.dkanada.gramophone.dialogs.CreatePlaylistDialog;
@@ -222,6 +223,10 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         if (hasRail()) {
             menu.removeItem(R.id.action_shuffle_all);
             menu.removeItem(R.id.action_colored_footers);
+
+            // the rail's toolbar sits on the surface, not the primary colour the white icon was drawn for
+            int iconColor = ThemeUtil.getColorResource(requireContext(), R.attr.colorOnSurfaceVariant);
+            MenuItemCompat.setIconTintList(menu.findItem(R.id.action_search), ColorStateList.valueOf(iconColor));
         }
 
         Fragment currentFragment = getCurrentFragment();
@@ -419,6 +424,9 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
     public void onPageSelected(int position) {
         PreferenceUtil.getInstance(getActivity()).setLastTab(position);
         updateRailSelection(position);
+
+        // the selection belongs to the page that started it
+        getMainActivity().finishActionMode();
     }
 
     @Override

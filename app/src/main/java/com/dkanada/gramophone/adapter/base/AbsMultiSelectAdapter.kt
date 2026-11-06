@@ -1,33 +1,51 @@
 package com.dkanada.gramophone.adapter.base
 
-import android.app.Activity
 import android.content.Context
+import android.content.res.ColorStateList
+import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
+import androidx.core.view.MenuItemCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.afollestad.materialcab.attached.AttachedCab
-import com.afollestad.materialcab.attached.destroy
-import com.afollestad.materialcab.attached.isActive
-import com.afollestad.materialcab.attached.isDestroyed
-import com.afollestad.materialcab.createCab
 import com.dkanada.gramophone.R
-import com.dkanada.gramophone.interfaces.CabHolder
-import com.dkanada.gramophone.util.PreferenceUtil
+import com.google.android.material.color.MaterialColors
 import java.util.*
 
+/**
+ * Keeps the checked items and shows them in an action mode over the toolbar. Starting a mode finishes any
+ * other one in the activity, so only one adapter has a selection at a time.
+ */
 abstract class AbsMultiSelectAdapter<VH : RecyclerView.ViewHolder, I>(
     private val context: Context,
-    private val viewRes: Int,
     private var menuRes: Int,
 ) : RecyclerView.Adapter<VH>() {
     private var checked: MutableList<I> = ArrayList()
-    private var cab: AttachedCab? = null
+    private var actionMode: ActionMode? = null
+
+    private val actionModeCallback = object : ActionMode.Callback {
+        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+            mode.menuInflater.inflate(menuRes, menu)
+            tintIcons(menu)
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean = false
+
+        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean = onSelection(item)
+
+        override fun onDestroyActionMode(mode: ActionMode) {
+            actionMode = null
+            checkNone()
+        }
+    }
 
     protected fun isChecked(identifier: I): Boolean {
         return checked.contains(identifier)
     }
 
     protected fun isActive(): Boolean {
-        return cab.isActive()
+        return actionMode != null
     }
 
     protected fun toggleChecked(position: Int): Boolean {
@@ -38,7 +56,7 @@ abstract class AbsMultiSelectAdapter<VH : RecyclerView.ViewHolder, I>(
         }
 
         notifyItemChanged(position)
-        updateCab()
+        updateActionMode()
 
         return true
     }
@@ -47,32 +65,30 @@ abstract class AbsMultiSelectAdapter<VH : RecyclerView.ViewHolder, I>(
         this.menuRes = menuRes
     }
 
-    private fun updateCab() {
-        when {
-            cab == null || cab.isDestroyed() -> {
-                val activity = context as Activity
-                val cabHolder = context as CabHolder
+    private fun updateActionMode() {
+        if (checked.isEmpty()) {
+            actionMode?.finish()
+            return
+        }
 
-                cab = activity.createCab(viewRes) {
-                    menu(menuRes)
+        if (actionMode == null) {
+            actionMode = (context as AppCompatActivity).startSupportActionMode(actionModeCallback)
+        }
 
-                    backgroundColor(literal = PreferenceUtil.getInstance(context).primaryColor)
-                    title(literal = getName(checked[0]))
+        actionMode?.title = if (checked.size == 1) {
+            getName(checked[0])
+        } else {
+            context.getString(R.string.x_selected, checked.size)
+        }
+    }
 
-                    onCreate { cab, _ -> cabHolder.onCreateCab(cab) }
-                    onSelection { item -> onSelectionCab(item) }
-                    onDestroy { onDestroyCab() }
-                }
-            }
-            checked.size <= 0 && cab.isActive() -> {
-                cab.destroy()
-            }
-            checked.size == 1 -> {
-                cab?.title(literal = getName(checked[0]))
-            }
-            else -> {
-                cab?.title(literal = context.getString(R.string.x_selected, checked.size))
-            }
+    // the menu icons are white for the old colored bar, and the mode now sits on the surface
+    private fun tintIcons(menu: Menu) {
+        val color = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant, 0)
+        val tint = ColorStateList.valueOf(color)
+
+        for (i in 0 until menu.size()) {
+            MenuItemCompat.setIconTintList(menu.getItem(i), tint)
         }
     }
 
@@ -88,7 +104,7 @@ abstract class AbsMultiSelectAdapter<VH : RecyclerView.ViewHolder, I>(
         }
 
         notifyDataSetChanged()
-        updateCab()
+        updateActionMode()
     }
 
     private fun checkNone() {
@@ -96,19 +112,13 @@ abstract class AbsMultiSelectAdapter<VH : RecyclerView.ViewHolder, I>(
         notifyDataSetChanged()
     }
 
-    private fun onSelectionCab(menuItem: MenuItem): Boolean {
+    private fun onSelection(menuItem: MenuItem): Boolean {
         if (menuItem.itemId == R.id.action_select_all) {
             checkAll()
         } else {
             onMultipleItemAction(menuItem, ArrayList(checked))
-            cab.destroy()
+            actionMode?.finish()
         }
-
-        return true
-    }
-
-    private fun onDestroyCab(): Boolean {
-        checkNone()
 
         return true
     }

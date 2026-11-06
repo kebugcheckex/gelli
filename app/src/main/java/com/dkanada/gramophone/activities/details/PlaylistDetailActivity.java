@@ -9,8 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afollestad.materialcab.attached.AttachedCab;
-import com.afollestad.materialcab.attached.AttachedCabKt;
 import com.dkanada.gramophone.BuildConfig;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.databinding.ActivityPlaylistDetailBinding;
@@ -26,7 +24,6 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.song.OrderablePlaylistSongAdapter;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.model.PlaylistSong;
 import com.dkanada.gramophone.model.Song;
@@ -35,14 +32,13 @@ import com.dkanada.gramophone.util.ViewUtil;
 
 import java.util.ArrayList;
 
-public class PlaylistDetailActivity extends AbsMusicContentActivity implements CabHolder {
+public class PlaylistDetailActivity extends AbsMusicContentActivity {
     public static String EXTRA_PLAYLIST = BuildConfig.APPLICATION_ID + ".extra.playlist";
 
     private ActivityPlaylistDetailBinding binding;
 
     private Playlist playlist;
 
-    private AttachedCab cab;
     private SongAdapter adapter;
 
     private RecyclerView.Adapter wrappedAdapter;
@@ -80,7 +76,7 @@ public class PlaylistDetailActivity extends AbsMusicContentActivity implements C
 
         recyclerViewDragDropManager = new RecyclerViewDragDropManager();
         final GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
-        adapter = new OrderablePlaylistSongAdapter(this, new ArrayList<>(), R.layout.item_list, false, this, (fromPosition, toPosition) -> {
+        adapter = new OrderablePlaylistSongAdapter(this, new ArrayList<>(), R.layout.item_list, false, (fromPosition, toPosition) -> {
             PlaylistUtil.moveItem(playlist.id, (PlaylistSong) adapter.getDataSet().get(fromPosition), toPosition);
             Song song = adapter.getDataSet().remove(fromPosition);
             adapter.getDataSet().add(toPosition, song);
@@ -133,18 +129,9 @@ public class PlaylistDetailActivity extends AbsMusicContentActivity implements C
     }
 
     @Override
-    public void onCreateCab(AttachedCab cab) {
-        this.cab = cab;
-    }
-
-    @Override
     public void onBackPressed() {
-        if (cab != null && AttachedCabKt.isActive(cab)) {
-            AttachedCabKt.destroy(cab);
-        } else {
-            binding.recyclerView.stopScroll();
-            super.onBackPressed();
-        }
+        binding.recyclerView.stopScroll();
+        super.onBackPressed();
     }
 
     private void checkIsEmpty() {

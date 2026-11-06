@@ -23,7 +23,6 @@ import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.helper.menu.SongMenuHelper;
 import com.dkanada.gramophone.helper.menu.SongsMenuHelper;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.LocalLibrary;
@@ -48,12 +47,12 @@ public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, S
     private final LocalLibrary.Listener libraryListener = this::notifyDataSetChanged;
     private final NetworkUtil.Listener networkListener = this::notifyDataSetChanged;
 
-    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
-        this(activity, dataSet, itemLayoutRes, usePalette, cabHolder, true);
+    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
+        this(activity, dataSet, itemLayoutRes, usePalette, true);
     }
 
-    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder, boolean showSectionName) {
-        super(activity, R.id.cab_stub, R.menu.menu_select_media);
+    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, boolean showSectionName) {
+        super(activity, R.menu.menu_select_media);
 
         this.activity = activity;
         this.dataSet = dataSet;

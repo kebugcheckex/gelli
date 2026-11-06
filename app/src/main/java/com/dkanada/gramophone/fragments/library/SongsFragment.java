@@ -32,15 +32,13 @@ public class SongsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFrag
                     getLibraryFragment().getMainActivity(),
                     dataSet,
                     itemLayoutRes,
-                    usePalette,
-                    getLibraryFragment().getMainActivity());
+                    usePalette);
         } else {
             adapter = new SongAdapter(
                     getLibraryFragment().getMainActivity(),
                     dataSet,
                     itemLayoutRes,
-                    usePalette,
-                    getLibraryFragment().getMainActivity());
+                    usePalette);
         }
 
         return adapter;

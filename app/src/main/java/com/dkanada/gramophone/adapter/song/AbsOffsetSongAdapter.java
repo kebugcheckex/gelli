@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Song;
 
 import java.util.List;
@@ -20,12 +19,12 @@ public abstract class AbsOffsetSongAdapter extends SongAdapter {
     protected static final int OFFSET_ITEM = 0;
     protected static final int SONG = 1;
 
-    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder) {
-        super(activity, dataSet, itemLayoutRes, usePalette, cabHolder);
+    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette) {
+        super(activity, dataSet, itemLayoutRes, usePalette);
     }
 
-    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, @Nullable CabHolder cabHolder, boolean showSectionName) {
-        super(activity, dataSet, itemLayoutRes, usePalette, cabHolder, showSectionName);
+    public AbsOffsetSongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean usePalette, boolean showSectionName) {
+        super(activity, dataSet, itemLayoutRes, usePalette, showSectionName);
     }
 
     @NonNull
@@ -104,7 +103,8 @@ public abstract class AbsOffsetSongAdapter extends SongAdapter {
 
         @Override
         public boolean onLongClick(View view) {
-            if (getItemViewType() == OFFSET_ITEM) return false;
+            // the header can't be selected, and leaving the press unhandled would run its click on release
+            if (getItemViewType() == OFFSET_ITEM) return true;
             toggleChecked(getBindingAdapterPosition());
             return true;
         }

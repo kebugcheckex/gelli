@@ -200,8 +200,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
                 MusicPlayerRemote.getPlayingQueue(),
                 MusicPlayerRemote.getPosition(),
                 R.layout.item_list,
-                false,
-                null);
+                false);
         wrappedAdapter = recyclerViewDragDropManager.createWrappedAdapter(playingQueueAdapter);
 
         layoutManager = new LinearLayoutManager(getActivity());

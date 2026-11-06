@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AppCompat draws this behind the status bar while an action mode is open, so it matches the mode's surface -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:override="true">
+    <item android:color="?attr/colorSurfaceContainer" />
+</selector>

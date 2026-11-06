@@ -23,7 +23,7 @@ public class AlbumsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFra
         notifyLayoutResChanged(itemLayoutRes);
 
         List<Album> dataSet = getAdapter() == null ? new ArrayList<>() : getAdapter().getDataSet();
-        return new AlbumAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, loadUsePalette(), getLibraryFragment().getMainActivity());
+        return new AlbumAdapter(getLibraryFragment().getMainActivity(), dataSet, itemLayoutRes, loadUsePalette());
     }
 
     @Override

@@ -16,7 +16,9 @@
         android:background="?colorSurface"
         app:headerLayout="@layout/navigation_rail_header"
         app:labelVisibilityMode="labeled"
-        app:menuGravity="top" />
+        app:menuGravity="top"
+        app:paddingBottomSystemWindowInsets="false"
+        app:scrollingEnabled="true" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="0dp"
@@ -38,12 +40,6 @@
                     android:id="@+id/toolbar"
                     style="@style/Toolbar.Surface"
                     tools:viewBindingType="androidx.appcompat.widget.Toolbar" />
-
-                <ViewStub
-                    android:id="@+id/cab_stub"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:saveEnabled="false" />
 
             </FrameLayout>
 

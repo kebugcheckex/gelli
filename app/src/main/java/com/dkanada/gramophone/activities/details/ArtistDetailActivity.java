@@ -11,8 +11,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afollestad.materialcab.attached.AttachedCab;
-import com.afollestad.materialcab.attached.AttachedCabKt;
 import com.dkanada.gramophone.BuildConfig;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
@@ -26,7 +24,6 @@ import com.dkanada.gramophone.dialogs.AddToPlaylistDialog;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
 import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.interfaces.PaletteColorHolder;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
@@ -39,13 +36,12 @@ import com.dkanada.gramophone.util.ViewUtil;
 import java.util.List;
 import java.util.Objects;
 
-public class ArtistDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, CabHolder, AppBarLayout.OnOffsetChangedListener {
+public class ArtistDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, AppBarLayout.OnOffsetChangedListener {
     public static final String EXTRA_ARTIST = BuildConfig.APPLICATION_ID + ".extra.artist";
     public static final String EXTRA_ALBUM_ARTIST = BuildConfig.APPLICATION_ID + ".extra.album_artist";
 
     private ActivityArtistDetailBinding binding;
 
-    private AttachedCab cab;
     private int headerViewHeight;
     private int toolbarColor;
 
@@ -114,7 +110,7 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
         // the w1200dp layout has a fixed side column instead of a collapsing header
         if (binding.appBarLayout != null) binding.appBarLayout.addOnOffsetChangedListener(this);
 
-        songAdapter = new SongAdapter(this, artist.songs, R.layout.item_list, false, this);
+        songAdapter = new SongAdapter(this, artist.songs, R.layout.item_list, false);
 
         binding.songs.setLayoutManager(new GridLayoutManager(this, 1));
         binding.songs.setAdapter(songAdapter);
@@ -125,7 +121,7 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
 
     private void setUpAlbumRecyclerView() {
         binding.albums.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        albumAdapter = new HorizontalAlbumAdapter(this, artist.albums, usePalette, this);
+        albumAdapter = new HorizontalAlbumAdapter(this, artist.albums, usePalette);
         binding.albums.setAdapter(albumAdapter);
 
         // NestedScrollView will ignore horizontal RecyclerView without this line
@@ -233,20 +229,9 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     }
 
     @Override
-    public void onCreateCab(AttachedCab cab) {
-        cab.backgroundColor(null, getPaletteColor());
-
-        this.cab = cab;
-    }
-
-    @Override
     public void onBackPressed() {
-        if (cab != null && AttachedCabKt.isActive(cab)) {
-            AttachedCabKt.destroy(cab);
-        } else {
-            binding.albums.stopScroll();
-            super.onBackPressed();
-        }
+        binding.albums.stopScroll();
+        super.onBackPressed();
     }
 
     @Override

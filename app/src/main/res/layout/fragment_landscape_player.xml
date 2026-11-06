@@ -328,9 +328,10 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                     android:layout_marginTop="8dp"
                     android:layout_weight="1">
 
-                    <fragment
+                    <!-- a fragment tag has no container for the list to take the dark overlay from -->
+                    <androidx.fragment.app.FragmentContainerView
                         android:id="@+id/landscape_player_queue_fragment"
-                        class="com.dkanada.gramophone.fragments.player.PlayingQueueListFragment"
+                        android:name="com.dkanada.gramophone.fragments.player.PlayingQueueListFragment"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
 

@@ -16,10 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.afollestad.materialcab.attached.AttachedCab;
-import com.afollestad.materialcab.attached.AttachedCabKt;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.util.LocalLibrary;
 import com.dkanada.gramophone.util.NavigationUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
@@ -39,13 +36,10 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.List;
 
-public class MainActivity extends AbsMusicContentActivity implements CabHolder {
+public class MainActivity extends AbsMusicContentActivity {
     private ActivityMainDrawerLayoutBinding binding;
     private NavigationDrawerHeaderBinding navigationBinding;
     private boolean onLogout;
-
-    @Nullable
-    private AttachedCab cab;
 
     @Nullable
     private List<QueryUtil.Library> libraries;
@@ -134,6 +128,9 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
             pendingFragment = fragment;
             return;
         }
+
+        // the selection belongs to the library being replaced
+        finishActionMode();
 
         fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, null).commit();
         pendingFragment = null;
@@ -257,16 +254,9 @@ public class MainActivity extends AbsMusicContentActivity implements CabHolder {
     }
 
     @Override
-    public void onCreateCab(AttachedCab cab) {
-        this.cab = cab;
-    }
-
-    @Override
     public void onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(binding.navigationView)) {
             binding.drawerLayout.closeDrawers();
-        } else if (cab != null && AttachedCabKt.isActive(cab)) {
-            AttachedCabKt.destroy(cab);
         } else {
             super.onBackPressed();
         }

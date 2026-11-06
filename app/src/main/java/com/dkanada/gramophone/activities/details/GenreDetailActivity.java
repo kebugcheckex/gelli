@@ -9,8 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afollestad.materialcab.attached.AttachedCab;
-import com.afollestad.materialcab.attached.AttachedCabKt;
 import com.dkanada.gramophone.BuildConfig;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.databinding.ActivityGenreDetailBinding;
@@ -19,21 +17,19 @@ import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.model.Genre;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 
 import java.util.ArrayList;
 
-public class GenreDetailActivity extends AbsMusicContentActivity implements CabHolder {
+public class GenreDetailActivity extends AbsMusicContentActivity {
     public static final String EXTRA_GENRE = BuildConfig.APPLICATION_ID + ".extra.genre";
 
     private ActivityGenreDetailBinding binding;
 
     private Genre genre;
 
-    private AttachedCab cab;
     private SongAdapter adapter;
 
     @Override
@@ -66,7 +62,7 @@ public class GenreDetailActivity extends AbsMusicContentActivity implements CabH
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         ViewUtil.capContentWidth(binding.recyclerView);
 
-        adapter = new SongAdapter(this, new ArrayList<>(), R.layout.item_list, false, this);
+        adapter = new SongAdapter(this, new ArrayList<>(), R.layout.item_list, false);
         binding.recyclerView.setAdapter(adapter);
 
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
@@ -110,18 +106,9 @@ public class GenreDetailActivity extends AbsMusicContentActivity implements CabH
     }
 
     @Override
-    public void onCreateCab(AttachedCab cab) {
-        this.cab = cab;
-    }
-
-    @Override
     public void onBackPressed() {
-        if (cab != null && AttachedCabKt.isActive(cab)) {
-            AttachedCabKt.destroy(cab);
-        } else {
-            binding.recyclerView.stopScroll();
-            super.onBackPressed();
-        }
+        binding.recyclerView.stopScroll();
+        super.onBackPressed();
     }
 
     private void checkIsEmpty() {

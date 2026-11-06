@@ -67,6 +67,11 @@
         <item name="tabStyle">@style/Widget.Design.TabLayout</item>
         <item name="appBarLayoutStyle">@style/Widget.Design.AppBarLayout</item>
 
+        <!-- the multi-select bar covers the toolbar instead of pushing the content down -->
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionModeStyle">@style/Widget.Gelli.ActionMode</item>
+        <item name="actionModeTheme">@style/ThemeOverlay.Gelli.ActionMode</item>
+
         <!-- necessary to find the overflow button later in the layout -->
         <item name="android:actionOverflowButtonStyle">@style/Widget.ActionButton.Overflow</item>
 
@@ -136,6 +141,11 @@
         <item name="tabStyle">@style/Widget.Design.TabLayout</item>
         <item name="appBarLayoutStyle">@style/Widget.Design.AppBarLayout</item>
 
+        <!-- the multi-select bar covers the toolbar instead of pushing the content down -->
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionModeStyle">@style/Widget.Gelli.ActionMode</item>
+        <item name="actionModeTheme">@style/ThemeOverlay.Gelli.ActionMode.Light</item>
+
         <!-- necessary to find the overflow button later in the layout -->
         <item name="android:actionOverflowButtonStyle">@style/Widget.ActionButton.Overflow</item>
 
@@ -172,6 +182,32 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:thumb">@drawable/slider_thumb</item>
+    </style>
+
+    <style name="Widget.Gelli.ActionMode" parent="Widget.Material3.ActionMode">
+        <item name="background">?attr/colorSurfaceContainer</item>
+        <item name="titleTextStyle">@style/TextAppearance.Gelli.ActionMode.Title</item>
+    </style>
+
+    <!--
+    The bar inherits from the toolbar's context, and @style/Toolbar applies a dark overlay whatever the theme,
+    so the roles that overlay changes are set back to match the bar's surface. The overflow popup has no theme of
+    its own, because the Material one would replace the neutral colour roles.
+    -->
+    <style name="ThemeOverlay.Gelli.ActionMode" parent="">
+        <item name="actionBarPopupTheme">@null</item>
+        <item name="colorControlNormal">?attr/colorOnSurfaceVariant</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="ThemeOverlay.Gelli.ActionMode.Light">
+        <item name="isLightTheme">true</item>
+        <item name="colorControlHighlight">#1F000000</item>
+    </style>
+
+    <style name="TextAppearance.Gelli.ActionMode.Title" parent="TextAppearance.Material3.ActionBar.Title">
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
     <!-- content description is necessary to find the overflow button later in the layout -->

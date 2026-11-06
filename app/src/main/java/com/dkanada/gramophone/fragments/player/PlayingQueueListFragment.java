@@ -50,8 +50,7 @@ public class PlayingQueueListFragment extends AbsMusicServiceFragment {
                 MusicPlayerRemote.getPlayingQueue(),
                 MusicPlayerRemote.getPosition(),
                 R.layout.item_list,
-                false,
-                null);
+                false);
         // there is no separate current song row, so the current song stays at full strength
         playingQueueAdapter.setDimCurrent(false);
         wrappedAdapter = recyclerViewDragDropManager.createWrappedAdapter(playingQueueAdapter);

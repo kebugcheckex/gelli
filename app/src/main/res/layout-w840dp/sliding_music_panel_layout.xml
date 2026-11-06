@@ -35,9 +35,8 @@ and the queue can open as a side sheet beside the content. expanding the bar ope
                 android:layout_height="match_parent"
                 android:background="?attr/dividerColor" />
 
-            <fragment
-                android:id="@+id/queue_sheet_fragment"
-                class="com.dkanada.gramophone.fragments.player.QueueSheetFragment"
+            <FrameLayout
+                android:id="@+id/queue_sheet_fragment_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
@@ -56,11 +55,11 @@ and the queue can open as a side sheet beside the content. expanding the bar ope
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <fragment
-            android:id="@+id/mini_player_fragment"
-            class="com.dkanada.gramophone.fragments.player.PlayerBarFragment"
+        <FrameLayout
+            android:id="@+id/mini_player_fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/mini_player_height" />
+            android:layout_height="@dimen/mini_player_height"
+            android:background="?attr/colorSurfaceContainer" />
 
     </FrameLayout>
 

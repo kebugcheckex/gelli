@@ -18,6 +18,7 @@
         app:icon="@drawable/ic_menu_white_24dp"
         app:iconTint="?colorOnSurfaceVariant" />
 
+    <!-- flat: this header has no room around the button, so the rail would cut off a shadow -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/rail_shuffle"
         style="@style/Widget.Material3.FloatingActionButton.Surface"
@@ -25,7 +26,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:contentDescription="@string/action_shuffle_all"
-        app:elevation="2dp"
+        android:stateListAnimator="@null"
+        app:elevation="0dp"
+        app:hoveredFocusedTranslationZ="0dp"
+        app:pressedTranslationZ="0dp"
         app:srcCompat="@drawable/ic_shuffle_white_24dp" />
 
 </LinearLayout>

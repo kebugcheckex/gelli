@@ -24,11 +24,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <fragment
-            android:id="@+id/mini_player_fragment"
-            class="com.dkanada.gramophone.fragments.player.MiniPlayerFragment"
+        <FrameLayout
+            android:id="@+id/mini_player_fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/mini_player_height" />
+            android:layout_height="@dimen/mini_player_height"
+            android:background="?cardBackgroundColor" />
 
     </FrameLayout>
 

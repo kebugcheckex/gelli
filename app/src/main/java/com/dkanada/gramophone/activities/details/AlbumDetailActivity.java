@@ -11,8 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.afollestad.materialcab.attached.AttachedCab;
-import com.afollestad.materialcab.attached.AttachedCabKt;
 import com.dkanada.gramophone.BuildConfig;
 import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.databinding.ActivityAlbumDetailBinding;
@@ -24,7 +22,6 @@ import com.dkanada.gramophone.dialogs.AddToPlaylistDialog;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
 import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.CabHolder;
 import com.dkanada.gramophone.interfaces.PaletteColorHolder;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
@@ -37,12 +34,11 @@ import com.dkanada.gramophone.util.ViewUtil;
 import java.util.List;
 import java.util.Objects;
 
-public class AlbumDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, CabHolder, AppBarLayout.OnOffsetChangedListener {
+public class AlbumDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, AppBarLayout.OnOffsetChangedListener {
     public static final String EXTRA_ALBUM = BuildConfig.APPLICATION_ID + ".extra.album";
 
     private ActivityAlbumDetailBinding binding;
 
-    private AttachedCab cab;
     private int headerViewHeight;
     private int toolbarColor;
 
@@ -168,7 +164,7 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
     }
 
     private void setUpSongsAdapter() {
-        adapter = new AlbumSongAdapter(this, album.songs, R.layout.item_list, false, this);
+        adapter = new AlbumSongAdapter(this, album.songs, R.layout.item_list, false);
         binding.list.setLayoutManager(new GridLayoutManager(this, 1));
         binding.list.setAdapter(adapter);
         ViewUtil.capContentWidth(binding.list);
@@ -212,20 +208,9 @@ public class AlbumDetailActivity extends AbsMusicContentActivity implements Pale
     }
 
     @Override
-    public void onCreateCab(AttachedCab cab) {
-        cab.backgroundColor(null, getPaletteColor());
-
-        this.cab = cab;
-    }
-
-    @Override
     public void onBackPressed() {
-        if (cab != null && AttachedCabKt.isActive(cab)) {
-            AttachedCabKt.destroy(cab);
-        } else {
-            binding.list.stopScroll();
-            super.onBackPressed();
-        }
+        binding.list.stopScroll();
+        super.onBackPressed();
     }
 
     @Override

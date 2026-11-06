@@ -9,11 +9,16 @@ import android.view.ViewTreeObserver;
 import android.view.animation.PathInterpolator;
 
 import androidx.annotation.FloatRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.view.ActionMode;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.databinding.SlidingMusicPanelLayoutBinding;
@@ -21,9 +26,13 @@ import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.fragments.player.AbsPlayerFragment;
 import com.dkanada.gramophone.fragments.player.LandscapePlayerFragment;
 import com.dkanada.gramophone.fragments.player.PlayerBarFragment;
+import com.dkanada.gramophone.fragments.player.MiniPlayerFragment;
+import com.dkanada.gramophone.fragments.player.QueueSheetFragment;
 import com.dkanada.gramophone.fragments.player.flat.FlatPlayerFragment;
 import com.dkanada.gramophone.util.PreferenceUtil;
+import com.dkanada.gramophone.util.ThemeUtil;
 import com.dkanada.gramophone.util.ViewUtil;
+import com.google.android.material.color.MaterialColors;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 /**
@@ -43,6 +52,9 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     private Fragment miniPlayerFragment;
     private ValueAnimator navigationBarColorAnimator;
 
+    @Nullable
+    private ActionMode actionMode;
+
     // the collapsed panel and the queue sheet stay hidden until the queue is known to have songs
     private boolean bottomBarHidden = true;
     // the collapsed panel reaches under the navigation bar, so it grows by this much and pads its content up
@@ -53,19 +65,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         super.onCreate(savedInstanceState);
         setContentView(createContentView());
 
-        // must implement AbsPlayerFragment, and a window wider than it is tall gets the landscape player
-        Fragment fragment = getResources().getBoolean(R.bool.landscape_player)
-            ? new LandscapePlayerFragment()
-            : new FlatPlayerFragment();
-
-        getSupportFragmentManager().beginTransaction().replace(R.id.player_fragment_container, fragment).commit();
-        getSupportFragmentManager().executePendingTransactions();
-
-        playerFragment = (AbsPlayerFragment) getSupportFragmentManager().findFragmentById(R.id.player_fragment_container);
-        miniPlayerFragment = getSupportFragmentManager().findFragmentById(R.id.mini_player_fragment);
-
-        // noinspection ConstantConditions
-        miniPlayerFragment.getView().setOnClickListener(v -> expandPanel());
+        setUpPanelFragments();
 
         slidingLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -95,12 +95,63 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         setColor(PreferenceUtil.getInstance(this).getPrimaryColor());
     }
 
+    /**
+     * A rotation can change which of these the window needs, so they always replace the restored ones. A fragment
+     * tag would keep the restored fragment with the same id, whatever class the new layout asks for.
+     */
+    private void setUpPanelFragments() {
+        boolean expanded = getResources().getBoolean(R.bool.expanded_layout);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        // must implement AbsPlayerFragment, and a window wider than it is tall gets the landscape player
+        playerFragment = getResources().getBoolean(R.bool.landscape_player) ? new LandscapePlayerFragment() : new FlatPlayerFragment();
+        miniPlayerFragment = expanded ? new PlayerBarFragment() : new MiniPlayerFragment();
+
+        FragmentTransaction transaction = fragmentManager.beginTransaction()
+            .replace(R.id.player_fragment_container, playerFragment)
+            .replace(R.id.mini_player_fragment_container, miniPlayerFragment);
+
+        if (expanded) {
+            transaction.replace(R.id.queue_sheet_fragment_container, new QueueSheetFragment());
+        } else {
+            Fragment queueSheet = fragmentManager.findFragmentById(R.id.queue_sheet_fragment_container);
+            if (queueSheet != null) transaction.remove(queueSheet);
+        }
+
+        transaction.commit();
+        fragmentManager.executePendingTransactions();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
 
         // another screen may have opened or closed the sheet
         applyQueueSheetVisibility();
+    }
+
+    @Override
+    public void onSupportActionModeStarted(@NonNull ActionMode mode) {
+        super.onSupportActionModeStarted(mode);
+        actionMode = mode;
+
+        // the bar also covers the status bar, so the status icons follow the bar's surface
+        super.setLightStatusBar(MaterialColors.isColorLight(ThemeUtil.getColorResource(this, R.attr.colorSurfaceContainer)));
+    }
+
+    @Override
+    public void onSupportActionModeFinished(@NonNull ActionMode mode) {
+        super.onSupportActionModeFinished(mode);
+        actionMode = null;
+
+        super.setLightStatusBar(getPanelState() != SlidingUpPanelLayout.PanelState.EXPANDED && lightStatusBar);
+    }
+
+    /**
+     * Closes the multi-select bar, if one is open.
+     */
+    public void finishActionMode() {
+        if (actionMode != null) actionMode.finish();
     }
 
     public void setAntiDragView(View antiDragView) {
@@ -140,6 +191,9 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
 
     @Override
     public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+        // the action mode is drawn above the whole window, so it would cover the player's toolbar
+        finishActionMode();
+
         switch (newState) {
             case COLLAPSED:
                 onPanelCollapsed(panel);
@@ -182,11 +236,10 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     }
 
     private void setMiniPlayerAlphaProgress(@FloatRange(from = 0, to = 1) float progress) {
-        if (miniPlayerFragment.getView() == null) return;
         float alpha = 1 - progress;
-        miniPlayerFragment.getView().setAlpha(alpha);
+        binding.miniPlayerFragmentContainer.setAlpha(alpha);
         // necessary to make the views below clickable
-        miniPlayerFragment.getView().setVisibility(alpha == 0 ? View.GONE : View.VISIBLE);
+        binding.miniPlayerFragmentContainer.setVisibility(alpha == 0 ? View.GONE : View.VISIBLE);
     }
 
     public SlidingUpPanelLayout.PanelState getPanelState() {
@@ -218,9 +271,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     }
 
     private void applyBottomInset() {
-        if (miniPlayerFragment == null || miniPlayerFragment.getView() == null) return;
-
-        View miniPlayer = miniPlayerFragment.getView();
+        View miniPlayer = binding.miniPlayerFragmentContainer;
         miniPlayer.setPadding(miniPlayer.getPaddingLeft(), miniPlayer.getPaddingTop(), miniPlayer.getPaddingRight(), bottomInset);
         miniPlayer.getLayoutParams().height = getCollapsedPanelHeight();
         miniPlayer.requestLayout();
@@ -288,7 +339,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
     public void setLightStatusBar(boolean enabled) {
         lightStatusBar = enabled;
 
-        if (getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+        if (actionMode == null && getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
             super.setLightStatusBar(enabled);
         }
     }

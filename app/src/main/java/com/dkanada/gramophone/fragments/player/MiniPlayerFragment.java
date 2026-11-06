@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.dkanada.gramophone.activities.base.AbsMusicPanelActivity;
 import com.dkanada.gramophone.databinding.FragmentMiniPlayerBinding;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.PreferenceUtil;
@@ -50,6 +51,7 @@ public class MiniPlayerFragment extends AbsMusicServiceFragment implements Music
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        view.setOnClickListener(v -> ((AbsMusicPanelActivity) requireActivity()).expandPanel());
         view.setOnTouchListener(new FlingPlayBackController(getActivity()));
         setUpMiniPlayer();
     }
