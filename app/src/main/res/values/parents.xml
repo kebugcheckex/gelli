@@ -182,16 +182,9 @@
         <item name="titleTextStyle">@style/TextAppearance.Gelli.ActionMode.Title</item>
     </style>
 
-    <!--
-    The bar inherits from the toolbar's context, and @style/Toolbar.OnColor applies a dark overlay whatever the theme,
-    so the roles that overlay changes are set back to match the bar's surface. The overflow popup has no theme of
-    its own, because the Material one would replace the neutral colour roles.
-    -->
+    <!-- The overflow popup has no theme of its own, because the Material one would replace the neutral colour roles. -->
     <style name="ThemeOverlay.Gelli.ActionMode" parent="">
         <item name="actionBarPopupTheme">@null</item>
-        <item name="colorControlNormal">?attr/colorOnSurfaceVariant</item>
-        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
-        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="ThemeOverlay.Gelli.ActionMode.Light">

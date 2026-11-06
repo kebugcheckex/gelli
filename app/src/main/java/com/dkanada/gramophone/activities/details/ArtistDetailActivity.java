@@ -1,6 +1,5 @@
 package com.dkanada.gramophone.activities.details;
 
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,15 +15,12 @@ import com.dkanada.gramophone.activities.base.AbsMusicContentActivity;
 import com.dkanada.gramophone.adapter.song.SongAdapter;
 import com.dkanada.gramophone.databinding.ActivityArtistDetailBinding;
 import com.dkanada.gramophone.util.NavigationUtil;
-import com.dkanada.gramophone.util.ThemeUtil;
 import com.google.android.material.appbar.AppBarLayout;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.album.HorizontalAlbumAdapter;
 import com.dkanada.gramophone.dialogs.AddToPlaylistDialog;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
-import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
-import com.dkanada.gramophone.interfaces.PaletteColorHolder;
 import com.dkanada.gramophone.model.Album;
 import com.dkanada.gramophone.model.Artist;
 import com.dkanada.gramophone.model.Song;
@@ -35,14 +31,13 @@ import com.dkanada.gramophone.util.ViewUtil;
 import java.util.List;
 import java.util.Objects;
 
-public class ArtistDetailActivity extends AbsMusicContentActivity implements PaletteColorHolder, AppBarLayout.OnOffsetChangedListener {
+public class ArtistDetailActivity extends AbsMusicContentActivity implements AppBarLayout.OnOffsetChangedListener {
     public static final String EXTRA_ARTIST = BuildConfig.APPLICATION_ID + ".extra.artist";
     public static final String EXTRA_ALBUM_ARTIST = BuildConfig.APPLICATION_ID + ".extra.album_artist";
 
     private ActivityArtistDetailBinding binding;
 
     private int headerViewHeight;
-    private int toolbarColor;
 
     private Artist artist;
     private boolean albumArtist;
@@ -97,7 +92,6 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     private void setUpViews() {
         setUpSongListView();
         setUpAlbumRecyclerView();
-        setColors(ThemeUtil.getColorResource(this, R.attr.colorSurfaceContainerHighest));
     }
 
     private void setUpSongListView() {
@@ -133,42 +127,8 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     private void loadArtistImage(Artist artist) {
         CustomGlideRequest.Builder
                 .from(this, artist.primary, artist.blurHash)
-                .palette().build().dontAnimate()
-                .into(new CustomPaletteTarget(binding.image) {
-                    @Override
-                    public void onColorReady(int color) {
-                        setColors(color);
-                    }
-                });
-    }
-
-    @Override
-    public int getPaletteColor() {
-        return toolbarColor;
-    }
-
-    private void setColors(int color) {
-        toolbarColor = color;
-        if (binding.appBarLayout != null) {
-            binding.appBarLayout.setBackgroundColor(color);
-        } else {
-            binding.header.setBackgroundColor(color);
-        }
-
-        setColor(color);
-
-        binding.toolbar.setBackgroundColor(color);
-        // needed to auto readjust the toolbar content color
-        setSupportActionBar(binding.toolbar);
-
-        int secondaryTextColor = ThemeUtil.getSecondaryTextColor(this, color);
-        binding.durationIcon.setColorFilter(secondaryTextColor, PorterDuff.Mode.SRC_IN);
-        binding.songCountIcon.setColorFilter(secondaryTextColor, PorterDuff.Mode.SRC_IN);
-        binding.albumCountIcon.setColorFilter(secondaryTextColor, PorterDuff.Mode.SRC_IN);
-
-        binding.durationText.setTextColor(secondaryTextColor);
-        binding.songCountText.setTextColor(secondaryTextColor);
-        binding.albumCountText.setTextColor(secondaryTextColor);
+                .build().dontAnimate()
+                .into(binding.image);
     }
 
     private void setUpToolbar() {
@@ -215,14 +175,6 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements Pal
     public void onBackPressed() {
         binding.albums.stopScroll();
         super.onBackPressed();
-    }
-
-    @Override
-    public void setStatusBarColor(int color) {
-        super.setStatusBarColor(color);
-
-        // the toolbar is always light at the moment
-        setLightStatusBar(false);
     }
 
     private void setArtist(Artist artist) {

@@ -1,6 +1,6 @@
 # Material 3 migration
 
-Written November 5, 2026. Phases 1, 2, 3, and 4 are done, and so are the grid tiles of Phase 5. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
+Written November 5, 2026. Phases 1, 2, 3, and 4 are done, and so are the grid tiles and detail headers of Phase 5. The phone chrome moved out of Phase 5 and came before the presets, so each preset was checked on the final surfaces.
 
 ## Goal
 
@@ -184,11 +184,13 @@ Done when: the phone and the expanded layout both follow the chosen preset in li
 - The colored footers, their menu item, and their five preferences are gone, along with `paletteColorContainer` and the `defaultFooterColor` attribute. The adapters load covers with Glide and skip `.palette()`.
 - `CustomPaletteTarget` falls back to `colorSurfaceContainerHighest` when an image has no usable color. The player, the widgets, and the notifications still use it.
 
-### Detail headers
+### Detail headers (done)
 
-1. `AlbumDetailActivity` and `ArtistDetailActivity`: the header, app bar, and status bar use the surface, with `colorOnSurface` and `colorOnSurfaceVariant` text and icons. Move the layouts to `Toolbar.Surface`, drop the pinned `Widget.Design.AppBarLayout`, and delete `setColors` and the palette load for the header. The cover still loads into `image`, and the transition names stay. Until this step, their status band isn't darker than the toolbar, and their 64dp action mode covers a 56dp toolbar.
-2. Neither activity implements `PaletteColorHolder` anymore. Only `AbsPlayerFragment` keeps it.
-3. The `layout-w1200dp` two-column layouts get the same treatment. Today they color `header` with the palette.
+- `AlbumDetailActivity` and `ArtistDetailActivity` use the surface for the header, app bar, and status bar, with `colorOnSurface` and `colorOnSurfaceVariant` text and icons. The layouts use `Toolbar.Surface`, and the pinned `Widget.Design.AppBarLayout` is gone. The covers are rounded to match the grid tile, and the transition names stay.
+- Neither activity implements `PaletteColorHolder` anymore. Only `AbsPlayerFragment` keeps it.
+- The `layout-w1200dp` two-column layouts got the same treatment.
+- The shuffle icons in `menu_detail_album` and `menu_detail_artist` needed `app:iconTint`, because they were white and relied on the dark toolbar.
+- `ThemeOverlay.Gelli.ActionMode` no longer sets text and icon roles. They only undid the dark overlay on `Toolbar.OnColor`, and the detail screens were the last place an action mode sat on that toolbar.
 
 ### Player panel
 

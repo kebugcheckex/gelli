@@ -9,18 +9,9 @@
 
     <include layout="@layout/status_bar" />
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:elevation="@dimen/toolbar_elevation"
-        tools:ignore="UnusedAttribute">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            style="@style/Toolbar.OnColor"
-            android:background="@android:color/transparent" />
-
-    </FrameLayout>
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        style="@style/Toolbar.Surface" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -28,20 +19,18 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar_layout"
-            style="@style/Widget.Design.AppBarLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:liftOnScroll="false">
 
             <LinearLayout
                 android:id="@+id/header"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/detail_header_height"
-                android:elevation="@dimen/toolbar_elevation"
                 android:orientation="horizontal"
-                app:layout_scrollFlags="scroll"
-                tools:ignore="UnusedAttribute">
+                app:layout_scrollFlags="scroll">
 
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/image"
                     android:layout_width="@dimen/detail_header_image_height"
                     android:layout_height="@dimen/detail_header_image_height"
@@ -49,6 +38,7 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/default_artist_image"
                     android:transitionName="@string/transition_artist_image"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Gelli.Cover"
                     tools:ignore="ContentDescription" />
 
                 <LinearLayout
@@ -74,13 +64,15 @@
                             android:layout_marginEnd="8dp"
                             android:layout_marginStart="0dp"
                             app:srcCompat="@drawable/ic_album_white_24dp"
+                            app:tint="?attr/colorOnSurfaceVariant"
                             tools:ignore="ContentDescription" />
 
                         <TextView
                             android:id="@+id/album_count_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                            android:textAppearance="?textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
 
@@ -100,13 +92,15 @@
                             android:layout_marginEnd="8dp"
                             android:layout_marginStart="0dp"
                             app:srcCompat="@drawable/ic_music_note_white_24dp"
+                            app:tint="?attr/colorOnSurfaceVariant"
                             tools:ignore="ContentDescription" />
 
                         <TextView
                             android:id="@+id/song_count_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                            android:textAppearance="?textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
 
@@ -126,13 +120,15 @@
                             android:layout_marginEnd="8dp"
                             android:layout_marginStart="0dp"
                             app:srcCompat="@drawable/ic_timer_white_24dp"
+                            app:tint="?attr/colorOnSurfaceVariant"
                             tools:ignore="ContentDescription" />
 
                         <TextView
                             android:id="@+id/duration_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                            android:textAppearance="?textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
 
