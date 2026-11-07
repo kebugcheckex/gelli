@@ -1,6 +1,6 @@
 # Live Lyrics
 
-Revised November 6, 2026. Slice 1 is done, and slices 2 to 4 have not been started. The server's real responses are still unverified, except for the `404`. See the open points at the end.
+Revised November 7, 2026. Slices 1 and 2 are done. Slice 3 waits for an enhanced LRC file to test with, and slice 4 has not been started. See the test results at the end.
 
 High-level design. No code in this document is a commitment to start the work. The point of this note is to decide what is feasible against the current player, which libraries are worth taking, and which problems belong to the architecture rather than to lyrics formats.
 
@@ -36,7 +36,7 @@ v12.2 serves cues, so word-level fill needs no server work. It depends only on h
 
 ### Where lyrics come from
 
-The server reads the files, and the app sees one DTO whatever the source. This is from reading the v12.2 source. It hasn't been run against a real server yet.
+The server reads the files, and the app sees one DTO whatever the source. This is from reading the v12.2 source. A real server has since confirmed the shape of synced, plain, and missing lyrics (see the test results), but not each source path below.
 
 - **Sidecar file.** A `.lrc`, `.elrc`, or `.txt` next to the audio file. This takes priority over tags.
 - **Tags.** When a scan finds no sidecar, the server extracts embedded lyrics and saves them as `.lrc`, in the media folder or the internal metadata folder (the `SaveLyricsWithMedia` library option). Synced tags take priority over plain ones. Once extracted, a later edit to the tag isn't picked up without a full metadata replacement.
@@ -107,8 +107,8 @@ One `LyricsController` owns the current song's lyric, the clock, and whether lyr
 
 - **Tall windows (h480dp, `landscape_player_tabs`).** A third tab: Up next, Lyrics, Details. `setUpTabs` becomes a three-way switch. `landscape_player_tab_content` is already the panel's anti-drag view, so scrolling is safe.
 - **Short windows (most phones).** There are no tabs, so `menu_landscape_player.xml` gets a checkable Lyrics item, visible only then, as Details is. It swaps lyrics into the queue's slot, and turning it off brings the queue back. On a 1080x2400 phone at density 420 the slot measures 374x87dp.
-- **Text size.** Slice 1 uses the same text size as portrait, which fits about two rows. A three-row line fits only with its edges faded. Fewer than 35 characters fit at 24sp in 374dp, so wrapping is normal. Autosize each line within a small range. A line that still overflows at the minimum is ellipsized, and it gets a line-level fill if its cues no longer land in the visible text.
-- **Neighbors.** Only when the host has room. In a short window, show the current line alone.
+- **Text size.** Fewer than 35 characters fit at 24sp in 374dp, so wrapping is normal. The current line autosizes from 16sp to 28sp, up to three lines. A line that still overflows at the minimum is ellipsized, and it gets a line-level fill if its cues no longer land in the visible text.
+- **Neighbors.** Only in the Lyrics tab, which has room for one dimmed line above and below. A short window shows the current line alone. Unsynced lyrics stay a plain list in both.
 - **The cover stays.** It keeps its pager and gestures, and the song stays recognizable.
 
 ### Toggle and preference
@@ -134,7 +134,7 @@ One clock for both presentations. Do not reuse `MusicProgressViewUpdateHelper` a
 - **Unsynced.** No clock.
 - **Also resample** on `onPlayMetadataChanged` and `onPlayStateChanged`.
 
-Reading position directly avoids extrapolating between samples, which is what would lag behind a seek. Check two things on a device in the first slice: that the per-frame read is cheap, and that position advances smoothly enough to draw from. If it steps visibly, extrapolate from the last read instead. Do not add a position listener to `MusicService` for a UI feature.
+Reading position directly avoids extrapolating between samples, which is what would lag behind a seek. A Pixel 7 confirmed that the read is cheap and smooth enough to draw from without extrapolating (see the test results). Do not add a position listener to `MusicService` for a UI feature.
 
 Timing rules:
 
@@ -219,25 +219,31 @@ The feature can land in slices that each leave playback alone.
 - Backfilling lyrics for every saved song.
 - Changing the Media3 session. The session migration stays a separate plan.
 
-## Open points to settle before implementation
+## Test results
 
-**Test data**, which only needs the server's admin access. The server is 12.2, and no LRC files have been collected yet:
+**Server.** The 12.2 server has 19 test songs with lyrics, and `GET /Audio/{itemId}/Lyrics` returns all of them:
 
-- Find or make LRC files. A hand-written `.lrc` for one song is enough to start.
-- Put together a few test songs:
-  - A `.lrc` sidecar with the same base name as the audio file.
-  - A file with synced lyrics in its tags.
-  - A file with plain lyrics in its tags.
-  - A `.txt` sidecar, or any song with no lyrics, to check the unsynced and `404` paths.
-  - One hand-made `.elrc` with word timing, only if slice 3 is wanted.
-- Rescan the library, then confirm what `GET /Audio/{itemId}/Lyrics` returns for each one. This checks the source-reading conclusions above, including that `Metadata` is empty.
+- 18 are synced. Every line has a `Start`, and `Cues` is empty.
+- One (朋友的诗) is plain text. `Start` and `Cues` are absent.
+- `Metadata` is `{}` in every response, which confirms that it must not be read.
+- A song with no lyrics (Amarantine) returns `404`.
 
-Slice 1 was tested on an emulator against the real 12.2 server through a local proxy. It answered the lyrics endpoint with responses written by hand from this document, so a real server has only confirmed the `404`. Nothing yet shows that a real server parses LRC files into that shape.
+**Slice 2, on the emulator and a Pixel 7, against the real server:**
 
-**On a device, during slice 2:**
+- Portrait: the current row fills from the dimmed color to the full color, a partial fill cuts through a glyph, and a finished line goes back to dimmed. It works on both light and dark palettes.
+- Short landscape window: the current line alone, autosized, filling.
+- Tall landscape window: the Lyrics tab, with dimmed neighbors above and below the filling line.
+- Unsynced lyrics: a plain list in both orientations, with no clock. The app draws 6 frames in 5 seconds, all from the seek bar.
+- No lyrics: portrait keeps the cover, a short landscape window keeps the queue, and the Lyrics tab says "No lyrics".
 
-- Whether a per-frame position read is cheap and smooth enough.
+**The per-frame read, on the Pixel 7 at 90 Hz:**
 
-**On a real phone, not yet checked:**
+- 937 frames in about 10 seconds, with 0.11% jank. The median frame takes 5.4 ms, of which the frame callbacks take 0.66 ms.
+- The position advances a median of 10 ms per 11.1 ms frame, and failed to move in 1 frame out of 940. Against steady playback it strays at most 10.9 ms (3.1 ms standard deviation). That is smooth enough to draw from directly, so the clock doesn't extrapolate.
+- On the emulator the app's own work is similarly small. Its slow frames come from the emulator's buffer swap.
 
-- How the list feels to scroll by finger. The emulator tests used injected swipes.
+**Still open:**
+
+- Slice 3 needs a hand-made `.elrc` with word timing. None of the test songs has cues.
+- Which source each test song's lyrics came from (sidecar or tags) hasn't been checked individually.
+- How the portrait list feels to scroll by finger. The tests used injected swipes.
