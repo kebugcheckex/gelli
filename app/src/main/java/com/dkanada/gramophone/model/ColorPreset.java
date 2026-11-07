@@ -23,8 +23,8 @@ public enum ColorPreset {
     PINK(R.string.color_preset_pink, R.style.ThemeOverlay_Gelli_Color_Pink_Light, R.style.ThemeOverlay_Gelli_Color_Pink_Dark),
     PURPLE(R.string.color_preset_purple, R.style.ThemeOverlay_Gelli_Color_Purple_Light, R.style.ThemeOverlay_Gelli_Color_Purple_Dark),
     BROWN(R.string.color_preset_brown, R.style.ThemeOverlay_Gelli_Color_Brown_Light, R.style.ThemeOverlay_Gelli_Color_Brown_Dark),
-    // the system's dynamic colors, and the overlay only has to fill in what those leave out
-    WALLPAPER(R.string.color_preset_wallpaper, R.style.ThemeOverlay_Gelli_Color_Wallpaper, R.style.ThemeOverlay_Gelli_Color_Wallpaper);
+    // the system's dynamic colors, which ThemeUtil applies in place of an overlay
+    WALLPAPER(R.string.color_preset_wallpaper, 0, 0);
 
     public static final ColorPreset DEFAULT = INDIGO;
 

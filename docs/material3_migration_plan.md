@@ -120,7 +120,6 @@ The *Model*, *Generated overlays*, *Applying the preset*, and *Picker* sections 
 
 - The picker is a plain `Preference` that opens `ColorPresetDialog`, so there is no `ColorPresetPreference` class.
 - The swatch ring is `colorPrimaryContainer`, because `colorSurfaceContainerHigh` nearly disappeared against the dialog.
-- The generated overlays also set `cardBackgroundColor`. The dynamic overlay only sets Material roles, so `ThemeOverlay.Gelli.Color.Wallpaper` goes on top of it to fill that in.
 - `ThemeOverlay.Gelli.Black.Neutral` inherits from `ThemeOverlay.Gelli.Black` and adds the `#2E2E2E` containers.
 - The generator pins `@material/material-color-utilities` to exactly 0.3.0, because the ESM build of 0.4.0 doesn't load (an extensionless import in `color_spec_2025.js`). To regenerate, run `npm install` and `npm run colors` in `scripts/`.
 - `AppShortcutIconGenerator` already moved to `themedContext`. Shortcut icons only regenerate when the preset or theme changes in Settings, so with Wallpaper they keep their colors after a wallpaper change until then.
@@ -231,6 +230,8 @@ Done when: Settings matches the rest of the app in all three themes, including i
 ## Cleanup
 
 Done. The attributes, drawables, and dimens nothing reads anymore are gone. `toolbar_elevation` and `toolbar_height` stay, because `Toolbar.OnColor` on the flat player still reads them. `docs/large_screen_layout_plan.md` no longer describes the pinned phone styles or the neutral-only theme.
+
+The login fields moved to `Widget.Material3.TextInputLayout.OutlinedBox` without their hand-set colors, so they follow the preset. The Wallpaper preset has no overlay of its own anymore, because the dynamic colors now cover everything the app reads.
 
 ## Typography
 

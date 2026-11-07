@@ -10,8 +10,6 @@
         <item name="android:windowActionBarOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
 
-
-
         <item name="dividerColor">#10FFFFFF</item>
 
         <item name="toolbarPopupTheme">@style/ThemeOverlay.AppCompat</item>
@@ -71,8 +69,6 @@
         <item name="android:windowActionBarOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
 
-
-
         <item name="dividerColor">#10000000</item>
 
         <item name="toolbarPopupTheme">@style/ThemeOverlay.AppCompat.Light</item>
@@ -125,10 +121,6 @@
 
         <item name="preferenceTheme">@style/ThemeOverlay.Gelli.Preference</item>
 
-    </style>
-
-    <!-- the system's dynamic overlay only sets the Material roles, so this moves the app's own surfaces onto them -->
-    <style name="ThemeOverlay.Gelli.Color.Wallpaper" parent="">
     </style>
 
     <!-- goes on top of the color preset, and only sets surfaces so that the preset's containers stay tinted -->

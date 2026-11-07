@@ -26,7 +26,7 @@ public class ThemeUtil {
 
         // the dynamic overlay comes from the base theme, so it follows light or dark without any help
         if (preset == ColorPreset.WALLPAPER) DynamicColors.applyToActivityIfAvailable(activity);
-        if (preset != ColorPreset.NEUTRAL) activity.getTheme().applyStyle(preset.overlay(theme), true);
+        if (preset.overlay(theme) != 0) activity.getTheme().applyStyle(preset.overlay(theme), true);
         if (theme == Theme.BLACK) activity.getTheme().applyStyle(blackOverlay(preset), true);
     }
 
@@ -41,7 +41,7 @@ public class ThemeUtil {
         Context themed = new ContextThemeWrapper(context, theme.style);
 
         if (preset == ColorPreset.WALLPAPER) themed = DynamicColors.wrapContextIfAvailable(themed);
-        if (preset != ColorPreset.NEUTRAL) themed.getTheme().applyStyle(preset.overlay(theme), true);
+        if (preset.overlay(theme) != 0) themed.getTheme().applyStyle(preset.overlay(theme), true);
         if (theme == Theme.BLACK) themed.getTheme().applyStyle(blackOverlay(preset), true);
 
         return themed;
