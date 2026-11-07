@@ -1,6 +1,5 @@
 package com.dkanada.gramophone.views
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.os.SystemClock
@@ -8,11 +7,8 @@ import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.MotionEvent
-import android.view.VelocityTracker
 import android.view.View
-import android.view.ViewConfiguration
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -22,17 +18,13 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.dkanada.gramophone.R
 import com.dkanada.gramophone.model.Lyrics
-import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * The lyrics shown in a player, or a short message in their place. The player supplies the colors.
  *
  * Synced lyrics fill the current line as it plays, either in a list that keeps the current line centered, or as a
  * single focused line with optional neighbors. Unsynced lyrics are a plain list either way.
- *
- * With a [swipeListener], a drag to the left slides the view aside to show what it covers.
  */
 class LyricsView @JvmOverloads constructor(
     context: Context,
@@ -57,34 +49,6 @@ class LyricsView @JvmOverloads constructor(
     private var userScrolling = false
     private var followPausedUntil = 0L
 
-    /** Lets the lyrics be swiped aside to the left. Without one, a horizontal drag does nothing. */
-    var swipeListener: SwipeListener? = null
-
-    /** True from the moment a swipe starts until the lyrics have slid out or back into place. */
-    val isSwipeActive: Boolean
-        get() = swiping || settling
-
-    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
-    private val flingVelocity = SWIPE_FLING_VELOCITY * resources.displayMetrics.density
-    private var velocityTracker: VelocityTracker? = null
-    private var swipePointer = MotionEvent.INVALID_POINTER_ID
-    private var downX = 0f
-    private var downY = 0f
-    private var swipeOrigin = 0f
-    private var swiping = false
-    private var settling = false
-
-    interface SwipeListener {
-        /** The lyrics started to slide, so whatever they cover should show from under them. */
-        fun onSwipeStarted()
-
-        /**
-         * The lyrics either slid out, or slid back with [dismissed] false. They return to their place right after
-         * this, so a host that lets them go should hide them here.
-         */
-        fun onSwipeFinished(dismissed: Boolean)
-    }
-
     init {
         LayoutInflater.from(context).inflate(R.layout.view_lyrics, this, true)
         list = findViewById(R.id.lyrics_list)
@@ -99,6 +63,17 @@ class LyricsView @JvmOverloads constructor(
         // a change of line recolors two rows, and the default animation would make them blink
         list.itemAnimator = null
         list.addItemDecoration(EdgeSpace())
+
+        list.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                // the player's panel would otherwise take a vertical drag and close the player
+                if (e.actionMasked == MotionEvent.ACTION_DOWN && (rv.canScrollVertically(1) || rv.canScrollVertically(-1))) {
+                    rv.parent.requestDisallowInterceptTouchEvent(true)
+                }
+
+                return false
+            }
+        })
 
         list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -196,124 +171,6 @@ class LyricsView @JvmOverloads constructor(
         adapter.setCurrentFill(fill)
         (list.findViewHolderForAdapterPosition(line) as? LineHolder)?.line?.fill = fill
         if (line >= 0) focusCurrent.fill = fill
-    }
-
-    override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        // the player's panel would otherwise take a vertical drag and close the player
-        if (event.actionMasked == MotionEvent.ACTION_DOWN && list.visibility == VISIBLE &&
-            (list.canScrollVertically(1) || list.canScrollVertically(-1))
-        ) {
-            parent?.requestDisallowInterceptTouchEvent(true)
-        }
-
-        return trackSwipe(event)
-    }
-
-    /** Reached when no line took the touch, as on the focused line, or once a swipe has taken it from the list. */
-    @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (swipeListener == null) return super.onTouchEvent(event)
-
-        trackSwipe(event)
-        return true
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        animate().cancel()
-        swiping = false
-        settling = false
-        translationX = 0f
-        velocityTracker?.recycle()
-        velocityTracker = null
-    }
-
-    /** Follows a gesture that may turn into a swipe to the left, and answers whether the view now owns it. */
-    private fun trackSwipe(event: MotionEvent): Boolean {
-        val listener = swipeListener ?: return false
-
-        // the view moves under the finger, so the gesture is measured where it doesn't move, in the parent
-        val moved = MotionEvent.obtain(event)
-        moved.offsetLocation(translationX, 0f)
-
-        try {
-            when (moved.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    swipePointer = moved.getPointerId(0)
-                    downX = moved.x
-                    downY = moved.y
-                    swiping = false
-                    velocityTracker?.clear()
-                    velocityTracker = velocityTracker ?: VelocityTracker.obtain()
-                    velocityTracker?.addMovement(moved)
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    val index = moved.findPointerIndex(swipePointer)
-                    if (index < 0) return isSwipeActive
-
-                    velocityTracker?.addMovement(moved)
-                    val x = moved.getX(index)
-
-                    // a drag that is mostly to the left, like the cover pager's own threshold for a page turn
-                    if (!swiping && !settling) {
-                        val dx = x - downX
-                        val dy = moved.getY(index) - downY
-                        if (dx < -touchSlop && -dx * 0.5f > abs(dy)) {
-                            swiping = true
-                            swipeOrigin = x
-                            parent?.requestDisallowInterceptTouchEvent(true)
-                            listener.onSwipeStarted()
-                        }
-                    }
-
-                    if (swiping) translationX = min(0f, x - swipeOrigin)
-                }
-
-                MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // another finger lifting changes nothing, but the swiping finger lifting ends the swipe
-                    if (moved.actionMasked == MotionEvent.ACTION_POINTER_UP &&
-                        moved.getPointerId(moved.actionIndex) != swipePointer
-                    ) {
-                        return isSwipeActive
-                    }
-
-                    if (swiping) {
-                        velocityTracker?.addMovement(moved)
-                        velocityTracker?.computeCurrentVelocity(1000)
-                        val velocity = velocityTracker?.getXVelocity(swipePointer) ?: 0f
-
-                        // a fling decides by its direction, and a slow release by how far the lyrics went
-                        val dismissed = moved.actionMasked != MotionEvent.ACTION_CANCEL &&
-                            if (abs(velocity) >= flingVelocity) velocity < 0 else translationX < -width * DISMISS_FRACTION
-
-                        swiping = false
-                        settle(dismissed)
-                    }
-
-                    swipePointer = MotionEvent.INVALID_POINTER_ID
-                    velocityTracker?.recycle()
-                    velocityTracker = null
-                }
-            }
-
-            return isSwipeActive
-        } finally {
-            moved.recycle()
-        }
-    }
-
-    private fun settle(dismissed: Boolean) {
-        settling = true
-        animate()
-            .translationX(if (dismissed) -width.toFloat() else 0f)
-            .setDuration(SETTLE_DURATION)
-            .setInterpolator(DecelerateInterpolator())
-            .withEndAction {
-                settling = false
-                swipeListener?.onSwipeFinished(dismissed)
-                translationX = 0f
-            }
     }
 
     private fun isFocusShown() = focused && lyrics?.isSynced == true
@@ -445,11 +302,6 @@ class LyricsView @JvmOverloads constructor(
         const val FOLLOW_PAUSE = 4000L
         const val JUMP_DISTANCE = 6
         const val SCROLL_MS_PER_INCH = 300f
-
-        // in dp per second, the same as the cover pager's
-        const val SWIPE_FLING_VELOCITY = 400f
-        const val DISMISS_FRACTION = 0.3f
-        const val SETTLE_DURATION = 200L
 
         @ColorInt
         fun dim(@ColorInt color: Int) = ColorUtils.setAlphaComponent(color, DIMMED_ALPHA)
