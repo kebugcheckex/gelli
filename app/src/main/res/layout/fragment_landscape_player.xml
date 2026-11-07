@@ -315,6 +315,13 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                         android:text="@string/up_next" />
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/landscape_player_tab_lyrics"
+                        style="@style/Widget.Gelli.LandscapePlayer.Segment"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/lyrics" />
+
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/landscape_player_tab_details"
                         style="@style/Widget.Gelli.LandscapePlayer.Segment"
                         android:layout_width="wrap_content"
@@ -337,6 +344,12 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                         android:name="com.dkanada.gramophone.fragments.player.PlayingQueueListFragment"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
+
+                    <com.dkanada.gramophone.views.LyricsView
+                        android:id="@+id/landscape_player_lyrics"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone" />
 
                     <ScrollView
                         android:id="@+id/landscape_player_details"

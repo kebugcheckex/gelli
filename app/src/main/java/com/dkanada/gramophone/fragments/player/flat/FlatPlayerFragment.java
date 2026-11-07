@@ -30,6 +30,7 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.adapter.base.MediaEntryViewHolder;
 import com.dkanada.gramophone.adapter.song.PlayingQueueAdapter;
 import com.dkanada.gramophone.dialogs.SongShareDialog;
+import com.dkanada.gramophone.helper.LyricsController;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.helper.menu.SongMenuHelper;
 import com.dkanada.gramophone.model.Song;
@@ -76,6 +77,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
         setUpPlayerToolbar();
         setUpSubFragments();
+        onLyricsStateChanged();
 
         setUpRecyclerView();
 
@@ -135,6 +137,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
     @Override
     public void onServiceConnected() {
+        super.onServiceConnected();
         if (MusicPlayerRemote.getCurrentSong() == null) return;
 
         updateQueue();
@@ -144,6 +147,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
     @Override
     public void onPlayMetadataChanged() {
+        super.onPlayMetadataChanged();
         if (MusicPlayerRemote.getCurrentSong() == null) return;
 
         updateCurrentSong();
@@ -153,7 +157,31 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
     @Override
     public void onQueueChanged() {
+        super.onQueueChanged();
         updateQueue();
+    }
+
+    @Override
+    public void onLyricsStateChanged() {
+        boolean enabled = lyricsController.isEnabled();
+        boolean show = lyricsController.getState() == LyricsController.State.READY;
+
+        binding.playerLyrics.setLyrics(lyricsController.getLyrics());
+        binding.playerLyrics.setVisibility(show ? View.VISIBLE : View.GONE);
+        // the palette color comes from the cover's image load, so the pager has to keep its layout
+        playerAlbumCoverFragment.getView().setVisibility(show ? View.INVISIBLE : View.VISIBLE);
+
+        // tapping the cover can hide the toolbar, and it holds the way out of the lyrics
+        if (show) showToolbar(binding.toolbarContainer);
+
+        binding.playerToolbar.getMenu().findItem(R.id.action_lyrics)
+            .setIcon(enabled ? R.drawable.ic_lyrics_white_24dp : R.drawable.ic_lyrics_border_white_24dp)
+            .setTitle(enabled ? R.string.action_hide_lyrics : R.string.action_show_lyrics);
+    }
+
+    @Override
+    public void onCurrentLyricLineChanged(int line) {
+        binding.playerLyrics.setCurrentLine(line);
     }
 
     private void updateQueue() {
@@ -248,11 +276,13 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
     @Override
     public void onShow() {
+        lyricsController.setPlayerVisible(true);
         playbackControlsFragment.show();
     }
 
     @Override
     public void onHide() {
+        lyricsController.setPlayerVisible(false);
         playbackControlsFragment.hide();
         onBackPressed();
     }
@@ -271,6 +301,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     @Override
     public void onColorChanged(int color) {
         animateColorChange(color);
+        binding.playerLyrics.setTextColor(ThemeUtil.getPrimaryTextColor(requireContext(), ThemeUtil.prefersDarkContent(color)));
         playbackControlsFragment.setPaletteColor(color);
         playbackControlsFragment.updateBufferingIndicatorColor(color);
         getCallbacks().onPaletteColorChanged();
@@ -330,9 +361,10 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
         public AnimatorSet createDefaultColorChangeAnimatorSet(int newColor) {
             Animator backgroundAnimator = ViewUtil.createBackgroundColorTransition(fragment.playbackControlsFragment.getView(), fragment.lastColor, newColor);
             Animator statusBarAnimator = ViewUtil.createBackgroundColorTransition(binding.playerStatusBar, fragment.lastColor, newColor);
+            Animator lyricsAnimator = ViewUtil.createBackgroundColorTransition(binding.playerLyrics, fragment.lastColor, newColor);
 
             AnimatorSet animatorSet = new AnimatorSet();
-            animatorSet.playTogether(backgroundAnimator, statusBarAnimator);
+            animatorSet.playTogether(backgroundAnimator, statusBarAnimator, lyricsAnimator);
 
             animatorSet.setDuration(ViewUtil.PHONOGRAPH_ANIM_TIME);
             return animatorSet;

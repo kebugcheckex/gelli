@@ -52,6 +52,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
+                    <com.dkanada.gramophone.views.LyricsView
+                        android:id="@+id/player_lyrics"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:paddingTop="@dimen/toolbar_height"
+                        android:visibility="gone" />
+
                 </com.dkanada.gramophone.views.WidthFitSquareLayout>
 
             </FrameLayout>

@@ -2,6 +2,7 @@ package com.dkanada.gramophone.fragments.player;
 
 import android.animation.AnimatorSet;
 import android.content.Context;
+import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -15,6 +16,7 @@ import com.dkanada.gramophone.dialogs.CreatePlaylistDialog;
 import com.dkanada.gramophone.dialogs.SleepTimerDialog;
 import com.dkanada.gramophone.dialogs.SongDetailDialog;
 import com.dkanada.gramophone.dialogs.SongShareDialog;
+import com.dkanada.gramophone.helper.LyricsController;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.interfaces.PaletteColorHolder;
 import com.dkanada.gramophone.model.Album;
@@ -24,10 +26,12 @@ import com.dkanada.gramophone.fragments.AbsMusicServiceFragment;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
 
-public abstract class AbsPlayerFragment extends AbsMusicServiceFragment implements Toolbar.OnMenuItemClickListener, PaletteColorHolder {
+public abstract class AbsPlayerFragment extends AbsMusicServiceFragment implements Toolbar.OnMenuItemClickListener, PaletteColorHolder, LyricsController.Listener {
     private static boolean isToolbarShown = true;
 
     protected static AnimatorSet currentAnimatorSet = null;
+
+    protected LyricsController lyricsController;
 
     private Callbacks callbacks;
 
@@ -48,9 +52,56 @@ public abstract class AbsPlayerFragment extends AbsMusicServiceFragment implemen
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        lyricsController = new LyricsController(this);
+    }
+
+    @Override
+    public void onDestroyView() {
+        lyricsController.release();
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        lyricsController.setResumed(true);
+    }
+
+    @Override
+    public void onPause() {
+        lyricsController.setResumed(false);
+        super.onPause();
+    }
+
+    @Override
+    public void onServiceConnected() {
+        lyricsController.onSongChanged();
+    }
+
+    @Override
+    public void onPlayMetadataChanged() {
+        lyricsController.onSongChanged();
+    }
+
+    @Override
+    public void onQueueChanged() {
+        lyricsController.onSongChanged();
+    }
+
+    @Override
+    public void onPlayStateChanged() {
+        lyricsController.resample();
+    }
+
+    @Override
     public boolean onMenuItemClick(MenuItem item) {
         final Song song = MusicPlayerRemote.getCurrentSong();
         switch (item.getItemId()) {
+            case R.id.action_lyrics:
+                lyricsController.setEnabled(!lyricsController.isEnabled());
+                return true;
             case R.id.action_sleep_timer:
                 new SleepTimerDialog().show(getParentFragmentManager(), "SET_SLEEP_TIMER");
                 return true;

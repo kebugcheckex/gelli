@@ -40,6 +40,7 @@ public final class PreferenceUtil {
     public static final String TAB = "tab";
     public static final String LAST_LIBRARY = "last_library";
     public static final String QUEUE_SHEET_OPEN = "queue_sheet_open";
+    public static final String LYRICS_ENABLED = "lyrics_enabled";
 
     public static final String SLEEP_TIMER_LAST_VALUE = "sleep_timer_last_value";
     public static final String SLEEP_TIMER_ELAPSED_REALTIME = "sleep_timer_elapsed_real_time";
@@ -266,6 +267,14 @@ public final class PreferenceUtil {
 
     public void setQueueSheetOpen(final boolean value) {
         mPreferences.edit().putBoolean(QUEUE_SHEET_OPEN, value).apply();
+    }
+
+    public final boolean getLyricsEnabled() {
+        return mPreferences.getBoolean(LYRICS_ENABLED, false);
+    }
+
+    public void setLyricsEnabled(final boolean value) {
+        mPreferences.edit().putBoolean(LYRICS_ENABLED, value).apply();
     }
 
     public final boolean getColoredNotification() {

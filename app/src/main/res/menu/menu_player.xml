@@ -2,6 +2,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_lyrics"
+        android:icon="@drawable/ic_lyrics_border_white_24dp"
+        android:title="@string/action_show_lyrics"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_toggle_favorite"
         android:icon="@drawable/ic_favorite_border_white_24dp"
         android:title="@string/action_add_to_favorites"

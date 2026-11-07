@@ -57,6 +57,9 @@ object LocalLibrary {
     @JvmStatic
     fun getTempDir(accountId: String): File = File(getAccountDir(accountId), "tmp")
 
+    @JvmStatic
+    fun getLyricsDir(accountId: String): File = File(getAccountDir(accountId), "lyrics")
+
     private fun getAccountDir(accountId: String): File = File(getRoot(), accountDirName(accountId))
 
     /** The local user id contains the server url, so it is hashed into a path-safe name. */

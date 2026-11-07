@@ -1,6 +1,6 @@
 # Live Lyrics
 
-Revised November 5, 2026, after the Card player was removed and the landscape player was rebuilt. Not started.
+Revised November 6, 2026. Slice 1 is done, and slices 2 to 4 have not been started. The server's real responses are still unverified, except for the `404`. See the open points at the end.
 
 High-level design. No code in this document is a commitment to start the work. The point of this note is to decide what is feasible against the current player, which libraries are worth taking, and which problems belong to the architecture rather than to lyrics formats.
 
@@ -89,7 +89,7 @@ There are two players, and they share little layout:
 
 | Player | Layout | Lyrics host | Colors |
 |---|---|---|---|
-| `FlatPlayerFragment` | `layout/fragment_flat_player.xml` | The cover slot, `album_cover_container` | Palette background, text color from `MaterialColors.isColorLight` |
+| `FlatPlayerFragment` | `layout/fragment_flat_player.xml` | The cover slot, `album_cover_container` | Palette background, text color from `ThemeUtil.prefersDarkContent` |
 | `LandscapePlayerFragment` | `layout/fragment_landscape_player.xml` | The tab content, `landscape_player_tab_content` | White over the existing dark gradient |
 
 One `LyricsController` owns the current song's lyric, the clock, and whether lyrics are showing. Both fragments reach it through `AbsPlayerFragment`. A shared `LyricsView` holds the two presentations, and each fragment supplies only its host and colors.
@@ -99,15 +99,15 @@ One `LyricsController` owns the current song's lyric, the clock, and whether lyr
 - **The cover slot.** Put `LyricsView` beside the cover fragment in `album_cover_container`. `WidthFitSquareLayout` measures itself from its width, so the panel height math in `setUpPanelAndAlbumCoverHeight` doesn't change.
 - **Hide the cover with `INVISIBLE`, not `GONE`.** The palette color comes from the cover page's image load, and that must keep working while lyrics are up. Hiding the pager also removes swipe-to-change-song while lyrics are showing. That's acceptable, because previous and next are still on the controls. Do not overlay text on the art.
 - **Background.** Paint the slot with the palette color, as a third target in `createDefaultColorChangeAnimatorSet`, so the status bar, slot, and controls read as one surface. Choose text color by the rule the controls use.
-- **The toolbar.** It floats over the slot, so the list needs top padding of `toolbar_scrim_height`. Tapping the cover can hide the toolbar, and the toolbar holds the lyrics toggle, so entering lyrics mode forces it visible.
-- **Scrolling.** The outer panel's anti-drag view is `player_panel`, set in `setUpPanelAndAlbumCoverHeight`, and the slot is outside it. A vertical drag on the list will probably drag the player closed. Unsynced lyrics have to scroll by hand, so this must work in the first slice. `setAntiDragView` takes one view, so try `requestDisallowInterceptTouchEvent` from the list first, and settle it on a device.
+- **The toolbar.** It floats over the slot, so `LyricsView` has top padding of `toolbar_height`. The palette background still fills the slot, and the list is laid out and clipped below the toolbar, so lines never pass behind the icons. The top lines still sit over the lower part of the scrim. Tapping the cover can hide the toolbar, and the toolbar holds the lyrics toggle, so entering lyrics mode forces it visible.
+- **Scrolling.** The outer panel's anti-drag view is `player_panel`, set in `setUpPanelAndAlbumCoverHeight`, and the slot is outside it. The list calls `requestDisallowInterceptTouchEvent` on `ACTION_DOWN` whenever it can scroll, which keeps the drag from reaching the panel. A handoff to the panel at the list's end doesn't work, because the panel's recorded initial motion would be stale. So a drag on the lyrics never closes the player, while the toolbar, the X and back still do.
 - **Auto-follow.** A manual scroll pauses following for a few seconds. The next line change after that scrolls back.
 
 ### Landscape
 
 - **Tall windows (h480dp, `landscape_player_tabs`).** A third tab: Up next, Lyrics, Details. `setUpTabs` becomes a three-way switch. `landscape_player_tab_content` is already the panel's anti-drag view, so scrolling is safe.
-- **Short windows (most phones).** There are no tabs, so `menu_landscape_player.xml` gets a checkable Lyrics item, visible only then, as Details is. It swaps lyrics into the queue's slot, and turning it off brings the queue back. By arithmetic the slot is about 100–150dp tall and 450dp wide. Measure it on a device.
-- **Text size.** About 35 characters fit at 24sp in 450dp, so wrapping is normal. Autosize each line within a small range. A line that still overflows at the minimum is ellipsized, and it gets a line-level fill if its cues no longer land in the visible text.
+- **Short windows (most phones).** There are no tabs, so `menu_landscape_player.xml` gets a checkable Lyrics item, visible only then, as Details is. It swaps lyrics into the queue's slot, and turning it off brings the queue back. On a 1080x2400 phone at density 420 the slot measures 374x87dp.
+- **Text size.** Slice 1 uses the same text size as portrait, which fits about two rows. A three-row line fits only with its edges faded. Fewer than 35 characters fit at 24sp in 374dp, so wrapping is normal. Autosize each line within a small range. A line that still overflows at the minimum is ellipsized, and it gets a line-level fill if its cues no longer land in the visible text.
 - **Neighbors.** Only when the host has room. In a short window, show the current line alone.
 - **The cover stays.** It keeps its pager and gestures, and the song stays recognizable.
 
@@ -164,7 +164,9 @@ Every entry records when it was fetched:
 - **`404`.** Store a negative entry that expires after a day, so a lyric added on the server shows up later.
 - **Any other failure.** Store nothing. A network error must not look like a song with no lyrics, and it must not replace a good cached copy.
 
-Fetch only when the preference is on. There's no browsing network policy to share. `NetworkPolicy` covers streaming and saving, so follow `PlaybackReporter`: skip the call in offline mode, and otherwise let it try. Lyrics are a small JSON request, so a saved song can still pick them up on a network that isn't allowed to stream. Never fail playback because lyrics failed.
+Fetch only when the preference is on and the player's fragment is resumed. Every open activity has its own player, and all of them hear the service's events, so without the second condition each screen on the back stack sends its own request. A fragment re-reads the preference and catches up on the song when it resumes. This also means songs that pass while the app is in the background aren't fetched.
+
+There's no browsing network policy to share. `NetworkPolicy` covers streaming and saving, so follow `PlaybackReporter`: skip the call in offline mode, and otherwise let it try. Lyrics are a small JSON request, so a saved song can still pick them up on a network that isn't allowed to stream. Never fail playback because lyrics failed.
 
 Saving a song does not download lyrics inside `SaveWorker`. The player fetch writes the cache as a side effect. A song that is saved and then played offline, without ever having been played online with lyrics on, has no lyrics. That is acceptable. Backfilling the whole local library is out of scope.
 
@@ -230,8 +232,12 @@ The feature can land in slices that each leave playback alone.
   - One hand-made `.elrc` with word timing, only if slice 3 is wanted.
 - Rescan the library, then confirm what `GET /Audio/{itemId}/Lyrics` returns for each one. This checks the source-reading conclusions above, including that `Metadata` is empty.
 
-**On a device, during slices 1 and 2:**
+Slice 1 was tested on an emulator against the real 12.2 server through a local proxy. It answered the lyrics endpoint with responses written by hand from this document, so a real server has only confirmed the `404`. Nothing yet shows that a real server parses LRC files into that shape.
 
-- How to stop the outer panel taking vertical drags from the portrait list.
+**On a device, during slice 2:**
+
 - Whether a per-frame position read is cheap and smooth enough.
-- The real size of the queue slot in phone landscape, which sets the minimum text size.
+
+**On a real phone, not yet checked:**
+
+- How the list feels to scroll by finger. The emulator tests used injected swipes.
