@@ -40,7 +40,6 @@ import com.dkanada.gramophone.util.ImageUtil;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 import com.dkanada.gramophone.views.WidthFitSquareLayout;
-import com.google.android.material.color.MaterialColors;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbumCoverFragment.Callbacks, SlidingUpPanelLayout.PanelSlideListener {
@@ -272,7 +271,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     @Override
     public void onColorChanged(int color) {
         animateColorChange(color);
-        playbackControlsFragment.setDark(MaterialColors.isColorLight(color));
+        playbackControlsFragment.setPaletteColor(color);
         playbackControlsFragment.updateBufferingIndicatorColor(color);
         getCallbacks().onPaletteColorChanged();
     }

@@ -3,12 +3,14 @@ package com.dkanada.gramophone.util;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.view.ContextThemeWrapper;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 import androidx.annotation.StyleRes;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.palette.graphics.Palette;
 
 import com.dkanada.gramophone.R;
@@ -114,9 +116,11 @@ public class ThemeUtil {
         return MaterialColors.compositeARGBWithAlpha(color, alpha);
     }
 
-    @ColorInt
-    public static int getColorAlpha(Context context, int color, int alpha) {
-        return MaterialColors.compositeARGBWithAlpha(ContextCompat.getColor(context, color), alpha);
+    // MaterialColors.isColorLight switches at mid luminance, which leaves white on colors where black reads far better
+    public static boolean prefersDarkContent(@ColorInt int color) {
+        int opaque = ColorUtils.setAlphaComponent(color, 255);
+
+        return ColorUtils.calculateContrast(Color.BLACK, opaque) > ColorUtils.calculateContrast(Color.WHITE, opaque);
     }
 
     private static class SwatchComparator implements Comparator<Palette.Swatch> {

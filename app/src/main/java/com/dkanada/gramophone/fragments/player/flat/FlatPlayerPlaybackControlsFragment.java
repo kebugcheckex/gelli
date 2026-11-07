@@ -11,7 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
 import com.dkanada.gramophone.databinding.FragmentFlatPlayerPlaybackControlsBinding;
@@ -25,6 +28,7 @@ import com.dkanada.gramophone.interfaces.base.SimpleOnSeekbarChangeListener;
 import com.dkanada.gramophone.fragments.AbsMusicServiceFragment;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.views.PlayPauseDrawable;
+import com.google.android.material.color.MaterialColors;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -60,7 +64,7 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setUpMusicControllers();
-        updateProgressTextColor();
+        updateProgressColor(ThemeUtil.getPrimaryTextColor(requireContext(), false));
     }
 
     @Override
@@ -102,20 +106,18 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
         updateShuffleState();
     }
 
-    public void setDark(boolean dark) {
-        if (dark) {
-            lastPlaybackControlsColor = ThemeUtil.getSecondaryTextColor(requireActivity(), true);
-            lastDisabledPlaybackControlsColor = ThemeUtil.getColorAlpha(requireActivity(), R.color.color_text_secondary_light, 180);
-        } else {
-            lastPlaybackControlsColor = ThemeUtil.getPrimaryTextColor(requireActivity(), false);
-            lastDisabledPlaybackControlsColor = ThemeUtil.getColorAlpha(requireActivity(), R.color.color_text_primary_dark, 180);
-        }
+    public void setPaletteColor(@ColorInt int color) {
+        lastPlaybackControlsColor = ThemeUtil.getPrimaryTextColor(requireActivity(), ThemeUtil.prefersDarkContent(color));
+        lastDisabledPlaybackControlsColor = MaterialColors.compositeARGBWithAlpha(lastPlaybackControlsColor, 180);
 
         updateRepeatState();
         updateShuffleState();
         updatePrevNextColor();
         updatePlayPauseColor();
-        updateProgressTextColor();
+
+        // the progress row has an overlay on top of the palette color, so it can need the opposite of the buttons
+        int progressBackground = ColorUtils.compositeColors(ContextCompat.getColor(requireActivity(), R.color.overlay_light), color);
+        updateProgressColor(ThemeUtil.getPrimaryTextColor(requireActivity(), ThemeUtil.prefersDarkContent(progressBackground)));
     }
 
     private void setUpPlayPauseButton() {
@@ -155,10 +157,13 @@ public class FlatPlayerPlaybackControlsFragment extends AbsMusicServiceFragment 
         binding.playerPrevButton.setOnClickListener(v -> MusicPlayerRemote.back());
     }
 
-    private void updateProgressTextColor() {
-        int color = ThemeUtil.getPrimaryTextColor(requireContext(), false);
+    private void updateProgressColor(@ColorInt int color) {
         binding.playerSongTotalTime.setTextColor(color);
         binding.playerSongCurrentProgress.setTextColor(color);
+
+        binding.playerProgressSlider.setProgressTintList(ColorStateList.valueOf(color));
+        binding.playerProgressSlider.setThumbTintList(ColorStateList.valueOf(color));
+        binding.playerProgressSlider.setProgressBackgroundTintList(ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 0x40)));
     }
 
     private void updatePrevNextColor() {
