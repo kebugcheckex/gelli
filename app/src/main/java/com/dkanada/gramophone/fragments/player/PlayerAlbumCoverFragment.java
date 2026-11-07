@@ -1,8 +1,11 @@
 package com.dkanada.gramophone.fragments.player;
 
 import android.animation.Animator;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
@@ -44,11 +47,25 @@ public class PlayerAlbumCoverFragment extends AbsMusicServiceFragment {
     }
 
     @Override
+    @SuppressLint("ClickableViewAccessibility")
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        binding.playerImage.setOnClickListener(v -> {
-            if (callbacks != null) callbacks.onToolbarToggled();
+
+        // a click listener would also take a drag that ends on the cover as a tap
+        GestureDetector gestureDetector = new GestureDetector(requireContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(@NonNull MotionEvent e) {
+                return true;
+            }
+
+            @Override
+            public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+                if (callbacks != null) callbacks.onToolbarToggled();
+                return true;
+            }
         });
+
+        binding.playerImage.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
     }
 
     @Override

@@ -50,7 +50,7 @@
                         android:id="@+id/player_album_cover_fragment"
                         class="com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="match_parent" />
 
                     <com.dkanada.gramophone.views.LyricsView
                         android:id="@+id/player_lyrics"
