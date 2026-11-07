@@ -40,10 +40,11 @@ import com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment;
 import com.dkanada.gramophone.util.ImageUtil;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.ViewUtil;
+import com.dkanada.gramophone.views.LyricsView;
 import com.dkanada.gramophone.views.WidthFitSquareLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbumCoverFragment.Callbacks, SlidingUpPanelLayout.PanelSlideListener {
+public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbumCoverFragment.Callbacks, SlidingUpPanelLayout.PanelSlideListener, LyricsView.SwipeListener {
 
     private FragmentFlatPlayerBinding binding;
 
@@ -77,6 +78,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
         setUpPlayerToolbar();
         setUpSubFragments();
+        binding.playerLyrics.setSwipeListener(this);
         onLyricsStateChanged();
 
         setUpRecyclerView();
@@ -168,8 +170,7 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
 
         binding.playerLyrics.setLyrics(lyricsController.getLyrics());
         binding.playerLyrics.setVisibility(show ? View.VISIBLE : View.GONE);
-        // the palette color comes from the cover's image load, so the pager has to keep its layout
-        playerAlbumCoverFragment.getView().setVisibility(show ? View.INVISIBLE : View.VISIBLE);
+        updateCoverVisibility();
 
         // tapping the cover can hide the toolbar, and it holds the way out of the lyrics
         if (show) showToolbar(binding.toolbarContainer);
@@ -182,6 +183,27 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     @Override
     public void onLyricsPositionChanged(int line, float fill) {
         binding.playerLyrics.setPosition(line, fill);
+    }
+
+    @Override
+    public void onSwipeStarted() {
+        updateCoverVisibility();
+    }
+
+    @Override
+    public void onSwipeFinished(boolean dismissed) {
+        // swiping the lyrics away is the same as turning them off with the toolbar button
+        if (dismissed) {
+            lyricsController.setEnabled(false);
+        } else {
+            updateCoverVisibility();
+        }
+    }
+
+    /** The palette color comes from the cover's image load, so the pager is hidden rather than gone. */
+    private void updateCoverVisibility() {
+        boolean covered = binding.playerLyrics.getVisibility() == View.VISIBLE && !binding.playerLyrics.isSwipeActive();
+        playerAlbumCoverFragment.getView().setVisibility(covered ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void updateQueue() {
