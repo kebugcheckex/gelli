@@ -1,34 +1,40 @@
 package com.dkanada.gramophone.fragments.player;
 
 import android.animation.Animator;
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
 import androidx.annotation.NonNull;
-import androidx.viewpager.widget.ViewPager;
 
-import com.dkanada.gramophone.adapter.AlbumCoverPagerAdapter;
 import com.dkanada.gramophone.databinding.FragmentPlayerAlbumCoverBinding;
+import com.dkanada.gramophone.fragments.AbsMusicServiceFragment;
+import com.dkanada.gramophone.glide.CustomGlideRequest;
+import com.dkanada.gramophone.glide.CustomPaletteTarget;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.interfaces.base.SimpleAnimatorListener;
-import com.dkanada.gramophone.fragments.AbsMusicServiceFragment;
+import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.util.ViewUtil;
 
-public class PlayerAlbumCoverFragment extends AbsMusicServiceFragment implements ViewPager.OnPageChangeListener {
+import java.util.Objects;
+
+/**
+ * The current song's cover. It doesn't page through the queue, so a swipe never changes the song.
+ */
+public class PlayerAlbumCoverFragment extends AbsMusicServiceFragment {
 
     public static final int VISIBILITY_ANIM_DURATION = 300;
 
     private FragmentPlayerAlbumCoverBinding binding;
 
     private Callbacks callbacks;
-    private int currentPosition;
+
+    // the metadata callback also fires for a favorite toggle, which shouldn't reload the cover
+    private String loadedId;
+    private String loadedImage;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -38,27 +44,10 @@ public class PlayerAlbumCoverFragment extends AbsMusicServiceFragment implements
     }
 
     @Override
-    @SuppressLint("ClickableViewAccessibility")
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        binding.playerAlbumCoverViewPager.addOnPageChangeListener(this);
-        binding.playerAlbumCoverViewPager.setOnTouchListener(new View.OnTouchListener() {
-            GestureDetector gestureDetector = new GestureDetector(getActivity(), new GestureDetector.SimpleOnGestureListener() {
-                @Override
-                public boolean onSingleTapConfirmed(MotionEvent e) {
-                    if (callbacks != null) {
-                        callbacks.onToolbarToggled();
-                        return true;
-                    }
-
-                    return super.onSingleTapConfirmed(e);
-                }
-            });
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return gestureDetector.onTouchEvent(event);
-            }
+        binding.playerImage.setOnClickListener(v -> {
+            if (callbacks != null) callbacks.onToolbarToggled();
         });
     }
 
@@ -66,54 +55,43 @@ public class PlayerAlbumCoverFragment extends AbsMusicServiceFragment implements
     public void onDestroyView() {
         super.onDestroyView();
 
-        binding.playerAlbumCoverViewPager.removeOnPageChangeListener(this);
+        loadedId = null;
+        loadedImage = null;
     }
 
     @Override
     public void onServiceConnected() {
-        updatePlayingQueue();
+        updateCover();
     }
 
     @Override
     public void onPlayMetadataChanged() {
-        binding.playerAlbumCoverViewPager.setCurrentItem(MusicPlayerRemote.getPosition());
+        updateCover();
     }
 
     @Override
     public void onQueueChanged() {
-        updatePlayingQueue();
+        updateCover();
     }
 
-    private void updatePlayingQueue() {
-        binding.playerAlbumCoverViewPager.setAdapter(new AlbumCoverPagerAdapter(getParentFragmentManager(), MusicPlayerRemote.getPlayingQueue()));
-        binding.playerAlbumCoverViewPager.setCurrentItem(MusicPlayerRemote.getPosition());
-        onPageSelected(MusicPlayerRemote.getPosition());
-    }
+    private void updateCover() {
+        Song song = MusicPlayerRemote.getCurrentSong();
+        if (song == null) return;
+        if (Objects.equals(song.id, loadedId) && Objects.equals(song.primary, loadedImage)) return;
 
-    @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-    }
+        loadedId = song.id;
+        loadedImage = song.primary;
 
-    @Override
-    public void onPageSelected(int position) {
-        currentPosition = position;
-        ((AlbumCoverPagerAdapter) binding.playerAlbumCoverViewPager.getAdapter()).receiveColor(colorReceiver, position);
-        if (position != MusicPlayerRemote.getPosition()) {
-            MusicPlayerRemote.playSongAt(position);
-        }
-    }
-
-    private AlbumCoverPagerAdapter.AlbumCoverFragment.ColorReceiver colorReceiver = new AlbumCoverPagerAdapter.AlbumCoverFragment.ColorReceiver() {
-        @Override
-        public void onColorReady(int color, int requestCode) {
-            if (currentPosition == requestCode) {
-                notifyColorChange(color);
-            }
-        }
-    };
-
-    @Override
-    public void onPageScrollStateChanged(int state) {
+        // a new load into the same view cancels the last one, so a late color can't come from an older song
+        CustomGlideRequest.Builder
+                .from(requireContext(), song.primary, song.blurHash)
+                .palette().build()
+                .into(new CustomPaletteTarget(binding.playerImage) {
+                    @Override
+                    public void onColorReady(int color) {
+                        if (callbacks != null) callbacks.onColorChanged(color);
+                    }
+                });
     }
 
     public void showHeartAnimation() {
@@ -146,10 +124,6 @@ public class PlayerAlbumCoverFragment extends AbsMusicServiceFragment implements
                         .alpha(0f)
                         .start())
                 .start();
-    }
-
-    private void notifyColorChange(int color) {
-        if (callbacks != null) callbacks.onColorChanged(color);
     }
 
     public void setCallbacks(Callbacks listener) {
