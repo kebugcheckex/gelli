@@ -32,4 +32,20 @@ data class Lyrics(val lines: List<Line>) {
 
         return found
     }
+
+    /**
+     * How far playback is through synced line [line], from 0 at its start to 1 at its end. A line ends where the
+     * next one starts, and the last one at [durationMs]. A line with no time of its own, as when the duration isn't
+     * known yet, counts as finished as soon as it starts.
+     */
+    fun fillAt(line: Int, positionMs: Long, durationMs: Long): Float {
+        if (!isSynced || line !in lines.indices) return 0f
+
+        val start = lines[line].startMs!!
+        val end = lines.getOrNull(line + 1)?.startMs ?: durationMs
+        if (positionMs < start) return 0f
+        if (end <= start) return 1f
+
+        return ((positionMs - start).toFloat() / (end - start)).coerceIn(0f, 1f)
+    }
 }
