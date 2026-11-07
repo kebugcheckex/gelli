@@ -172,9 +172,16 @@ public class LocalPlayer implements Playback {
         executorService.submit(() -> {
             Map<String, File> files = LocalLibrary.getFiles(queue);
             boolean canStream = NetworkUtil.canStream(context);
-            List<MediaItem> mediaItems = queue.stream()
-                    .map(song -> createMediaItem(song, files.get(song.id), canStream))
-                    .collect(Collectors.toList());
+            List<MediaItem> mediaItems;
+            try {
+                mediaItems = queue.stream()
+                        .map(song -> createMediaItem(song, files.get(song.id), canStream))
+                        .collect(Collectors.toList());
+            } catch (RuntimeException e) {
+                // the executor's future would swallow this, leaving the player on the old queue without a trace
+                Log.e(TAG, "setQueue failed", e);
+                return;
+            }
 
             mainHandler.post(() -> {
                 if (resetCurrentSong) {
@@ -268,7 +275,13 @@ public class LocalPlayer implements Playback {
                 .collect(Collectors.toList());
         String maxBitrate = PreferenceUtil.getInstance(context).getMaximumBitrate();
 
-        if (audio != null || (containers.contains(song.container.toLowerCase(Locale.ROOT)) && codecs.contains(song.codec.toLowerCase(Locale.ROOT)) && song.bitRate <= Integer.parseInt(maxBitrate))) {
+        // a song listed without its media source has no container or codec, so the server transcodes it
+        boolean directPlay = song.container != null && song.codec != null
+                && containers.contains(song.container.toLowerCase(Locale.ROOT))
+                && codecs.contains(song.codec.toLowerCase(Locale.ROOT))
+                && song.bitRate <= Integer.parseInt(maxBitrate);
+
+        if (audio != null || directPlay) {
             return new MediaItem.Builder()
                     .setUri(uri)
                     .setMediaId(song.id)
