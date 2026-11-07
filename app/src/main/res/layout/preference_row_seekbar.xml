@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:labelFor="@id/seekbar"
         android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:textColor="@color/preference_title" />
+        android:textColor="?android:textColorPrimary" />
 
     <TextView
         android:id="@android:id/summary"
@@ -29,7 +29,7 @@
         android:maxLines="4"
         android:textAlignment="viewStart"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="@color/preference_summary" />
+        android:textColor="?android:textColorSecondary" />
 
     <!-- stops the row's press state reaching the thumb, the SeekBar background is cleared for the same reason -->
     <androidx.preference.UnPressableLinearLayout
@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
             android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/preference_title" />
+            android:textColor="?android:textColorPrimary" />
 
     </androidx.preference.UnPressableLinearLayout>
 
