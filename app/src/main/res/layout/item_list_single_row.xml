@@ -42,11 +42,10 @@
                 android:id="@+id/image_text"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
-                android:fontFamily="sans-serif"
                 android:gravity="center"
                 android:minHeight="40dp"
                 android:singleLine="true"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                android:textAppearance="?textAppearanceBodyLarge"
                 android:visibility="gone" />
 
         </FrameLayout>
@@ -59,9 +58,8 @@
             android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:fontFamily="sans-serif"
             android:singleLine="true"
-            android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+            android:textAppearance="?textAppearanceBodyLarge" />
 
         <com.dkanada.gramophone.views.IconImageView
             android:id="@+id/menu"

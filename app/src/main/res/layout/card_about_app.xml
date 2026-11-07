@@ -33,7 +33,7 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:text="@string/app_name"
-                android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
+                android:textAppearance="?textAppearanceHeadlineSmall" />
 
         </LinearLayout>
 
@@ -68,13 +68,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/version"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+                    android:textAppearance="?textAppearanceBodyLarge" />
 
                 <TextView
                     android:id="@+id/app_version"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                    android:textAppearance="?textAppearanceBodySmall"
                     tools:text="1.0.0" />
 
             </LinearLayout>
@@ -108,7 +108,7 @@
                 android:paddingBottom="8dp"
                 android:paddingTop="8dp"
                 android:text="@string/source"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+                android:textAppearance="?textAppearanceBodyLarge" />
 
         </LinearLayout>
 

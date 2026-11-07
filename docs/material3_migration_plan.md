@@ -232,6 +232,12 @@ Done when: Settings matches the rest of the app in all three themes, including i
 
 Done. The attributes, drawables, and dimens nothing reads anymore are gone. `toolbar_elevation` and `toolbar_height` stay, because `Toolbar.OnColor` on the flat player still reads them. `docs/large_screen_layout_plan.md` no longer describes the pinned phone styles or the neutral-only theme.
 
+## Typography
+
+Done. Theme text colors follow `colorOnSurface` and `colorOnSurfaceVariant`, and layouts use the M3 type roles instead of AppCompat text appearances and their own font and size overrides. Row titles use `BodyLarge`, because `TitleMedium` is heavier than a list of songs needs.
+
+Text on album color keeps its own colors: `ThemeOverlay.Gelli.LandscapePlayer` pins white, and the flat player reads `color_text_*` through `ThemeUtil`. The landscape player's title also keeps its custom bold size.
+
 ## Not changed
 
 - **Now-playing palette color.** The Flat player still tints its background and status bar with the album color, and the landscape player keeps its palette gradient. Only library and detail backgrounds drop it. This can be revisited after Phase 5.

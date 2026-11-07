@@ -36,7 +36,7 @@
         android:paddingStart="@dimen/item_margin"
         android:paddingTop="@dimen/item_margin"
         android:singleLine="true"
-        android:textSize="@dimen/item_text"
+        android:textAppearance="?textAppearanceBodyLarge"
         tools:text="Item" />
 
     <com.dkanada.gramophone.views.IconImageView

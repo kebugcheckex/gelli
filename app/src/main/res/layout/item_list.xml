@@ -42,11 +42,10 @@
                 android:id="@+id/image_text"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
-                android:fontFamily="sans-serif"
                 android:gravity="center"
                 android:minHeight="40dp"
                 android:singleLine="true"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                android:textAppearance="?textAppearanceBodyLarge"
                 android:visibility="gone" />
 
         </FrameLayout>
@@ -64,17 +63,15 @@
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
                 android:singleLine="true"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+                android:textAppearance="?textAppearanceBodyLarge" />
 
             <TextView
                 android:id="@+id/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
                 android:singleLine="true"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textAppearance="?textAppearanceBodyMedium"
                 android:textColor="?android:textColorSecondary" />
 
         </LinearLayout>

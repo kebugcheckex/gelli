@@ -42,14 +42,14 @@
                 android:layout_height="wrap_content"
                 android:paddingBottom="12dp"
                 android:text="@string/downloads_scope"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                android:textAppearance="?textAppearanceBodyMedium" />
 
             <TextView
                 android:id="@+id/no_account"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/downloads_no_account"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                android:textAppearance="?textAppearanceBodyLarge"
                 android:visibility="gone" />
 
             <com.google.android.material.card.MaterialCardView
@@ -76,7 +76,7 @@
                             android:layout_height="wrap_content"
                             android:importantForAccessibility="no"
                             android:text="@string/downloads_checking_local"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                            android:textAppearance="?textAppearanceHeadlineSmall"
                             tools:text="26% available offline" />
 
                         <TextView
@@ -85,7 +85,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:importantForAccessibility="no"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textAppearance="?textAppearanceBodyLarge"
                             tools:text="1,248 of 4,800 songs" />
 
                         <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -106,14 +106,14 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="@string/downloads_includes_saves"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                        android:textAppearance="?textAppearanceBodyMedium" />
 
                     <TextView
                         android:id="@+id/library_checked"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                        android:textAppearance="?textAppearanceBodySmall"
                         android:visibility="gone"
                         tools:text="Library checked Oct 22, 2026, 10:42 AM"
                         tools:visibility="visible" />
@@ -123,7 +123,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                        android:textAppearance="?textAppearanceBodyMedium"
                         android:visibility="gone" />
 
                     <TextView
@@ -131,7 +131,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                        android:textAppearance="?textAppearanceBodyMedium"
                         android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -153,7 +153,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/downloads_audio_title"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+                        android:textAppearance="?textAppearanceTitleLarge" />
 
                     <TextView
                         android:id="@+id/audio_usage"
@@ -161,7 +161,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="@string/downloads_checking_storage"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                        android:textAppearance="?textAppearanceHeadlineSmall"
                         tools:text="6.1 GB on this device" />
 
                     <TextView
@@ -169,7 +169,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="@string/downloads_audio_scope"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                        android:textAppearance="?textAppearanceBodyMedium" />
 
                     <TextView
                         android:id="@+id/storage_warning"
@@ -177,7 +177,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="@string/downloads_storage_unavailable"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                        android:textAppearance="?textAppearanceBodyMedium"
                         android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
