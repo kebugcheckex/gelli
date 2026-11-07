@@ -105,6 +105,8 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         playingQueueListFragment = (PlayingQueueListFragment) getChildFragmentManager().findFragmentById(R.id.landscape_player_queue_fragment);
 
         setUpTabs();
+        // a short window has room for the current line alone, and the tab for its neighbors too
+        binding.landscapePlayerLyrics.setFocusedLine(true, showTabs);
         binding.landscapePlayerLyrics.setTextColor(ICON_COLOR);
         onLyricsStateChanged();
 
@@ -256,8 +258,8 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
     }
 
     @Override
-    public void onCurrentLyricLineChanged(int line) {
-        if (binding != null) binding.landscapePlayerLyrics.setCurrentLine(line);
+    public void onLyricsPositionChanged(int line, float fill) {
+        if (binding != null) binding.landscapePlayerLyrics.setPosition(line, fill);
     }
 
     @Override

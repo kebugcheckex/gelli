@@ -92,7 +92,7 @@ public abstract class AbsPlayerFragment extends AbsMusicServiceFragment implemen
 
     @Override
     public void onPlayStateChanged() {
-        lyricsController.resample();
+        lyricsController.onPlayStateChanged();
     }
 
     @Override

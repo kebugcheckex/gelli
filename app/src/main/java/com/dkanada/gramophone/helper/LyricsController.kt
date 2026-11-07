@@ -2,6 +2,7 @@ package com.dkanada.gramophone.helper
 
 import android.os.Handler
 import android.os.Looper
+import android.view.Choreographer
 import com.dkanada.gramophone.App
 import com.dkanada.gramophone.model.Lyrics
 import com.dkanada.gramophone.util.LyricsRepository
@@ -26,12 +27,16 @@ class LyricsController(private val listener: Listener) {
     interface Listener {
         fun onLyricsStateChanged()
 
-        /** The line is -1 before the first line starts. */
-        fun onCurrentLyricLineChanged(line: Int)
+        /**
+         * Called when the current line or its fill changes, which is every frame while a synced lyric plays. The
+         * line is -1 before the first line starts, and the fill runs from 0 at the line's start to 1 at its end.
+         */
+        fun onLyricsPositionChanged(line: Int, fill: Float)
     }
 
     private val preferences = PreferenceUtil.getInstance(App.getInstance())
     private val handler = Handler(Looper.getMainLooper())
+    private val choreographer = Choreographer.getInstance()
 
     private var enabled = preferences.lyricsEnabled
 
@@ -47,13 +52,12 @@ class LyricsController(private val listener: Listener) {
         private set
     var currentLine = -1
         private set
+    var currentFill = 0f
+        private set
 
-    private val clock = object : Runnable {
-        override fun run() {
-            resample()
-            handler.postDelayed(this, if (MusicPlayerRemote.isPlaying()) PLAYING_INTERVAL else PAUSED_INTERVAL)
-        }
-    }
+    // every frame while playing, so the fill moves smoothly, and a slow poll while paused, so a seek still shows
+    private val frameTick = Choreographer.FrameCallback { tick() }
+    private val pausedTick = Runnable { tick() }
 
     fun isEnabled() = enabled
 
@@ -106,11 +110,19 @@ class LyricsController(private val listener: Listener) {
         val current = lyrics ?: return
         if (MusicPlayerRemote.getCurrentSong()?.id != songId) return
 
-        val line = current.lineAt(MusicPlayerRemote.getSongProgressMillis().toLong())
-        if (line != currentLine) {
+        val position = MusicPlayerRemote.getSongProgressMillis().toLong()
+        val line = current.lineAt(position)
+        val fill = current.fillAt(line, position, MusicPlayerRemote.getSongDurationMillis().toLong())
+        if (line != currentLine || fill != currentFill) {
             currentLine = line
-            listener.onCurrentLyricLineChanged(line)
+            currentFill = fill
+            listener.onLyricsPositionChanged(line, fill)
         }
+    }
+
+    /** Switches the clock between frames and the slow poll. */
+    fun onPlayStateChanged() {
+        updateClock()
     }
 
     fun setPlayerVisible(visible: Boolean) {
@@ -126,25 +138,39 @@ class LyricsController(private val listener: Listener) {
 
     fun release() {
         released = true
-        handler.removeCallbacks(clock)
+        stopClock()
     }
 
     private fun setState(state: State, lyrics: Lyrics?) {
         this.state = state
         this.lyrics = lyrics
         currentLine = -1
+        currentFill = 0f
 
         listener.onLyricsStateChanged()
         updateClock()
     }
 
     private fun updateClock() {
-        handler.removeCallbacks(clock)
-        if (playerVisible && resumed && lyrics?.isSynced == true) handler.post(clock)
+        stopClock()
+        if (playerVisible && resumed && !released && lyrics?.isSynced == true) tick()
+    }
+
+    private fun tick() {
+        resample()
+        if (MusicPlayerRemote.isPlaying()) {
+            choreographer.postFrameCallback(frameTick)
+        } else {
+            handler.postDelayed(pausedTick, PAUSED_INTERVAL)
+        }
+    }
+
+    private fun stopClock() {
+        choreographer.removeFrameCallback(frameTick)
+        handler.removeCallbacks(pausedTick)
     }
 
     private companion object {
-        const val PLAYING_INTERVAL = 100L
         const val PAUSED_INTERVAL = 250L
     }
 }

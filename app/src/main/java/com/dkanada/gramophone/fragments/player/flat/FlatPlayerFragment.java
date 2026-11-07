@@ -180,8 +180,8 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     }
 
     @Override
-    public void onCurrentLyricLineChanged(int line) {
-        binding.playerLyrics.setCurrentLine(line);
+    public void onLyricsPositionChanged(int line, float fill) {
+        binding.playerLyrics.setPosition(line, fill);
     }
 
     private void updateQueue() {
