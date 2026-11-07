@@ -26,7 +26,7 @@
         <item name="android:layout_height">@dimen/toolbar_height</item>
         <item name="android:minHeight">@dimen/toolbar_height</item>
         <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
-        <item name="android:popupTheme" tools:ignore="NewApi">?toolbarPopupTheme</item>
+        <item name="popupTheme">?toolbarPopupTheme</item>
         <item name="android:elevation" tools:ignore="NewApi">@dimen/toolbar_elevation</item>
         <item name="android:transitionName" tools:ignore="NewApi">toolbar</item>
     </style>
