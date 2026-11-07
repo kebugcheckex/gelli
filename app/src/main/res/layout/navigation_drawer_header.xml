@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/default_album_art"
+        android:src="@drawable/album_art_placeholder"
         tools:ignore="ContentDescription" />
 
     <View

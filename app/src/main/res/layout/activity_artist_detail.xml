@@ -36,7 +36,7 @@
                     android:layout_height="@dimen/detail_header_image_height"
                     android:layout_margin="16dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/default_artist_image"
+                    android:src="@drawable/album_art_placeholder"
                     android:transitionName="@string/transition_artist_image"
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.Gelli.Cover"
                     tools:ignore="ContentDescription" />

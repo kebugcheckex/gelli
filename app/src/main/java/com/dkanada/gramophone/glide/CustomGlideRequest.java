@@ -4,8 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-
-import androidx.core.content.res.ResourcesCompat;
+import android.util.TypedValue;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
@@ -26,6 +25,7 @@ import static com.bumptech.glide.GenericTransitionOptions.with;
 public class CustomGlideRequest {
     public static final DiskCacheStrategy DEFAULT_DISK_CACHE_STRATEGY = DiskCacheStrategy.ALL;
     public static final int DEFAULT_IMAGE = R.drawable.default_album_art;
+    public static final int THEMED_IMAGE = R.drawable.album_art_placeholder;
     public static final int DEFAULT_DURATION = 200;
 
     public static class Builder {
@@ -34,18 +34,35 @@ public class CustomGlideRequest {
         private final Context context;
 
         private Builder(Context context, String item, String placeholder) {
+            // only an activity has the colors for the themed image, and a service can't decode a vector to a bitmap
+            boolean themed = context.getTheme().resolveAttribute(R.attr.colorSurfaceContainerHighest, new TypedValue(), true);
+            int image = themed ? THEMED_IMAGE : DEFAULT_IMAGE;
+
             this.requestManager = Glide.with(context);
-            this.item = item != null ? createUrl(item) : DEFAULT_IMAGE;
             this.context = context;
+
+            if (item != null) {
+                this.item = createUrl(item);
+            } else {
+                // a null model goes straight to the fallback, which is drawn with the theme below
+                this.item = themed ? null : DEFAULT_IMAGE;
+            }
+
+            RequestOptions options = new RequestOptions()
+                    .error(image)
+                    .fallback(image)
+                    .theme(context.getTheme())
+                    .diskCacheStrategy(DEFAULT_DISK_CACHE_STRATEGY)
+                    .signature(new ObjectKey(item != null ? item : 0));
 
             if (placeholder != null) {
                 Bitmap bitmap = BlurHashDecoder.INSTANCE.decode(placeholder, 40, 40, 1, true);
-                BitmapDrawable drawable = new BitmapDrawable(context.getResources(), bitmap);
-                requestManager.applyDefaultRequestOptions(createRequestOptions(item, drawable));
+                options = options.placeholder(new BitmapDrawable(context.getResources(), bitmap));
             } else {
-                Drawable drawable = ResourcesCompat.getDrawable(context.getResources(), DEFAULT_IMAGE, null);
-                requestManager.applyDefaultRequestOptions(createRequestOptions(item, drawable));
+                options = options.placeholder(image);
             }
+
+            requestManager.applyDefaultRequestOptions(options);
         }
 
         public static Builder from(Context context, String item, String placeholder) {
@@ -92,14 +109,6 @@ public class CustomGlideRequest {
             return builder.requestManager.as(BitmapPaletteWrapper.class).load(builder.item)
                     .transition(with(new BitmapPaletteCrossFadeFactory()));
         }
-    }
-
-    public static RequestOptions createRequestOptions(String item, Drawable placeholder) {
-        return new RequestOptions()
-                .placeholder(placeholder)
-                .error(DEFAULT_IMAGE)
-                .diskCacheStrategy(DEFAULT_DISK_CACHE_STRATEGY)
-                .signature(new ObjectKey(item != null ? item : 0));
     }
 
     public static String createUrl(String item) {

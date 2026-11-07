@@ -35,7 +35,7 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:scaleType="centerCrop"
-                app:srcCompat="@drawable/default_album_art"
+                app:srcCompat="@drawable/album_art_placeholder"
                 tools:ignore="ContentDescription" />
 
             <TextView

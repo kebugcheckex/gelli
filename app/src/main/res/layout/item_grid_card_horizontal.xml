@@ -17,7 +17,7 @@
         android:layout_height="104dp"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Gelli.Cover"
-        app:srcCompat="@drawable/default_album_art"
+        app:srcCompat="@drawable/album_art_placeholder"
         tools:ignore="ContentDescription" />
 
     <TextView
