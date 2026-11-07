@@ -59,7 +59,8 @@ and the queue can open as a side sheet beside the content. expanding the bar ope
             android:id="@+id/mini_player_fragment_container"
             android:layout_width="match_parent"
             android:layout_height="@dimen/mini_player_height"
-            android:background="?attr/colorSurfaceContainer" />
+            android:background="?attr/colorSurfaceContainer"
+            android:clickable="true" />
 
     </FrameLayout>
 
