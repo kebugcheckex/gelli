@@ -17,7 +17,7 @@ import java.security.MessageDigest
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**
- * Persistent store of songs saved on the device, see docs/offline_cached_music_plan.md.
+ * Persistent store of songs saved on the device. Nothing is evicted automatically.
  *
  * Every lookup is scoped to the current account. Rows live in the local_songs table and
  * files live under <root>/<account>/, where <account> is a hash of the local user id.

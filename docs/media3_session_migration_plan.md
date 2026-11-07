@@ -2,7 +2,7 @@
 
 ## Status
 
-Not started. This is the "Phase 5: Optional Follow-Up Modernization" item from `media3_migration_plan.md`.
+Not started. It follows the ExoPlayer 2 to Media3 1.5.1 migration, which is done: playback uses Media3, but the session is still `MediaSessionCompat`.
 
 Interim fixes are in place in `MusicService.updateMediaSessionState()`:
 
@@ -75,7 +75,7 @@ Media3's `MediaSession` exposes a single `Player` to Media3 controllers and, thr
 
 ## Phase 0: Baseline
 
-- Add Bluetooth/AVRCP and session scenarios to `media3_smoke_test_matrix.md` (see Validation below).
+- Run the playback checklist and the session scenarios under Validation, and record the results, so there is something to compare against after the swap.
 - Record current behavior on the affected car: `adb shell dumpsys media_session` after pausing from the car, plus a Bluetooth HCI snoop log. This shows whether the head unit registers for `PLAYBACK_STATUS_CHANGED` notifications at all. If it doesn't, no app-side change will update its button. The migration is still worth doing for the other gaps.
 
 ## Phase 1: Dependency and Metadata (No Behavior Change)
@@ -131,7 +131,31 @@ Media3's `MediaSession` exposes a single `Player` to Media3 controllers and, thr
 ## Validation
 
 - Build and tests: `./gradlew assembleDebug testDebugUnitTest --console=plain`, plus `./gradlew :app:minifyReleaseWithR8` (add keep rules if R8 strips session classes).
-- New smoke-matrix rows:
+
+### Playback checklist
+
+Carried over from the Media3 migration, where only basic playback and the queue modes were checked on a device. Run it on API 23 and on API 33 or later.
+
+| # | Scenario | Pass criteria |
+|---|---|---|
+| P1 | Tap a track in an album | Playback starts, progress moves, the notification appears |
+| P2 | Let a track play to the end | The next track starts |
+| P3 | Next, and previous within the first 5 s | The track changes |
+| P4 | Previous after 5 s | Seeks to 0 and stays on the track |
+| P5 | Drag the seek bar | Playback resumes from there |
+| P6 | Shuffle on, then off, mid-queue | On moves the current song to the top; off returns to its index in the original queue |
+| P7 | Repeat none, all, and one at the end of the queue | Stops, wraps to the first track, or repeats the track |
+| P8 | Add a song to the queue, and remove one that isn't playing | The queue updates without interrupting playback |
+| P9 | Play a stored song, and one that needs an HLS transcode | The stored song plays at once; the transcode buffers briefly, then plays |
+| P10 | Unplug headphones or disconnect Bluetooth | Playback pauses |
+| P11 | Start playback, force-stop the app, reopen | The queue, position, and progress are restored |
+| P12 | Lock the screen or switch apps | Playback continues, and the lock-screen controls work |
+| P13 | Sleep timer with "finish last song" | The app quits after the track ends |
+| P14 | A song with a broken URL | A toast appears, and the queue doesn't freeze |
+| P15 | Next and previous in quick succession | No crash; it settles on the right track |
+| P16 | Change the gain offset while playing | The volume changes without restarting playback |
+
+### Session scenarios
 
 | # | Scenario | Pass criteria |
 |---|---|---|

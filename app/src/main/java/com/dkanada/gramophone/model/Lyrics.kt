@@ -2,7 +2,9 @@ package com.dkanada.gramophone.model
 
 /**
  * The app's own form of a song's lyrics, independent of the server's DTO. All times are in milliseconds.
- * See docs/live_lyrics_plan.md.
+ *
+ * Lyrics are synced when every line has a start. The DTO's Metadata (IsSynced, Offset) isn't filled for local
+ * lyrics, so it's never read.
  */
 data class Lyrics(val lines: List<Line>) {
     /** A timed line with no text is an instrumental break, and is kept so the highlight can clear. */
