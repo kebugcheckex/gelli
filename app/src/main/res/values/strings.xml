@@ -119,6 +119,7 @@
 
 
     <string name="pref_header_colors">Colors</string>
+    <string name="pref_header_lyrics">Lyrics</string>
     <string name="pref_header_audio">Audio</string>
     <string name="pref_header_cache">Cache</string>
     <string name="pref_header_library">Library</string>
@@ -144,6 +145,8 @@
     <string name="color_preset_wallpaper">Wallpaper</string>
     <string name="pref_title_theme">Theme</string>
     <string name="pref_title_colored_shortcuts">Colored Shortcuts</string>
+    <string name="pref_title_lyrics_opacity">Lyrics Background Opacity</string>
+    <string name="pref_summary_lyrics_opacity">How much the background behind the lyrics hides the album cover.</string>
     <string name="pref_title_show_album_art">Show Album Cover</string>
     <string name="pref_title_blur_album_art">Blur Album Cover</string>
     <string name="pref_title_transcode_codec">Transcode Codec</string>

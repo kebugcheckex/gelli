@@ -40,13 +40,12 @@ import com.dkanada.gramophone.fragments.player.AbsPlayerFragment;
 import com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment;
 import com.dkanada.gramophone.util.ImageUtil;
 import com.dkanada.gramophone.util.MusicUtil;
+import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 import com.dkanada.gramophone.views.WidthFitSquareLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbumCoverFragment.Callbacks, SlidingUpPanelLayout.PanelSlideListener {
-
-    private static final int LYRICS_SCRIM_ALPHA = 0xC0;
 
     private FragmentFlatPlayerBinding binding;
 
@@ -136,6 +135,8 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
     public void onResume() {
         super.onResume();
         checkToggleToolbar(binding.toolbarContainer);
+        // the opacity may have changed in the settings, and color changes skip the animation while paused
+        binding.playerLyrics.setBackgroundColor(lyricsScrim(lastColor));
     }
 
     @Override
@@ -336,6 +337,13 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
         }
     }
 
+    // the palette color comes from the cover, so the text color picked for it still reads over the blend
+    @ColorInt
+    private int lyricsScrim(@ColorInt int color) {
+        int opacity = PreferenceUtil.getInstance(requireContext()).getLyricsOpacity();
+        return ColorUtils.setAlphaComponent(color, Math.round(opacity * 255 / 100f));
+    }
+
     private void resetToCurrentPosition() {
         binding.playerRecyclerView.stopScroll();
         layoutManager.scrollToPositionWithOffset(MusicPlayerRemote.getPosition() + 1, 0);
@@ -363,19 +371,13 @@ public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbum
         public AnimatorSet createDefaultColorChangeAnimatorSet(int newColor) {
             Animator backgroundAnimator = ViewUtil.createBackgroundColorTransition(fragment.playbackControlsFragment.getView(), fragment.lastColor, newColor);
             Animator statusBarAnimator = ViewUtil.createBackgroundColorTransition(binding.playerStatusBar, fragment.lastColor, newColor);
-            Animator lyricsAnimator = ViewUtil.createBackgroundColorTransition(binding.playerLyrics, lyricsScrim(fragment.lastColor), lyricsScrim(newColor));
+            Animator lyricsAnimator = ViewUtil.createBackgroundColorTransition(binding.playerLyrics, fragment.lyricsScrim(fragment.lastColor), fragment.lyricsScrim(newColor));
 
             AnimatorSet animatorSet = new AnimatorSet();
             animatorSet.playTogether(backgroundAnimator, statusBarAnimator, lyricsAnimator);
 
             animatorSet.setDuration(ViewUtil.PHONOGRAPH_ANIM_TIME);
             return animatorSet;
-        }
-
-        // the palette color comes from the cover, so the text color picked for it still reads over the blend
-        @ColorInt
-        private static int lyricsScrim(@ColorInt int color) {
-            return ColorUtils.setAlphaComponent(color, LYRICS_SCRIM_ALPHA);
         }
     }
 

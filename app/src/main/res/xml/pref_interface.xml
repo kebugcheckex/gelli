@@ -29,4 +29,18 @@
 
     </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
 
+    <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_lyrics">
+
+        <com.dkanada.gramophone.views.settings.SliderPreference
+            app:iconSpaceReserved="false"
+            android:defaultValue="80"
+            android:key="lyrics_opacity"
+            android:stepSize="10"
+            android:summary="@string/pref_summary_lyrics_opacity"
+            android:title="@string/pref_title_lyrics_opacity"
+            android:valueFrom="50"
+            android:valueTo="100" />
+
+    </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

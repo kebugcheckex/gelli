@@ -68,6 +68,7 @@ public final class PreferenceUtil {
     public static final String GENERAL_THEME = "general_theme";
     public static final String COLOR_PRESET = "color_preset";
     public static final String COLORED_SHORTCUTS = "colored_shortcuts";
+    public static final String LYRICS_OPACITY = "lyrics_opacity";
 
     public static final String CLASSIC_NOTIFICATION = "classic_notification";
     public static final String COLORED_NOTIFICATION = "colored_notification";
@@ -287,6 +288,11 @@ public final class PreferenceUtil {
 
     public final boolean getColoredShortcuts() {
         return mPreferences.getBoolean(COLORED_SHORTCUTS, true);
+    }
+
+    // a percentage from 50 to 100, the default matches the one in pref_interface
+    public final int getLyricsOpacity() {
+        return mPreferences.getInt(LYRICS_OPACITY, 80);
     }
 
     public final String getTranscodeCodec() {
