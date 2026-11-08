@@ -147,25 +147,24 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements App
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         final List<Song> songs = songAdapter.getDataSet();
-        switch (id) {
-            case R.id.action_shuffle_artist:
-                MusicPlayerRemote.openAndShuffleQueue(songs, true);
-                return true;
-            case R.id.action_play_next:
-                MusicPlayerRemote.playNext(songs);
-                return true;
-            case R.id.action_add_to_queue:
-                MusicPlayerRemote.enqueue(songs);
-                return true;
-            case R.id.action_add_to_playlist:
-                AddToPlaylistDialog.create(songs).show(getSupportFragmentManager(), "ADD_PLAYLIST");
-                return true;
-            case R.id.action_download:
-                NavigationUtil.startDownload(this, songs);
-                return true;
-            case R.id.action_remove_from_device:
-                NavigationUtil.removeFromDevice(this, songs);
-                return true;
+        if (id == R.id.action_shuffle_artist) {
+            MusicPlayerRemote.openAndShuffleQueue(songs, true);
+            return true;
+        } else if (id == R.id.action_play_next) {
+            MusicPlayerRemote.playNext(songs);
+            return true;
+        } else if (id == R.id.action_add_to_queue) {
+            MusicPlayerRemote.enqueue(songs);
+            return true;
+        } else if (id == R.id.action_add_to_playlist) {
+            AddToPlaylistDialog.create(songs).show(getSupportFragmentManager(), "ADD_PLAYLIST");
+            return true;
+        } else if (id == R.id.action_download) {
+            NavigationUtil.startDownload(this, songs);
+            return true;
+        } else if (id == R.id.action_remove_from_device) {
+            NavigationUtil.removeFromDevice(this, songs);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

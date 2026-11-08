@@ -88,16 +88,15 @@ public class GenreDetailActivity extends AbsMusicContentActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
-        switch (id) {
-            case R.id.action_shuffle_genre:
-                MusicPlayerRemote.openAndShuffleQueue(adapter.getDataSet(), true);
-                return true;
-            case R.id.action_download:
-                NavigationUtil.startDownload(this, adapter.getDataSet());
-                return true;
-            case R.id.action_remove_from_device:
-                NavigationUtil.removeFromDevice(this, adapter.getDataSet());
-                return true;
+        if (id == R.id.action_shuffle_genre) {
+            MusicPlayerRemote.openAndShuffleQueue(adapter.getDataSet(), true);
+            return true;
+        } else if (id == R.id.action_download) {
+            NavigationUtil.startDownload(this, adapter.getDataSet());
+            return true;
+        } else if (id == R.id.action_remove_from_device) {
+            NavigationUtil.removeFromDevice(this, adapter.getDataSet());
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

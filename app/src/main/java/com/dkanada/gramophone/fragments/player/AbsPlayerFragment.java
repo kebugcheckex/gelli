@@ -98,37 +98,36 @@ public abstract class AbsPlayerFragment extends AbsMusicServiceFragment implemen
     @Override
     public boolean onMenuItemClick(MenuItem item) {
         final Song song = MusicPlayerRemote.getCurrentSong();
-        switch (item.getItemId()) {
-            case R.id.action_lyrics:
-                lyricsController.setEnabled(!lyricsController.isEnabled());
-                return true;
-            case R.id.action_sleep_timer:
-                new SleepTimerDialog().show(getParentFragmentManager(), "SET_SLEEP_TIMER");
-                return true;
-            case R.id.action_toggle_favorite:
-                toggleFavorite(song);
-                return true;
-            case R.id.action_share:
-                SongShareDialog.create(song).show(getParentFragmentManager(), SongShareDialog.TAG);
-                return true;
-            case R.id.action_add_to_playlist:
-                AddToPlaylistDialog.create(song).show(getParentFragmentManager(), "ADD_PLAYLIST");
-                return true;
-            case R.id.action_clear_queue:
-                MusicPlayerRemote.clearQueue();
-                return true;
-            case R.id.action_save_queue:
-                CreatePlaylistDialog.create(MusicPlayerRemote.getPlayingQueue()).show(getParentFragmentManager(), "ADD_TO_PLAYLIST");
-                return true;
-            case R.id.action_details:
-                SongDetailDialog.create(song).show(getParentFragmentManager(), SongDetailDialog.TAG);
-                return true;
-            case R.id.action_go_to_album:
-                NavigationUtil.startAlbum(requireActivity(), new Album(song), null);
-                return true;
-            case R.id.action_go_to_artist:
-                NavigationUtil.startArtist(requireActivity(), new Artist(song), null);
-                return true;
+        if (item.getItemId() == R.id.action_lyrics) {
+            lyricsController.setEnabled(!lyricsController.isEnabled());
+            return true;
+        } else if (item.getItemId() == R.id.action_sleep_timer) {
+            new SleepTimerDialog().show(getParentFragmentManager(), "SET_SLEEP_TIMER");
+            return true;
+        } else if (item.getItemId() == R.id.action_toggle_favorite) {
+            toggleFavorite(song);
+            return true;
+        } else if (item.getItemId() == R.id.action_share) {
+            SongShareDialog.create(song).show(getParentFragmentManager(), SongShareDialog.TAG);
+            return true;
+        } else if (item.getItemId() == R.id.action_add_to_playlist) {
+            AddToPlaylistDialog.create(song).show(getParentFragmentManager(), "ADD_PLAYLIST");
+            return true;
+        } else if (item.getItemId() == R.id.action_clear_queue) {
+            MusicPlayerRemote.clearQueue();
+            return true;
+        } else if (item.getItemId() == R.id.action_save_queue) {
+            CreatePlaylistDialog.create(MusicPlayerRemote.getPlayingQueue()).show(getParentFragmentManager(), "ADD_TO_PLAYLIST");
+            return true;
+        } else if (item.getItemId() == R.id.action_details) {
+            SongDetailDialog.create(song).show(getParentFragmentManager(), SongDetailDialog.TAG);
+            return true;
+        } else if (item.getItemId() == R.id.action_go_to_album) {
+            NavigationUtil.startAlbum(requireActivity(), new Album(song), null);
+            return true;
+        } else if (item.getItemId() == R.id.action_go_to_artist) {
+            NavigationUtil.startArtist(requireActivity(), new Artist(song), null);
+            return true;
         }
         return false;
     }

@@ -236,16 +236,15 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
         }
 
         int id = item.getItemId();
-        switch (id) {
-            case R.id.action_shuffle_all:
-                shuffleAll();
-                return true;
-            case R.id.action_new_playlist:
-                CreatePlaylistDialog.create().show(getChildFragmentManager(), "CREATE_PLAYLIST");
-                return true;
-            case R.id.action_search:
-                startActivity(new Intent(getActivity(), SearchActivity.class));
-                return true;
+        if (id == R.id.action_shuffle_all) {
+            shuffleAll();
+            return true;
+        } else if (id == R.id.action_new_playlist) {
+            CreatePlaylistDialog.create().show(getChildFragmentManager(), "CREATE_PLAYLIST");
+            return true;
+        } else if (id == R.id.action_search) {
+            startActivity(new Intent(getActivity(), SearchActivity.class));
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -324,25 +323,18 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
 
     private boolean handleSortMethodMenuItem(@NonNull AbsLibraryPagerRecyclerViewCustomGridSizeFragment fragment, @NonNull MenuItem item) {
         SortMethod sortMethod = null;
-        switch (item.getItemId()) {
-            case R.id.action_sort_method_name:
-                sortMethod = SortMethod.NAME;
-                break;
-            case R.id.action_sort_method_album:
-                sortMethod = SortMethod.ALBUM;
-                break;
-            case R.id.action_sort_method_artist:
-                sortMethod = SortMethod.ARTIST;
-                break;
-            case R.id.action_sort_method_year:
-                sortMethod = SortMethod.YEAR;
-                break;
-            case R.id.action_sort_method_added:
-                sortMethod = SortMethod.ADDED;
-                break;
-            case R.id.action_sort_method_random:
-                sortMethod = SortMethod.RANDOM;
-                break;
+        if (item.getItemId() == R.id.action_sort_method_name) {
+            sortMethod = SortMethod.NAME;
+        } else if (item.getItemId() == R.id.action_sort_method_album) {
+            sortMethod = SortMethod.ALBUM;
+        } else if (item.getItemId() == R.id.action_sort_method_artist) {
+            sortMethod = SortMethod.ARTIST;
+        } else if (item.getItemId() == R.id.action_sort_method_year) {
+            sortMethod = SortMethod.YEAR;
+        } else if (item.getItemId() == R.id.action_sort_method_added) {
+            sortMethod = SortMethod.ADDED;
+        } else if (item.getItemId() == R.id.action_sort_method_random) {
+            sortMethod = SortMethod.RANDOM;
         }
 
         if (sortMethod != null) {
@@ -356,13 +348,10 @@ public class LibraryFragment extends AbsMainActivityFragment implements ViewPage
 
     private boolean handleSortOrderMenuItem(@NonNull AbsLibraryPagerRecyclerViewCustomGridSizeFragment fragment, @NonNull MenuItem item) {
         SortOrder sortOrder = null;
-        switch (item.getItemId()) {
-            case R.id.action_sort_order_ascending:
-                sortOrder = SortOrder.ASCENDING;
-                break;
-            case R.id.action_sort_order_descending:
-                sortOrder = SortOrder.DESCENDING;
-                break;
+        if (item.getItemId() == R.id.action_sort_order_ascending) {
+            sortOrder = SortOrder.ASCENDING;
+        } else if (item.getItemId() == R.id.action_sort_order_descending) {
+            sortOrder = SortOrder.DESCENDING;
         }
 
         if (sortOrder != null) {

@@ -1,54 +1,54 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 36
+    compileSdk = 36
 
     defaultConfig {
-        minSdkVersion 23
-        targetSdk 35
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        minSdk = 23
+        targetSdk = 35
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        versionCode 18
-        versionName '1.3.5'
+        versionCode = 18
+        versionName = '1.3.5'
 
-        multiDexEnabled true
         vectorDrawables {
-            useSupportLibrary true
+            useSupportLibrary = true
         }
     }
 
     signingConfigs {
         release {
-            storeFile file('../store.jks')
-            storePassword System.getenv('STORE_PASSWORD')
-            keyAlias System.getenv('KEY_ALIAS')
-            keyPassword System.getenv('KEY_PASSWORD')
+            storeFile = file('../store.jks')
+            storePassword = System.getenv('STORE_PASSWORD')
+            keyAlias = System.getenv('KEY_ALIAS')
+            keyPassword = System.getenv('KEY_PASSWORD')
         }
     }
 
     buildTypes {
         release {
-            shrinkResources true
-            minifyEnabled true
+            shrinkResources = true
+            minifyEnabled = true
 
             proguardFiles file('proguard-rules.pro')
-            signingConfig signingConfigs.release
+            signingConfig = signingConfigs.release
         }
 
         debug {
-            applicationIdSuffix '.debug'
+            applicationIdSuffix = '.debug'
         }
     }
 
     buildFeatures {
-        viewBinding true
-        buildConfig true
+        viewBinding = true
+        buildConfig = true
     }
 
     lint {
-        disable 'MissingTranslation'
-        abortOnError false
+        disable += 'MissingTranslation'
+        abortOnError = false
     }
 
     testOptions {
@@ -58,21 +58,23 @@ android {
     }
 
     compileOptions {
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
 
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
+    namespace = 'com.dkanada.gramophone'
+}
 
-    kotlinOptions {
-        jvmTarget = '17'
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
-    namespace 'com.dkanada.gramophone'
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.10'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.4.21'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
     implementation 'org.jellyfin.sdk:jellyfin-core:1.8.8'
     runtimeOnly 'org.slf4j:slf4j-nop:2.0.16'
@@ -101,7 +103,6 @@ dependencies {
 
     implementation 'com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:1.0.0'
     implementation 'com.android.volley:volley:1.2.1'
-    implementation 'com.android.support:multidex:1.0.3'
     implementation 'com.mlegy.redscreenofdeath:red-screen-of-death:0.1.3'
 
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'

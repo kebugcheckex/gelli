@@ -143,20 +143,15 @@ public class MainActivity extends AbsMusicContentActivity {
     private void setUpNavigationView() {
         binding.navigationView.setNavigationItemSelectedListener(menuItem -> {
             binding.drawerLayout.closeDrawers();
-            switch (menuItem.getItemId()) {
-                case R.id.nav_settings:
-                    new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, SettingsActivity.class)), 200);
-                    break;
-                case R.id.nav_about:
-                    new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, AboutActivity.class)), 200);
-                    break;
-                case R.id.nav_switch_account:
-                    new Handler().postDelayed(() -> NavigationUtil.startSelect(MainActivity.this), 200);
-                    break;
-                case R.id.nav_logout:
-                    onLogout = true;
-                    ConfirmLogoutDialog.create().show(getSupportFragmentManager(), ConfirmLogoutDialog.TAG);
-                    break;
+            if (menuItem.getItemId() == R.id.nav_settings) {
+                new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, SettingsActivity.class)), 200);
+            } else if (menuItem.getItemId() == R.id.nav_about) {
+                new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, AboutActivity.class)), 200);
+            } else if (menuItem.getItemId() == R.id.nav_switch_account) {
+                new Handler().postDelayed(() -> NavigationUtil.startSelect(MainActivity.this), 200);
+            } else if (menuItem.getItemId() == R.id.nav_logout) {
+                onLogout = true;
+                ConfirmLogoutDialog.create().show(getSupportFragmentManager(), ConfirmLogoutDialog.TAG);
             }
 
             // only run the following code when a new library has been selected
