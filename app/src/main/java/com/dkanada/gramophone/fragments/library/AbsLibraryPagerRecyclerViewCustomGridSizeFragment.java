@@ -20,7 +20,8 @@ import com.dkanada.gramophone.views.SectionIndexBar;
 /**
  * A library tab that can show its items as a list or as a grid. The column count is derived from the
  * width the list actually has, never from the orientation: a grid fits as many cells of the chosen size
- * as the width allows, and a list uses two columns once the width reaches the expanded size class.
+ * as the width allows, but always at least one more column than the next larger size, and a list uses
+ * two columns once the width reaches the expanded size class.
  */
 public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extends RecyclerView.Adapter> extends AbsLibraryPagerRecyclerViewFragment<A, GridLayoutManager> {
     private LibraryLayout libraryLayout;
@@ -212,8 +213,7 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
             return availableWidth / density >= Util.EXPANDED_WIDTH_DP ? 2 : 1;
         }
 
-        int cellWidth = getResources().getDimensionPixelSize(layout.getCellWidth());
-        return Math.max(1, availableWidth / cellWidth);
+        return layout.gridSpanCount(availableWidth, grid -> getResources().getDimensionPixelSize(grid.getCellWidth()));
     }
 
     protected void applyRecyclerViewPaddingForLayoutRes(@NonNull RecyclerView recyclerView, @LayoutRes int res) {
