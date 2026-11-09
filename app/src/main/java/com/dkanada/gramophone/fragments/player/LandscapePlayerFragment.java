@@ -6,18 +6,15 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
-import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.Insets;
@@ -27,7 +24,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.activities.base.AbsMusicPanelActivity;
 import com.dkanada.gramophone.databinding.FragmentLandscapePlayerBinding;
-import com.dkanada.gramophone.dialogs.SongDetailDialog;
 import com.dkanada.gramophone.helper.LyricsController;
 import com.dkanada.gramophone.helper.MusicPlayerRemote;
 import com.dkanada.gramophone.helper.MusicProgressViewUpdateHelper;
@@ -38,14 +34,15 @@ import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.service.QueueManager;
 import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.NavigationUtil;
+import com.dkanada.gramophone.util.PreferenceUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 import com.dkanada.gramophone.views.PlayPauseDrawable;
 
 /**
  * The full-window player in any window wider than it is tall, in place of the flat or card player. The cover
- * sits on the left, and the right column has the track, the controls, and a switch between the queue, the lyrics
- * and the track details. The window is always dark, with a gradient made from the cover palette, so the views are
- * inflated with a dark theme overlay whatever the app theme is.
+ * sits on the left with the lyrics laid over it, and the right column has the track, the controls and the queue.
+ * The track details are in the overflow menu. The window is always dark, with a gradient made from the cover
+ * palette, so the views are inflated with a dark theme overlay whatever the app theme is.
  */
 public class LandscapePlayerFragment extends AbsPlayerFragment implements PlayerAlbumCoverFragment.Callbacks, MusicProgressViewUpdateHelper.Callback {
     @ColorInt
@@ -66,9 +63,6 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
     private ValueAnimator backgroundAnimator;
     private int[] backgroundColors;
     private int lastColor = DEFAULT_COLOR;
-
-    // short windows have no room for the tabs, so they show the queue and keep the lyrics and details in the overflow menu
-    private boolean showTabs;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -104,14 +98,14 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         playerAlbumCoverFragment.setCallbacks(this);
         playingQueueListFragment = (PlayingQueueListFragment) getChildFragmentManager().findFragmentById(R.id.landscape_player_queue_fragment);
 
-        setUpTabs();
-        // a short window has room for the current line alone, and the tab for its neighbors too
-        binding.landscapePlayerLyrics.setFocusedLine(true, showTabs);
+        // a short window's cover has room for the current line alone, and a taller one for its neighbors too
+        binding.landscapePlayerLyrics.setFocusedLine(true, getResources().getBoolean(R.bool.landscape_player_lyrics_neighbors));
         binding.landscapePlayerLyrics.setTextColor(ICON_COLOR);
+        updateLyricsScrim();
         onLyricsStateChanged();
 
-        // scrolling the queue, the lyrics or the details shouldn't drag the panel closed
-        ((AbsMusicPanelActivity) requireActivity()).setAntiDragView(binding.landscapePlayerTabContent);
+        // scrolling the queue shouldn't drag the panel closed
+        ((AbsMusicPanelActivity) requireActivity()).setAntiDragView(binding.landscapePlayerQueueFragment);
     }
 
     @Override
@@ -129,6 +123,8 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
     public void onResume() {
         super.onResume();
         progressViewUpdateHelper.start();
+        // the opacity may have changed in the settings
+        if (binding != null) updateLyricsScrim();
     }
 
     @Override
@@ -156,11 +152,12 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
             if (song != null) NavigationUtil.startAlbum(requireActivity(), new Album(song), null);
         });
 
+        binding.landscapePlayerLyricsButton.setIconTint(ColorStateList.valueOf(ICON_COLOR));
+        binding.landscapePlayerLyricsButton.setOnClickListener(v -> lyricsController.setEnabled(!lyricsController.isEnabled()));
+
         binding.landscapePlayerMenuButton.setOnClickListener(v -> {
             PopupMenu menu = new PopupMenu(v.getContext(), v);
             menu.inflate(R.menu.menu_landscape_player);
-            menu.getMenu().findItem(R.id.action_details).setVisible(!showTabs);
-            menu.getMenu().findItem(R.id.action_lyrics).setVisible(!showTabs).setChecked(lyricsController.isEnabled());
             menu.setOnMenuItemClickListener(this::onMenuItemClick);
             menu.show();
         });
@@ -201,60 +198,25 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         });
     }
 
-    private void setUpTabs() {
-        showTabs = getResources().getBoolean(R.bool.landscape_player_tabs);
-        binding.landscapePlayerTabs.setVisibility(showTabs ? View.VISIBLE : View.GONE);
-
-        // the tab is restored from the preference, so lyrics stay on across a rotation
-        if (showTabs && lyricsController.isEnabled()) {
-            binding.landscapePlayerTabs.check(R.id.landscape_player_tab_lyrics);
-        }
-
-        binding.landscapePlayerTabs.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
-
-            lyricsController.setEnabled(checkedId == R.id.landscape_player_tab_lyrics);
-            updateTabContent();
-        });
-    }
-
-    private void updateTabContent() {
-        int tab = binding.landscapePlayerTabs.getCheckedButtonId();
-        boolean ready = lyricsController.getState() == LyricsController.State.READY;
-        boolean details = showTabs && tab == R.id.landscape_player_tab_details;
-        // a short window keeps the queue until there are lyrics to swap in, but the user chose this tab
-        boolean lyrics = showTabs ? tab == R.id.landscape_player_tab_lyrics : ready;
-
-        binding.landscapePlayerDetails.setVisibility(details ? View.VISIBLE : View.GONE);
-        binding.landscapePlayerLyrics.setVisibility(lyrics ? View.VISIBLE : View.GONE);
-        // keep the queue's view around so it doesn't lose its place, just hide it
-        if (playingQueueListFragment.getView() != null) {
-            playingQueueListFragment.getView().setVisibility(details || lyrics ? View.GONE : View.VISIBLE);
-        }
-
-        if (ready) {
-            binding.landscapePlayerLyrics.setLyrics(lyricsController.getLyrics());
-        } else {
-            boolean missing = lyricsController.getState() == LyricsController.State.MISSING;
-            binding.landscapePlayerLyrics.setMessage(missing ? getString(R.string.no_lyrics) : null);
-        }
-    }
-
     @Override
     public void onLyricsStateChanged() {
         if (binding == null) return;
 
-        // the preference can change in another activity's player, and selecting another tab is what turns it off
-        if (showTabs) {
-            boolean onLyricsTab = binding.landscapePlayerTabs.getCheckedButtonId() == R.id.landscape_player_tab_lyrics;
-            if (lyricsController.isEnabled() && !onLyricsTab) {
-                binding.landscapePlayerTabs.check(R.id.landscape_player_tab_lyrics);
-            } else if (!lyricsController.isEnabled() && onLyricsTab) {
-                binding.landscapePlayerTabs.check(R.id.landscape_player_tab_queue);
-            }
-        }
+        boolean enabled = lyricsController.isEnabled();
+        boolean ready = lyricsController.getState() == LyricsController.State.READY;
 
-        updateTabContent();
+        binding.landscapePlayerLyrics.setLyrics(lyricsController.getLyrics());
+        binding.landscapePlayerLyrics.setVisibility(ready ? View.VISIBLE : View.GONE);
+
+        binding.landscapePlayerLyricsButton.setIconResource(enabled ? R.drawable.ic_lyrics_white_24dp : R.drawable.ic_lyrics_border_white_24dp);
+        binding.landscapePlayerLyricsButton.setContentDescription(getString(enabled ? R.string.action_hide_lyrics : R.string.action_show_lyrics));
+    }
+
+    /** The scrim behind the lyrics is the deep edge of the background gradient, at the opacity from the settings. */
+    private void updateLyricsScrim() {
+        int opacity = PreferenceUtil.getInstance(requireContext()).getLyricsOpacity();
+        int edge = backgroundColors[backgroundColors.length - 1];
+        binding.landscapePlayerLyrics.setBackgroundColor(ColorUtils.setAlphaComponent(edge, Math.round(opacity * 255 / 100f)));
     }
 
     @Override
@@ -316,7 +278,6 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         binding.landscapePlayerAlbum.setText(song.albumName);
 
         updateIsFavorite();
-        updateDetails(song);
     }
 
     private void updateIsFavorite() {
@@ -325,35 +286,6 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
 
         binding.landscapePlayerFavoriteButton.setIconResource(song.favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp);
         binding.landscapePlayerFavoriteButton.setContentDescription(getString(song.favorite ? R.string.action_remove_from_favorites : R.string.action_add_to_favorites));
-    }
-
-    private void updateDetails(Song song) {
-        ViewGroup list = binding.landscapePlayerDetailsList;
-        list.removeAllViews();
-
-        addDetail(list, R.string.album, song.albumName);
-        addDetail(list, R.string.label_artist, song.artistName);
-        if (song.year > 0) addDetail(list, R.string.label_year, Integer.toString(song.year));
-        if (song.trackNumber > 0) {
-            addDetail(list, R.string.label_track, song.discNumber > 0 ? song.discNumber + "-" + song.trackNumber : Integer.toString(song.trackNumber));
-        }
-        addDetail(list, R.string.label_track_length, MusicUtil.getReadableDurationString(song.duration));
-        if (song.container != null && song.codec != null) addDetail(list, R.string.label_file_format, SongDetailDialog.getFormatString(song));
-        if (song.bitRate > 0) addDetail(list, R.string.label_bit_rate, SongDetailDialog.getBitRateString(song.bitRate));
-        if (song.sampleRate > 0) addDetail(list, R.string.label_sample_rate, SongDetailDialog.getSampleRateString(song.sampleRate));
-        if (song.bitDepth > 0) addDetail(list, R.string.label_bit_depth, SongDetailDialog.getBitDepthString(song.bitDepth));
-        if (song.channels > 0) addDetail(list, R.string.label_channels, Integer.toString(song.channels));
-        if (song.size > 0) addDetail(list, R.string.label_file_size, SongDetailDialog.getFileSizeString(song.size));
-        addDetail(list, R.string.label_file_path, song.path);
-    }
-
-    private void addDetail(ViewGroup list, @StringRes int label, @Nullable String value) {
-        if (TextUtils.isEmpty(value)) return;
-
-        View row = LayoutInflater.from(list.getContext()).inflate(R.layout.item_landscape_player_detail, list, false);
-        ((TextView) row.findViewById(R.id.detail_label)).setText(label);
-        ((TextView) row.findViewById(R.id.detail_value)).setText(value);
-        list.addView(row);
     }
 
     private void updatePlayPauseDrawableState(boolean animate) {
@@ -408,6 +340,7 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
                 backgroundColors[i] = ColorUtils.blendARGB(from[i], to[i], fraction);
             }
             background.setColors(backgroundColors);
+            if (binding != null) updateLyricsScrim();
         });
         backgroundAnimator.start();
     }

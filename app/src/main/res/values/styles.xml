@@ -118,15 +118,6 @@
         <item name="colorControlHighlight">#33FFFFFF</item>
     </style>
 
-    <!-- the Up next and Details switch in the landscape player -->
-    <style name="Widget.Gelli.LandscapePlayer.Segment" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="android:textColor">@color/landscape_player_segment_text</item>
-        <item name="backgroundTint">@color/landscape_player_segment_background</item>
-        <item name="strokeColor">#40FFFFFF</item>
-        <item name="rippleColor">#33FFFFFF</item>
-        <item name="android:minWidth">120dp</item>
-    </style>
-
     <!-- use with MaterialToolbar, which is what tints the navigation icon -->
     <style name="Toolbar.Surface" parent="Widget.Material3.Toolbar.Surface">
         <item name="android:layout_width">match_parent</item>

@@ -35,26 +35,26 @@ public class SongDetailDialog extends DialogFragment {
         return Html.fromHtml("<b>" + context.getResources().getString(titleResId) + ": " + "</b>" + text);
     }
 
-    public static String getFileSizeString(long sizeInBytes) {
+    private static String getFileSizeString(long sizeInBytes) {
         long fileSizeInKB = sizeInBytes / 1024;
         long fileSizeInMB = fileSizeInKB / 1024;
         return fileSizeInMB + " MB";
     }
 
-    public static String getSampleRateString(int sampleRate) {
+    private static String getSampleRateString(int sampleRate) {
         return sampleRate + " Hz";
     }
 
-    public static String getBitRateString(int bitRate) {
+    private static String getBitRateString(int bitRate) {
         int bitRateInKB = bitRate / 1000;
         return bitRateInKB + " kb/s";
     }
 
-    public static String getBitDepthString(int bitDepth) {
+    private static String getBitDepthString(int bitDepth) {
         return bitDepth + "-bit";
     }
 
-    public static String getFormatString(@NonNull Song song) {
+    private static String getFormatString(@NonNull Song song) {
         if (song.container.equals(song.codec)) return song.container.toUpperCase();
         return song.container.toUpperCase() + ":" + song.codec.toUpperCase();
     }

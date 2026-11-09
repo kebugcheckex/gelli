@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-the full-window player in any window wider than it is tall: the cover on the left, and on the right the
-track, the controls and a switch between the queue and the track details. It is always dark, with a
-gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.LandscapePlayer.
+the full-window player in any window wider than it is tall: the cover on the left, with the lyrics laid
+over it, and on the right the track, the controls and the queue. It is always dark, with a gradient from
+the cover palette, and it is inflated with ThemeOverlay.Gelli.LandscapePlayer.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -45,7 +45,7 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                 android:id="@+id/landscape_player_source"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_marginStart="64dp"
+                android:layout_marginStart="112dp"
                 android:layout_marginEnd="64dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackground"
@@ -72,6 +72,15 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                     tools:text="Tidewater" />
 
             </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/landscape_player_lyrics_button"
+                style="@style/Widget.Gelli.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/action_show_lyrics"
+                app:icon="@drawable/ic_lyrics_border_white_24dp"
+                app:iconSize="24dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/landscape_player_menu_button"
@@ -116,6 +125,13 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                     class="com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
+
+                <!-- the lyrics sit on a translucent scrim, so the cover stays in view behind them -->
+                <com.dkanada.gramophone.views.LyricsView
+                    android:id="@+id/landscape_player_lyrics"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -223,7 +239,7 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/landscape_player_controls_height"
-                    android:gravity="center_vertical"
+                    android:gravity="center"
                     android:layoutDirection="ltr"
                     android:orientation="horizontal">
 
@@ -232,7 +248,6 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
                         style="@style/Widget.Gelli.IconButton"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:layout_marginStart="-12dp"
                         android:contentDescription="@string/action_shuffle"
                         app:icon="@drawable/ic_shuffle_white_24dp"
                         app:iconSize="24dp" />
@@ -299,78 +314,24 @@ gradient from the cover palette, and it is inflated with ThemeOverlay.Gelli.Land
 
                 </LinearLayout>
 
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/landscape_player_tabs"
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:checkedButton="@id/landscape_player_tab_queue"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
+                    android:layout_marginTop="8dp"
+                    android:singleLine="true"
+                    android:text="@string/up_next"
+                    android:textAppearance="?textAppearanceTitleSmall"
+                    android:textColor="?android:textColorSecondary" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/landscape_player_tab_queue"
-                        style="@style/Widget.Gelli.LandscapePlayer.Segment"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/up_next" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/landscape_player_tab_lyrics"
-                        style="@style/Widget.Gelli.LandscapePlayer.Segment"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/lyrics" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/landscape_player_tab_details"
-                        style="@style/Widget.Gelli.LandscapePlayer.Segment"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_details" />
-
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-
-                <FrameLayout
-                    android:id="@+id/landscape_player_tab_content"
+                <!-- a fragment tag has no container for the list to take the dark overlay from -->
+                <androidx.fragment.app.FragmentContainerView
+                    android:id="@+id/landscape_player_queue_fragment"
+                    android:name="com.dkanada.gramophone.fragments.player.PlayingQueueListFragment"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_marginStart="-16dp"
                     android:layout_marginTop="8dp"
-                    android:layout_weight="1">
-
-                    <!-- a fragment tag has no container for the list to take the dark overlay from -->
-                    <androidx.fragment.app.FragmentContainerView
-                        android:id="@+id/landscape_player_queue_fragment"
-                        android:name="com.dkanada.gramophone.fragments.player.PlayingQueueListFragment"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-
-                    <com.dkanada.gramophone.views.LyricsView
-                        android:id="@+id/landscape_player_lyrics"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:visibility="gone" />
-
-                    <ScrollView
-                        android:id="@+id/landscape_player_details"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:clipToPadding="false"
-                        android:paddingStart="16dp"
-                        android:paddingTop="8dp"
-                        android:paddingBottom="8dp"
-                        android:requiresFadingEdge="vertical"
-                        android:visibility="gone">
-
-                        <LinearLayout
-                            android:id="@+id/landscape_player_details_list"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical" />
-
-                    </ScrollView>
-
-                </FrameLayout>
+                    android:layout_weight="1" />
 
             </LinearLayout>
 
