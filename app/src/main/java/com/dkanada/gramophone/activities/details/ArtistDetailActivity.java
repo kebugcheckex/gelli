@@ -28,6 +28,8 @@ import com.dkanada.gramophone.util.MusicUtil;
 import com.dkanada.gramophone.util.QueryUtil;
 import com.dkanada.gramophone.util.ViewUtil;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -62,7 +64,12 @@ public class ArtistDetailActivity extends AbsMusicContentActivity implements App
     @Override
     public void onStateOnline() {
         QueryUtil.getAlbumsByArtistId(artist.id, media -> {
-            artist.albums = media;
+            // oldest first; albums without a year (0) go last, and ties fall back to the title
+            List<Album> albums = new ArrayList<>(media);
+            albums.sort(Comparator
+                    .comparingInt((Album album) -> album.year > 0 ? album.year : Integer.MAX_VALUE)
+                    .thenComparing(album -> album.title, String.CASE_INSENSITIVE_ORDER));
+            artist.albums = albums;
             setArtist(artist);
         }, albumArtist);
 
