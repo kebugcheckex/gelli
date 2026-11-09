@@ -1,11 +1,9 @@
 package com.dkanada.gramophone.util;
 
 import android.animation.Animator;
-import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.animation.PathInterpolator;
@@ -29,17 +27,8 @@ public class ViewUtil {
     }
 
     private static Animator createColorAnimator(Object target, String propertyName, @ColorInt int startColor, @ColorInt int endColor) {
-        ObjectAnimator animator;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            animator = ObjectAnimator.ofArgb(target, propertyName, startColor, endColor);
-        } else {
-            animator = ObjectAnimator.ofInt(target, propertyName, startColor, endColor);
-            animator.setEvaluator(new ArgbEvaluator());
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            animator.setInterpolator(new PathInterpolator(0.4f, 0f, 1f, 1f));
-        }
+        ObjectAnimator animator = ObjectAnimator.ofArgb(target, propertyName, startColor, endColor);
+        animator.setInterpolator(new PathInterpolator(0.4f, 0f, 1f, 1f));
 
         animator.setDuration(PHONOGRAPH_ANIM_TIME);
         return animator;

@@ -1,12 +1,10 @@
 package com.dkanada.gramophone.views.shortcuts;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.graphics.drawable.Icon;
-import android.os.Build;
 
 import com.dkanada.gramophone.views.shortcuts.type.LatestShortcutType;
 import com.dkanada.gramophone.views.shortcuts.type.ShuffleShortcutType;
@@ -15,7 +13,6 @@ import com.dkanada.gramophone.views.shortcuts.type.FrequentShortcutType;
 import java.util.Arrays;
 import java.util.List;
 
-@TargetApi(Build.VERSION_CODES.O)
 public class DynamicShortcutManager {
 
     private final Context context;

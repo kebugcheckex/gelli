@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Notificare</string>
     <string name="pref_title_colored_shortcuts">Comenzi rapide colorate</string>
     <string name="pref_title_show_album_art">Arată coperta de album</string>
-    <string name="pref_title_blur_album_art">Blurează coperta de album</string>
     <string name="pref_title_colored_notification">Notificare colorată</string>
     <string name="pref_title_classic_notification">Design clasic de notificare</string>
     <string name="pref_title_remember_tab">Rețineți ultima filă</string>
@@ -78,7 +77,6 @@
     <string name="empty">Gol</string>
     <string name="song">Melodie</string>
     <string name="pref_summary_show_album_art">Folosește coperta de album a melodiei curente ca fundal pentru ecranul de blocare.</string>
-    <string name="pref_summary_blur_album_art">Blurează coperta de album pentru ecranul de blocare. Poate cauza probleme cu widgeturi și aplicații terțe.</string>
     <string name="pref_summary_classic_notification">Utilizați designul clasic de notificare.</string>
     <string name="pref_summary_colored_notification">"Coloreaz\u0103 bara de notificare cu cea mai vibrant\u0103 culoare a copertei de album."</string>
     <string name="pref_summary_colored_shortcuts">Colorarea comenzilor rapide ale aplicației în culoarea primară.</string>

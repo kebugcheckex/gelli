@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Notification</string>
     <string name="pref_title_colored_shortcuts">Raccourcis de l\'application colorés</string>
     <string name="pref_title_show_album_art">Afficher la pochette d\'album</string>
-    <string name="pref_title_blur_album_art">Flouter la pochette d\'album</string>
     <string name="pref_title_colored_notification">Notification colorée</string>
     <string name="pref_title_classic_notification">Style de notification classique</string>
     <string name="pref_title_remember_tab">Se souvenir de la dernière fenêtre</string>
@@ -78,7 +77,6 @@
     <string name="empty">Vide</string>
     <string name="song">Titre</string>
     <string name="pref_summary_show_album_art">Utiliser la pochette d\'album du titre en cours en tant que fond d\'écran de verrouillage.</string>
-    <string name="pref_summary_blur_album_art">Floute la pochette d\'album sur l\'écran de verrouillage. Peut causer des problèmes avec des applications et des widgets tiers.</string>
     <string name="pref_summary_classic_notification">Utiliser le style de notification classique.</string>
     <string name="pref_summary_colored_notification">"Colore la notification en fonction de la pochette de l'album."</string>
     <string name="pref_summary_colored_shortcuts">Colore les raccourcis de l\'application selon la couleur primaire.</string>

@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Bildirim</string>
     <string name="pref_title_colored_shortcuts">Renkli uygulama kısayolları</string>
     <string name="pref_title_show_album_art">Albüm kapağını göster</string>
-    <string name="pref_title_blur_album_art">Bulanık albüm kapağı</string>
     <string name="pref_title_colored_notification">Renkli bildirim</string>
     <string name="pref_title_classic_notification">Klasik bildirim tasarımı</string>
     <string name="pref_title_remember_tab">Son sekmeyi hatırla</string>
@@ -78,7 +77,6 @@
     <string name="empty">Boş</string>
     <string name="song">Şarkı</string>
     <string name="pref_summary_show_album_art">Kilit ekranı duvar kağıdı olarak çalan şarkının albüm kapağını kullanır.</string>
-    <string name="pref_summary_blur_album_art">Kilit ekranındaki albüm kapağını bulanıklaştırır. Üçüncü taraf uygulamalar ve widget\'ler ile ilgili sorunlara neden olabilir.</string>
     <string name="pref_summary_classic_notification">Klasik bildirim tasarımını kullan.</string>
     <string name="pref_summary_colored_notification">"Bildirimler alb\u00fcm kapa\u011f\u0131n\u0131n canl\u0131 renkleriyle renklendirilir."</string>
     <string name="pref_summary_colored_shortcuts">Uygulama kısayollarını ana renk ile renklendir.</string>

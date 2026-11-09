@@ -37,7 +37,6 @@ import com.bumptech.glide.request.transition.Transition;
 import com.dkanada.gramophone.App;
 import com.dkanada.gramophone.BuildConfig;
 import com.dkanada.gramophone.R;
-import com.dkanada.gramophone.glide.BlurTransformation;
 import com.dkanada.gramophone.glide.CustomGlideRequest;
 import com.dkanada.gramophone.model.Playlist;
 import com.dkanada.gramophone.model.Song;
@@ -607,7 +606,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     }
 
     public void initNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !PreferenceUtil.getInstance(this).getClassicNotification()) {
+        if (!PreferenceUtil.getInstance(this).getClassicNotification()) {
             playingNotification = new PlayingNotificationNougat();
         } else {
             playingNotification = new PlayingNotificationMarshmallow();
@@ -664,22 +663,17 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
             .putLong(MediaMetadataCompat.METADATA_KEY_YEAR, song.year)
             .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, null);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, queueManager.getPlayingQueue().size());
-        }
+        metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, queueManager.getPlayingQueue().size());
 
+        // the lock screen art is optional on Android 10, gone on 11, and the media controls show it from 12
         if (
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ||
-                (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q && PreferenceUtil.getInstance(this).getShowAlbumCover())
+                (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q && PreferenceUtil.getInstance(this).getShowAlbumCover())
         ) {
             final Point screenSize = Util.getScreenSize(MusicService.this);
             final RequestBuilder<Bitmap> request = CustomGlideRequest.Builder
                 .from(MusicService.this, song.primary, song.blurHash)
                 .bitmap().build();
-
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P && PreferenceUtil.getInstance(this).getBlurAlbumCover()) {
-                request.transform(new BlurTransformation.Builder(MusicService.this).build());
-            }
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -821,7 +815,6 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         switch (key) {
             case PreferenceUtil.SHOW_ALBUM_COVER:
-            case PreferenceUtil.BLUR_ALBUM_COVER:
                 updateMediaSessionMetadata();
                 break;
             case PreferenceUtil.COLORED_NOTIFICATION:

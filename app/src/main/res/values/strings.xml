@@ -148,7 +148,6 @@
     <string name="pref_title_lyrics_opacity">Lyrics Background Opacity</string>
     <string name="pref_summary_lyrics_opacity">How much the background behind the lyrics hides the album cover.</string>
     <string name="pref_title_show_album_art">Show Album Cover</string>
-    <string name="pref_title_blur_album_art">Blur Album Cover</string>
     <string name="pref_title_transcode_codec">Transcode Codec</string>
     <string name="pref_title_maximum_bitrate">Maximum Bitrate</string>
     <string name="pref_title_classic_notification">Classic Design</string>
@@ -167,7 +166,6 @@
     <string name="pref_title_gain_adjustment">Gain Adjustment</string>
 
     <string name="pref_summary_show_album_art">Uses the current song\'s album cover as the lock screen wallpaper.</string>
-    <string name="pref_summary_blur_album_art">Blurs the album cover on the lock screen. This can cause problems with third party apps and widgets.</string>
     <string name="pref_summary_classic_notification">Use the classic notification design.</string>
     <string name="pref_summary_colored_notification">"Colors the notification with a vibrant color taken from the album cover."</string>
     <string name="pref_summary_remember_shuffle">Shuffle mode will stay on when selecting a new list of songs for the queue.</string>

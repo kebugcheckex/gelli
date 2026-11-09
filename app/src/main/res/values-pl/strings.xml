@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Powiadomienie</string>
     <string name="pref_title_colored_shortcuts">Kolorowe skróty aplikacji</string>
     <string name="pref_title_show_album_art">Pokazuj okładki albumów</string>
-    <string name="pref_title_blur_album_art">Rozmywanie okładki albumu</string>
     <string name="pref_title_colored_notification">Kolorowy odtwarzacz w pasku powiadomień</string>
     <string name="pref_title_classic_notification">Klasyczny wygląd powiadomienia</string>
     <string name="pref_title_remember_tab">"Zapamiętaj ostatnią zakładkę "</string>
@@ -78,7 +77,6 @@
     <string name="empty">Pusto</string>
     <string name="song">Utwór</string>
     <string name="pref_summary_show_album_art">Okładki albumów obecnie granych utworów będą zastępowały tapetę na ekranie blokady</string>
-    <string name="pref_summary_blur_album_art">Rozmywa okładki albumów na ekranie blokady. Mogą wystąpić problemy z aplikacjami firm trzecich oraz widżetami</string>
     <string name="pref_summary_classic_notification">Używaj klasycznego stylu powiadomienia.</string>
     <string name="pref_summary_colored_notification">"Odtwarzacz w pasku powiadomie\u0144 ma tonacj\u0119 ok\u0142adki albumu"</string>
     <string name="pref_summary_colored_shortcuts">Kolory skrótów aplikacji w kolorze podstawowym</string>

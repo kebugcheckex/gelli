@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -22,7 +21,6 @@ import com.dkanada.gramophone.glide.palette.BitmapPaletteWrapper;
 import com.dkanada.gramophone.model.Song;
 import com.dkanada.gramophone.service.MusicService;
 import com.dkanada.gramophone.activities.MainActivity;
-import com.dkanada.gramophone.util.PreferenceUtil;
 
 import static com.dkanada.gramophone.service.MusicService.ACTION_REWIND;
 import static com.dkanada.gramophone.service.MusicService.ACTION_SKIP;
@@ -94,12 +92,8 @@ public class PlayingNotificationNougat extends PlayingNotification {
                                 .addAction(playPauseAction)
                                 .addAction(nextAction);
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            builder.setStyle(new MediaStyle().setMediaSession(service.getMediaSession().getSessionToken()).setShowActionsInCompactView(0, 1, 2))
-                                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
-                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O && PreferenceUtil.getInstance(service).getColoredNotification())
-                                builder.setColor(color);
-                        }
+                        builder.setStyle(new MediaStyle().setMediaSession(service.getMediaSession().getSessionToken()).setShowActionsInCompactView(0, 1, 2))
+                                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 
                         // notification has been stopped before loading was finished
                         if (stopped) return;

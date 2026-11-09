@@ -74,7 +74,6 @@ public final class PreferenceUtil {
     public static final String COLORED_NOTIFICATION = "colored_notification";
 
     public static final String SHOW_ALBUM_COVER = "show_album_cover";
-    public static final String BLUR_ALBUM_COVER = "blur_album_cover";
 
     public static final String TRANSCODE_CODEC = "transcode_codec";
     public static final String DIRECT_PLAY_CODECS = "direct_play_codecs";
@@ -317,10 +316,6 @@ public final class PreferenceUtil {
 
     public final boolean getShowAlbumCover() {
         return mPreferences.getBoolean(SHOW_ALBUM_COVER, false);
-    }
-
-    public final boolean getBlurAlbumCover() {
-        return mPreferences.getBoolean(BLUR_ALBUM_COVER, false);
     }
 
     public final SortOrder getAlbumSortOrder() {

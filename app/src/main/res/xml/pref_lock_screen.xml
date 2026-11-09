@@ -10,14 +10,6 @@
             android:summary="@string/pref_summary_show_album_art"
             android:title="@string/pref_title_show_album_art" />
 
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            android:defaultValue="false"
-            android:dependency="show_album_cover"
-            android:key="blur_album_cover"
-            android:summary="@string/pref_summary_blur_album_art"
-            android:title="@string/pref_title_blur_album_art" />
-
     </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

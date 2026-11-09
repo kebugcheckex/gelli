@@ -1,11 +1,9 @@
 package com.dkanada.gramophone.util;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Point;
-import android.os.Build;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
@@ -41,13 +39,6 @@ public class Util {
         Point size = new Point();
         display.getSize(size);
         return size;
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    public static void setStatusBarTranslucent(@NonNull Window window) {
-        window.setFlags(
-                WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
-                WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
     }
 
     public static void setAllowDrawUnderStatusBar(@NonNull Window window) {

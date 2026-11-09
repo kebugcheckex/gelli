@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Notificación</string>
     <string name="pref_title_colored_shortcuts">Atajos coloreados de la aplicación</string>
     <string name="pref_title_show_album_art">Mostrar carátula del álbum</string>
-    <string name="pref_title_blur_album_art">Desenfocar carátula de álbum</string>
     <string name="pref_title_colored_notification">Notificación coloreada</string>
     <string name="pref_title_classic_notification">Diseño clásico de la notificación</string>
     <string name="pref_title_remember_tab">Recordar la última pestaña</string>
@@ -79,7 +78,6 @@
     <string name="empty">Vacío</string>
     <string name="song">Canción</string>
     <string name="pref_summary_show_album_art">Utiliza la carátula del álbum que se reproduce como fondo de pantalla de bloqueo</string>
-    <string name="pref_summary_blur_album_art">Desenfoca la carátula del álbum en la pantalla de bloqueo. Puede causar problemas con aplicaciones de terceros y widgets.</string>
     <string name="pref_summary_classic_notification">Utilizar el diseño clásico de notificación.</string>
     <string name="pref_summary_colored_notification">"Colorea la notificaci\u00f3n con el color vibrante de la car\u00e1tula del \u00e1lbum."</string>
     <string name="pref_summary_colored_shortcuts">Colorea los accesos directos con el color principal</string>

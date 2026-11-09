@@ -104,24 +104,9 @@ public class SettingsActivity extends AbsBaseActivity {
             });
             final TwoStatePreference classicNotification = findPreference(PreferenceUtil.CLASSIC_NOTIFICATION);
             final TwoStatePreference coloredNotification = findPreference(PreferenceUtil.COLORED_NOTIFICATION);
-            final TwoStatePreference colorAppShortcuts = findPreference(PreferenceUtil.COLORED_SHORTCUTS);
             final Preference categoryPreference = findPreference(PreferenceUtil.CATEGORIES);
             final Preference colorPresetPreference = findPreference(PreferenceUtil.COLOR_PRESET);
             final Preference showAlbumCoverPreference = findPreference(PreferenceUtil.SHOW_ALBUM_COVER);
-            final Preference blurAlbumCoverPreference = findPreference(PreferenceUtil.BLUR_ALBUM_COVER);
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                classicNotification.setEnabled(false);
-            }
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                coloredNotification.setEnabled(false);
-                colorAppShortcuts.setEnabled(false);
-            }
-
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                blurAlbumCoverPreference.setEnabled(false);
-            }
 
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
                 // stock Android 11 removed the album cover on lock screens

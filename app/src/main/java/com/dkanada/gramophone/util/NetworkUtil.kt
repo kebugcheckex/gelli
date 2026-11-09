@@ -4,8 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.VisibleForTesting
@@ -84,12 +82,7 @@ object NetworkUtil {
         }
 
         val manager = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            manager.registerDefaultNetworkCallback(callback)
-        } else {
-            val request = NetworkRequest.Builder().addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).build()
-            manager.registerNetworkCallback(request, callback)
-        }
+        manager.registerDefaultNetworkCallback(callback)
     }
 
     // capabilities change often (e.g. bandwidth estimates), so listeners only hear about what the policies look at

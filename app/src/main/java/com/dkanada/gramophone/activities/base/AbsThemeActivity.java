@@ -3,7 +3,6 @@ package com.dkanada.gramophone.activities.base;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
@@ -59,11 +58,7 @@ public abstract class AbsThemeActivity extends AppCompatActivity {
     }
 
     private void setDrawUnderStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Util.setAllowDrawUnderStatusBar(getWindow());
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Util.setStatusBarTranslucent(getWindow());
-        }
+        Util.setAllowDrawUnderStatusBar(getWindow());
     }
 
     public void setStatusBarColor(int color) {
@@ -80,9 +75,7 @@ public abstract class AbsThemeActivity extends AppCompatActivity {
     public void setTaskDescriptionColor(int color) {
         int solid = MaterialColors.compositeARGBWithAlpha(color, 255);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setTaskDescription(new ActivityManager.TaskDescription(getTitle().toString(), null, solid));
-        }
+        setTaskDescription(new ActivityManager.TaskDescription(getTitle().toString(), null, solid));
     }
 
     public void setNavigationBarColor(int color) {

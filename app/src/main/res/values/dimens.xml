@@ -14,7 +14,7 @@
     <dimen name="progress_container_height">20dp</dimen>
     <dimen name="media_controller_container_height">104dp</dimen>
 
-    <dimen name="status_bar_padding">25dp</dimen>
+    <dimen name="status_bar_padding">24dp</dimen>
 
     <dimen name="tab_height">48dp</dimen>
 

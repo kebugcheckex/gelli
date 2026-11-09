@@ -61,7 +61,6 @@
     <string name="pref_header_notification">Notificação</string>
     <string name="pref_title_colored_shortcuts">Atalhos de app coloridos</string>
     <string name="pref_title_show_album_art">Visualizar capa do álbum</string>
-    <string name="pref_title_blur_album_art">Capa de álbum esmaecida</string>
     <string name="pref_title_colored_notification">Notificação colorida</string>
     <string name="pref_title_classic_notification">Design de classificação clássico</string>
     <string name="pref_title_remember_tab">Lembrar última aba</string>
@@ -80,7 +79,6 @@
     <string name="empty">Vazio</string>
     <string name="song">Música</string>
     <string name="pref_summary_show_album_art">A imagem do álbum está sendo mostrada no bloqueio de tela. Você deve reiniciar o Phonograph para as mudanças fazerem efeito.</string>
-    <string name="pref_summary_blur_album_art">Esmaece a capa de álbum no bloqueio de tela. Pode causar problemas com aplicativos de terceiros e widgets.</string>
     <string name="pref_summary_classic_notification">Usar o design de notificação clássico.</string>
     <string name="pref_summary_colored_notification">"A notifica\u00e7\u00e3o \u00e9 colorida com a cor mais vibrante do \u00e1lbum."</string>
     <string name="pref_summary_colored_shortcuts">Colore os atalhos do app com a cor primária.</string>

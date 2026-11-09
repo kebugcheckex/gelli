@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Obavijest</string>
     <string name="pref_title_colored_shortcuts">Obojani prečaci</string>
     <string name="pref_title_show_album_art">Prikaži omot albuma na zaklj. zaslonu</string>
-    <string name="pref_title_blur_album_art">Zamagli omot albuma</string>
     <string name="pref_title_colored_notification">Obojene obavijesti</string>
     <string name="pref_title_classic_notification">Klasični dizajn obavijesti</string>
     <string name="pref_title_remember_tab">Zapamti zadnju karticu</string>
@@ -78,7 +77,6 @@
     <string name="empty">Prazno</string>
     <string name="song">Pjesma</string>
     <string name="pref_summary_show_album_art">Koristi omot albuma trenutne pjesme kao pozadinu zaključanog zaslona.</string>
-    <string name="pref_summary_blur_album_art">Zamagljuje omot albuma na zaključanom zaslonu. Može izazvati probleme za ostale aplikacije i widgete.</string>
     <string name="pref_summary_classic_notification">Koristi klasični dizajn obavijesti.</string>
     <string name="pref_summary_colored_notification">"Obavijesti su obojene istaknutom bojom omota albuma."</string>
     <string name="pref_summary_colored_shortcuts">Boja prečace aplikacije u primarnu boju.</string>

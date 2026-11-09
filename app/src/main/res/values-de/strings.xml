@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Benachrichtigung</string>
     <string name="pref_title_colored_shortcuts">Gefärbte App-Shortcuts</string>
     <string name="pref_title_show_album_art">Album Cover anzeigen</string>
-    <string name="pref_title_blur_album_art">Album Cover weichzeichnen</string>
     <string name="pref_title_colored_notification">Gefärbte Benachrichtigung</string>
     <string name="pref_title_classic_notification">Klassisches Benachrichtigungsdesign</string>
     <string name="pref_title_remember_tab">Letzten Tab merken</string>
@@ -81,7 +80,6 @@
     <string name="error_login_credentials">Ungültige Anmeldedaten.</string>
     <string name="song">Titel</string>
     <string name="pref_summary_show_album_art">Das Album Cover des aktuellen Titels wird als Hintergrund im Sperrbildschirm verwendet.</string>
-    <string name="pref_summary_blur_album_art">Lässt das Album Cover auf dem Sperrbildschirm verschwommen aussehen. Kann Probleme mit Apps und Widgets von Dritten verursachen.</string>
     <string name="pref_summary_classic_notification">Das klassische Benachrichtigungsdesign verwenden.</string>
     <string name="pref_summary_colored_notification">"Die Benachrichtigung ist in der Farbe des Album Covers gef\u00e4rbt."</string>
     <string name="pref_summary_colored_shortcuts">Färbt die App-Shortcuts mit der Hauptfarbe.</string>

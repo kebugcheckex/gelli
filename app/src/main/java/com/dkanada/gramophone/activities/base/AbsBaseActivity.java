@@ -1,9 +1,7 @@
 package com.dkanada.gramophone.activities.base;
 
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
@@ -13,7 +11,6 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.dkanada.gramophone.activities.MainActivity;
@@ -32,7 +29,6 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
     private boolean allowed;
 
     @Override
-    @TargetApi(Build.VERSION_CODES.M)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -41,7 +37,6 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.M)
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
@@ -74,7 +69,6 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.M)
     protected void onResume() {
         super.onResume();
 
@@ -111,7 +105,6 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
             .show();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestBatteryOptimization() {
         Intent intent = new Intent();
 
@@ -121,7 +114,6 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
         startActivity(intent);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private boolean checkBatteryOptimization() {
         String packageName = getPackageName();
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
@@ -129,12 +121,10 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
         return pm.isIgnoringBatteryOptimizations(packageName);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestPermissions() {
         requestPermissions(permissions.toArray(new String[0]), PERMISSION_REQUEST);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private boolean checkPermissions() {
         for (String permission : permissions) {
             if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
@@ -146,7 +136,6 @@ public abstract class AbsBaseActivity extends AbsThemeActivity {
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.M)
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
 

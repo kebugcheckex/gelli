@@ -2,7 +2,6 @@ package com.dkanada.gramophone;
 
 import android.app.Application;
 import android.content.Context;
-import android.os.Build;
 
 import androidx.room.Room;
 
@@ -41,9 +40,7 @@ public class App extends Application {
             JellyfinSdkSession.updateSessionFromUser(selectedUser);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            new DynamicShortcutManager(this).initDynamicShortcuts();
-        }
+        new DynamicShortcutManager(this).initDynamicShortcuts();
     }
 
     public static JellyDatabase createDatabase(Context context) {

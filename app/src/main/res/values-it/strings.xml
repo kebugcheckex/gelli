@@ -61,7 +61,6 @@
     <string name="pref_header_notification">Notifica</string>
     <string name="pref_title_colored_shortcuts">Scorciatoie app colorate</string>
     <string name="pref_title_show_album_art">Mostra copertina album nella schermata di blocco</string>
-    <string name="pref_title_blur_album_art">Sfoca la copertina</string>
     <string name="pref_title_colored_notification">Notifica colorata</string>
     <string name="pref_title_classic_notification">Design di notifica classico</string>
     <string name="pref_title_remember_tab">Ricorda ultima scheda</string>
@@ -80,7 +79,6 @@
     <string name="empty">Vuoto</string>
     <string name="song">Brano</string>
     <string name="pref_summary_show_album_art">Usa la copertina dell\'album in riproduzione come sfondo della schermata di blocco.</string>
-    <string name="pref_summary_blur_album_art">Applica una sfocatura sulla copertina nella schermata di blocco. Può causare problemi con app e widget di terze parti.</string>
     <string name="pref_summary_classic_notification">Usa il design di notifica classico.</string>
     <string name="pref_summary_colored_notification">"La notifica \u00e8 colorata secondo la gamma di colori della copertina."</string>
     <string name="pref_summary_colored_shortcuts">Colora le scorciatoie dell\'app con il colore principale.</string>

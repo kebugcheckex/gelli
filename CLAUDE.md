@@ -23,7 +23,13 @@ This is a personal fork of the archived upstream `dkanada/gelli`, developed with
 ./gradlew installDebug
 ```
 
-There are no unit or instrumentation tests in this project.
+Unit tests live in `app/src/test` and run on the JVM:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+`android.icu` is only a stub there, so tests that transliterate use `icu4j` (a test-only dependency) in its place. There are no instrumentation tests.
 
 ## Architecture Overview
 
@@ -75,7 +81,7 @@ Room database (`JellyDatabase`) with migrations tracked in the class. DAOs:
 - `activities/` — `SplashActivity` → `LoginActivity` → `MainActivity` (hosts the `LibraryFragment`). `SettingsActivity`, `SearchActivity`, `SelectActivity`, and detail activities live alongside.
 - `fragments/library/` — one fragment per library tab: `AlbumsFragment`, `ArtistsFragment`, `AlbumArtistsFragment`, `SongsFragment`, `PlaylistsFragment`, `FavoritesFragment`, `GenresFragment`.
 - `fragments/player/` — sliding-up player panel rendered inside `MainActivity`.
-- `glide/` — `CustomGlideRequest` builds image URLs from Jellyfin item IDs; `BlurTransformation` uses blurhash placeholders.
+- `glide/` — `CustomGlideRequest` builds image URLs from Jellyfin item IDs, with blurhash placeholders.
 
 ### Key Utilities
 

@@ -1,7 +1,6 @@
 package com.dkanada.gramophone.activities.base;
 
 import android.animation.ValueAnimator;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,6 @@ import android.view.animation.PathInterpolator;
 import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.view.ActionMode;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.view.ViewCompat;
@@ -332,9 +330,7 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
             int playerFragmentColor = playerFragment.getPaletteColor();
 
             super.setTaskDescriptionColor(playerFragmentColor);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                animateNavigationBarColor(playerFragmentColor);
-            }
+            animateNavigationBarColor(playerFragmentColor);
         }
     }
 
@@ -369,7 +365,6 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void animateNavigationBarColor(int color) {
         if (navigationBarColorAnimator != null) {
             navigationBarColorAnimator.cancel();

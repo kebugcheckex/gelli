@@ -3,9 +3,7 @@ package com.dkanada.gramophone.service.notifications;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.os.Build;
 
-import androidx.annotation.RequiresApi;
 
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.service.MusicService;
@@ -28,9 +26,7 @@ public abstract class PlayingNotification {
     public synchronized void init(MusicService service) {
         this.service = service;
         notificationManager = (NotificationManager) service.getSystemService(NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel();
-        }
+        createNotificationChannel();
     }
 
     public abstract void update();
@@ -62,7 +58,6 @@ public abstract class PlayingNotification {
         notifyMode = newNotifyMode;
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
         NotificationChannel notificationChannel = notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID);
 

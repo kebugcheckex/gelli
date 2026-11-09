@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.VisibleForTesting
@@ -288,16 +287,10 @@ class SaveWorker(context: Context, params: WorkerParameters) : Worker(context, p
         return builder.build()
     }
 
-    private fun createForegroundInfo(notification: Notification): ForegroundInfo {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIFICATION_ID, notification)
-        }
-    }
+    private fun createForegroundInfo(notification: Notification): ForegroundInfo =
+        ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         if (notificationManager.getNotificationChannel(CHANNEL_ID) != null) return
 
         val channel = NotificationChannel(CHANNEL_ID, applicationContext.getString(R.string.action_download), NotificationManager.IMPORTANCE_LOW)

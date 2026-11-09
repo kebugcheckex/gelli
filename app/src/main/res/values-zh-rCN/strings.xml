@@ -108,7 +108,6 @@
     <string name="pref_title_theme">主题</string>
     <string name="pref_title_colored_shortcuts">多彩应用快捷方式</string>
     <string name="pref_title_show_album_art">显示专辑封面</string>
-    <string name="pref_title_blur_album_art">专辑封面模糊化</string>
     <string name="pref_title_transcode_codec">转码设置</string>
     <string name="pref_title_maximum_bitrate">最大比特率</string>
     <string name="pref_title_classic_notification">经典通知样式</string>
@@ -121,7 +120,6 @@
 
     <string name="pref_title_gain_adjustment">增益调节</string>
     <string name="pref_summary_show_album_art">使用当前播放曲目的专辑封面作为锁屏壁纸。</string>
-    <string name="pref_summary_blur_album_art">模糊化显示锁屏界面内的专辑封面。此功能或与第三方应用及桌面插件产生冲突。</string>
     <string name="pref_summary_classic_notification">使用经典通知样式。</string>
     <string name="pref_summary_colored_notification">"\u4f7f\u7528\u4e0e\u4e13\u8f91\u5c01\u9762\u76f8\u5339\u914d\u7684\u989c\u8272\u7740\u8272\u901a\u77e5\u80cc\u666f\u8272\u3002"</string>
     <string name="pref_summary_remember_shuffle">为播放队列选择新的歌曲列表时，随机播放模式将保持打开状态。</string>

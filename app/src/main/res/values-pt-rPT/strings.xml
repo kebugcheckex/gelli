@@ -53,7 +53,6 @@
     <string name="pref_header_audio">Áudio</string>
     <string name="pref_header_lock_screen">Ecrã de Bloqueio</string>
     <string name="pref_title_show_album_art">Mostrar capa do álbum</string>
-    <string name="pref_title_blur_album_art">Desfocar capa do álbum</string>
     <string name="pref_title_colored_notification">Notificação colorida</string>
     <string name="delete_action">Eliminar</string>
     <string name="remove_action">Remover</string>
@@ -67,7 +66,6 @@
     <string name="empty">Vazio</string>
     <string name="song">Música</string>
     <string name="pref_summary_show_album_art">Usa a capa de álbum da faixa atual como papel de parede da tela de bloqueio.</string>
-    <string name="pref_summary_blur_album_art">Desfoca a capa do álbum no ecrã de bloqueio. Pode causar problemas com aplicações de terceiros e widgets.</string>
     <string name="pref_summary_colored_notification">"Colorir a notifica\u00e7\u00e3o na cor viva da capa de \u00e1lbum."</string>
     <string name="last_added">Últimas adições</string>
     <string name="my_top_tracks">As minhas faixas favoritas</string>

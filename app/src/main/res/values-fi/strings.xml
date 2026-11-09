@@ -61,7 +61,6 @@
     <string name="pref_header_notification">Ilmoitukset</string>
     <string name="pref_title_colored_shortcuts">Värilliset sovelluksen pikavalinnat</string>
     <string name="pref_title_show_album_art">Näytä albumin kansi</string>
-    <string name="pref_title_blur_album_art">Sumenna albumin kansi</string>
     <string name="pref_title_colored_notification">Värillinen ilmoitus</string>
     <string name="pref_title_classic_notification">Klassinen ilmoituksen ulkonäkö</string>
     <string name="pref_title_remember_tab">Muista viimeisin välilehti</string>
@@ -80,7 +79,6 @@
     <string name="empty">Tyhjä</string>
     <string name="song">Kappale</string>
     <string name="pref_summary_show_album_art">Käyttää tämänhetkisen kappaleen albumin kantta lukitusnäytön taustakuvana.</string>
-    <string name="pref_summary_blur_album_art">Sumentaa albumin kannen lukitusnäytöllä. Saattaa aiheuttaa ongelmia kolmannen osapuolen sovellusten ja widgettien kanssa.</string>
     <string name="pref_summary_classic_notification">Käytä klassista ilmoituksen ulkonäköä.</string>
     <string name="pref_summary_colored_notification">"V\u00e4ritt\u00e4\u00e4 ilmoituksen albumin eloisalla v\u00e4rill\u00e4."</string>
     <string name="pref_summary_colored_shortcuts">Värittää sovelluksen pikavalinnat päävärillä.</string>

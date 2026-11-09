@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Melding</string>
     <string name="pref_title_colored_shortcuts">Gekleurde app-snelkoppelingen</string>
     <string name="pref_title_show_album_art">Toon albumhoes</string>
-    <string name="pref_title_blur_album_art">Vervaag albumhoes</string>
     <string name="pref_title_colored_notification">Gekleurde melding</string>
     <string name="pref_title_classic_notification">Klassieke meldingsweergave</string>
     <string name="pref_title_remember_tab">Laatste tabblad onthouden</string>
@@ -78,7 +77,6 @@
     <string name="empty">Leeg</string>
     <string name="song">Nummer</string>
     <string name="pref_summary_show_album_art">Albumhoes weergeven op het vergrendelscherm.</string>
-    <string name="pref_summary_blur_album_art">Vervaagt de albumhoes op het vergrendelscherm. Kan problemen met andere apps of widgets veroorzaken.</string>
     <string name="pref_summary_classic_notification">Gebruik de klassieke meldingsweergave.</string>
     <string name="pref_summary_colored_notification">"Kleurt de melding met het palet van de albumhoes."</string>
     <string name="pref_summary_colored_shortcuts">Kleurt de app-snelkoppelingen in de primaire kleur.</string>

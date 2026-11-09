@@ -60,7 +60,6 @@
     <string name="pref_header_notification">Oznámení</string>
     <string name="pref_title_colored_shortcuts">Barevné zkratky aplikace</string>
     <string name="pref_title_show_album_art">Zobrazit obal alba</string>
-    <string name="pref_title_blur_album_art">Rozostřit obal alba</string>
     <string name="pref_title_colored_notification">Barevné notifikace</string>
     <string name="pref_title_classic_notification">Klasický vzhled oznámení</string>
     <string name="pref_title_remember_tab">Pamatovat poslední kartu</string>
@@ -78,7 +77,6 @@
     <string name="empty">Prázdné</string>
     <string name="song">Skladba</string>
     <string name="pref_summary_show_album_art">Používá aktuální obal alba jako tapetu zamykací obrazovky.</string>
-    <string name="pref_summary_blur_album_art">Rozostří obal alba na uzamčené obrazovce. Může být problematické s aplikacemi a widgety třetích stran.</string>
     <string name="pref_summary_classic_notification">Použije klasický vzhled oznámení.</string>
     <string name="pref_summary_colored_notification">"Zbarv\u00ed ozn\u00e1men\u00ed do barev podle obalu alba."</string>
     <string name="pref_summary_colored_shortcuts">Zbarví zkratky aplikace primární barvou</string>

@@ -1,15 +1,12 @@
 package com.dkanada.gramophone.views.shortcuts.type;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.ShortcutInfo;
-import android.os.Build;
 
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.views.shortcuts.AppShortcutIconGenerator;
 import com.dkanada.gramophone.views.shortcuts.AppShortcutLauncherActivity;
 
-@TargetApi(Build.VERSION_CODES.O)
 public final class LatestShortcutType extends BaseShortcutType {
     public LatestShortcutType(Context context) {
         super(context);

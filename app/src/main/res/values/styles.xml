@@ -1,12 +1,18 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
-    <style name="Theme.Phonograph" parent="Theme.Phonograph.Base" />
+    <style name="Theme.Phonograph" parent="Theme.Phonograph.Base">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 
-    <style name="Theme.Phonograph.Light" parent="Theme.Phonograph.Base.Light" />
+    <style name="Theme.Phonograph.Light" parent="Theme.Phonograph.Base.Light">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 
-    <style name="Theme.Phonograph.Notification" parent="@android:style/TextAppearance.StatusBar.EventContent" />
+    <style name="Theme.Phonograph.Notification" parent="@android:style/TextAppearance.Material.Notification" />
 
-    <style name="Theme.Phonograph.Notification.Title" parent="@android:style/TextAppearance.StatusBar.EventContent.Title" />
+    <style name="Theme.Phonograph.Notification.Title" parent="@android:style/TextAppearance.Material.Notification.Title" />
 
     <style name="OverFlowButton">
         <item name="srcCompat">@drawable/ic_more_vert_white_24dp</item>
@@ -27,8 +33,8 @@
         <item name="android:minHeight">@dimen/toolbar_height</item>
         <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="popupTheme">?toolbarPopupTheme</item>
-        <item name="android:elevation" tools:ignore="NewApi">@dimen/toolbar_elevation</item>
-        <item name="android:transitionName" tools:ignore="NewApi">toolbar</item>
+        <item name="android:elevation">@dimen/toolbar_elevation</item>
+        <item name="android:transitionName">toolbar</item>
     </style>
 
     <style name="LoginScreen" parent="Theme.Phonograph">
