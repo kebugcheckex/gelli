@@ -5,6 +5,7 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -12,7 +13,9 @@ import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.model.LibraryLayout;
 import com.dkanada.gramophone.model.SortMethod;
 import com.dkanada.gramophone.model.SortOrder;
+import com.dkanada.gramophone.util.SectionedList;
 import com.dkanada.gramophone.util.Util;
+import com.dkanada.gramophone.views.SectionIndexBar;
 
 /**
  * A library tab that can show its items as a list or as a grid. The column count is derived from the
@@ -25,6 +28,9 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     private SortOrder sortOrder;
 
     private int currentLayoutRes;
+
+    @Nullable
+    private SectionedList<?> sections;
 
     public final LibraryLayout getLibraryLayout() {
         if (libraryLayout == null) {
@@ -76,6 +82,54 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
         saveSortOrder(sortOrder);
         setSortOrder(sortOrder);
         invalidateAdapter();
+    }
+
+    /**
+     * Whether the current sort files the items under letters. Such a tab loads every item at once and
+     * shows the letter bar in place of the drag thumb; any other sort pages through the items.
+     */
+    protected boolean isSectioned() {
+        return false;
+    }
+
+    /**
+     * Shows the letter bar for items sorted into sections, or hides it and brings back the drag thumb
+     * for null. The adapter must hold exactly the items of the sections.
+     */
+    protected final void setSections(@Nullable SectionedList<?> sections) {
+        if (getView() == null) return;
+
+        this.sections = sections;
+
+        SectionIndexBar bar = getSectionIndexBar();
+        if (sections == null) {
+            bar.setVisibility(View.GONE);
+            bar.setOnSectionSelectedListener(null);
+        } else {
+            boolean[] hasItems = new boolean[sections.getSections().size()];
+            for (int i = 0; i < hasItems.length; i++) {
+                hasItems[i] = sections.hasItems(i);
+            }
+
+            bar.setSections(sections.getSections(), hasItems);
+            bar.setOnSectionSelectedListener(this::scrollToSection);
+            bar.setVisibility(View.VISIBLE);
+        }
+
+        getRecyclerView().setFastScrollEnabled(sections == null);
+        applyRecyclerViewPaddingForLayoutRes(getRecyclerView(), currentLayoutRes);
+        // the padding changes the width the grid has for its columns
+        getRecyclerView().post(this::updateSpanCount);
+    }
+
+    private void scrollToSection(int sectionIndex) {
+        if (sections == null || getLayoutManager() == null) return;
+
+        int position = sections.positionForSection(sectionIndex);
+        if (position >= 0) {
+            getRecyclerView().stopScroll();
+            getLayoutManager().scrollToPositionWithOffset(position, 0);
+        }
     }
 
     @LayoutRes
@@ -165,7 +219,10 @@ public abstract class AbsLibraryPagerRecyclerViewCustomGridSizeFragment<A extend
     protected void applyRecyclerViewPaddingForLayoutRes(@NonNull RecyclerView recyclerView, @LayoutRes int res) {
         int padding = res == R.layout.item_grid ? getResources().getDimensionPixelSize(R.dimen.grid_padding) : 0;
 
-        recyclerView.setPadding(padding, padding, padding, padding);
+        // the letter bar sits over the end edge, so keep item content such as menu buttons out from under it
+        int end = padding + (sections != null ? getSectionIndexBar().getColumnWidth() : 0);
+
+        recyclerView.setPaddingRelative(padding, padding, end, padding);
     }
 
     protected abstract LibraryLayout loadLibraryLayout();

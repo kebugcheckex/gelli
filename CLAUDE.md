@@ -27,7 +27,7 @@ There are no unit or instrumentation tests in this project.
 
 ## Architecture Overview
 
-Gelli is an Android music player app (Java + Kotlin, minSdk 23) that streams from a Jellyfin server. The package root is `com.dkanada.gramophone`.
+Gelli is an Android music player app (Java + Kotlin, minSdk 29) that streams from a Jellyfin server. The package root is `com.dkanada.gramophone`.
 
 ### Global State — `App.java`
 

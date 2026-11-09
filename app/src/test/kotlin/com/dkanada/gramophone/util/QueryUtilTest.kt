@@ -213,7 +213,7 @@ class QueryUtilTest {
         assertEquals(artists.parentId, albumArtists.parentId)
         assertEquals(artists.userId, albumArtists.userId)
         assertEquals(listOf(ItemSortBy.SORT_NAME), albumArtists.sortBy)
-        assertEquals(listOf(ItemFields.GENRES), albumArtists.fields)
+        assertEquals(listOf(ItemFields.GENRES, ItemFields.SORT_NAME), albumArtists.fields)
     }
 
     @Test

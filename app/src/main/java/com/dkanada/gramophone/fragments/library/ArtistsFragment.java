@@ -33,7 +33,27 @@ public class ArtistsFragment extends AbsLibraryPagerRecyclerViewCustomGridSizeFr
     }
 
     @Override
+    protected boolean isSectioned() {
+        return getSortMethod() == SortMethod.NAME;
+    }
+
+    @Override
     protected void loadItems(int index) {
+        if (isSectioned()) {
+            QueryUtil.getSectionedArtists(isAlbumArtists(), getSortOrder(), sections -> {
+                getAdapter().getDataSet().clear();
+                getAdapter().getDataSet().addAll(sections.getItems());
+                size = getAdapter().getDataSet().size();
+                getAdapter().notifyDataSetChanged();
+                setSections(sections);
+                loading = false;
+            });
+
+            return;
+        }
+
+        if (index == 0) setSections(null);
+
         MediaCallback<Artist> callback = media -> {
             if (index == 0) getAdapter().getDataSet().clear();
             getAdapter().getDataSet().addAll(media);

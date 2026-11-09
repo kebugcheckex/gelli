@@ -5,6 +5,7 @@ import android.os.Looper
 import android.util.Log
 import com.dkanada.gramophone.App
 import com.dkanada.gramophone.interfaces.MediaCallback
+import com.dkanada.gramophone.interfaces.SectionedCallback
 import com.dkanada.gramophone.mapper.SdkMediaMapper
 import com.dkanada.gramophone.mapper.SdkSongMapper
 import com.dkanada.gramophone.model.Album
@@ -134,6 +135,49 @@ object QueryUtil {
             val result by api.artistsApi.getAlbumArtists(request)
             result.items.map(SdkMediaMapper::toArtist)
         }
+    }
+
+    /**
+     * Every artist, or every album artist, sorted into letter sections on the device. The server
+     * sorts Han names by code point, so the Pinyin order of the letter bar has to be built here.
+     */
+    @JvmStatic
+    fun getSectionedArtists(albumArtists: Boolean, sortOrder: AppSortOrder?, callback: SectionedCallback<Artist>) {
+        fetchValue("getSectionedArtists", SectionedList.empty(), callback::onLoadMedia) { api ->
+            val userId = JellyfinSdkSession.getCurrentUserId()
+            val items = if (albumArtists) {
+                val result by api.artistsApi.getAlbumArtists(albumArtistsRequest(SortMethod.NAME, sortOrder, 0, userId, null, currentLibrary))
+                result.items
+            } else {
+                val result by api.artistsApi.getArtists(artistsRequest(SortMethod.NAME, sortOrder, 0, userId, null, currentLibrary))
+                result.items
+            }
+
+            AlphabetIndex.sort(items, sortOrder == AppSortOrder.DESCENDING, sectionedArtistKeys()).map(SdkMediaMapper::toArtist)
+        }
+    }
+
+    /** Every album sorted into letter sections on the device, by name or by album artist. See [getSectionedArtists]. */
+    @JvmStatic
+    fun getSectionedAlbums(sortMethod: SortMethod, sortOrder: AppSortOrder?, callback: SectionedCallback<Album>) {
+        fetchValue("getSectionedAlbums", SectionedList.empty(), callback::onLoadMedia) { api ->
+            val result by api.itemsApi.getItems(albumsRequest(sortMethod, sortOrder, 0, JellyfinSdkSession.getCurrentUserId(), null, currentLibrary))
+            AlphabetIndex.sort(result.items, sortOrder == AppSortOrder.DESCENDING, sectionedAlbumKeys(sortMethod)).map(SdkMediaMapper::toAlbum)
+        }
+    }
+
+    internal fun sectionedArtistKeys(): List<AlphabetIndex.Key<BaseItemDto>> = listOf(
+        AlphabetIndex.Key(personName = true) { it.sortName ?: it.name }
+    )
+
+    internal fun sectionedAlbumKeys(sortMethod: SortMethod): List<AlphabetIndex.Key<BaseItemDto>> {
+        val title = AlphabetIndex.Key<BaseItemDto>(personName = false) { it.sortName ?: it.name }
+        if (sortMethod != SortMethod.ARTIST) return listOf(title)
+
+        val artist = AlphabetIndex.Key<BaseItemDto>(personName = true) {
+            (it.albumArtists?.firstOrNull() ?: it.artistItems?.firstOrNull())?.name
+        }
+        return listOf(artist, title)
     }
 
     @JvmStatic
@@ -273,12 +317,13 @@ object QueryUtil {
         sortOrder: AppSortOrder?,
         startIndex: Int,
         userId: String?,
-        pageSize: Int,
+        pageSize: Int?,
         library: Library?
     ): GetItemsRequest = GetItemsRequest(
         userId = toUuidOrNull(userId),
         parentId = toUuidOrNull(library?.id),
         includeItemTypes = listOf(BaseItemKind.MUSIC_ALBUM),
+        fields = listOf(ItemFields.SORT_NAME),
         recursive = true,
         limit = pageSize,
         startIndex = startIndex,
@@ -291,7 +336,7 @@ object QueryUtil {
         sortOrder: AppSortOrder?,
         startIndex: Int,
         userId: String?,
-        pageSize: Int,
+        pageSize: Int?,
         library: Library?
     ): GetArtistsRequest = GetArtistsRequest(
         userId = toUuidOrNull(userId),
@@ -300,7 +345,7 @@ object QueryUtil {
         limit = pageSize,
         sortBy = listOfNotNull(sortMethod?.let { mapSortBy(it.api) }),
         sortOrder = mapSortOrder(sortOrder),
-        fields = listOf(ItemFields.GENRES)
+        fields = listOf(ItemFields.GENRES, ItemFields.SORT_NAME)
     )
 
     internal fun songsByArtistIdsRequest(
@@ -339,7 +384,7 @@ object QueryUtil {
         sortOrder: AppSortOrder?,
         startIndex: Int,
         userId: String?,
-        pageSize: Int,
+        pageSize: Int?,
         library: Library?
     ): GetAlbumArtistsRequest = GetAlbumArtistsRequest(
         userId = toUuidOrNull(userId),
@@ -348,7 +393,7 @@ object QueryUtil {
         limit = pageSize,
         sortBy = listOfNotNull(sortMethod?.let { mapSortBy(it.api) }),
         sortOrder = mapSortOrder(sortOrder),
-        fields = listOf(ItemFields.GENRES)
+        fields = listOf(ItemFields.GENRES, ItemFields.SORT_NAME)
     )
 
     internal fun songsRequest(
@@ -465,26 +510,36 @@ object QueryUtil {
         callback: MediaCallback<T>,
         load: suspend (ApiClient) -> List<T>
     ) {
+        fetchValue(onErrorTag, emptyList(), callback::onLoadMedia, load)
+    }
+
+    /** Runs [load] off the main thread and delivers its result, or [fallback] on failure, on the main thread. */
+    private fun <R> fetchValue(
+        onErrorTag: String,
+        fallback: R,
+        deliver: (R) -> Unit,
+        load: suspend (ApiClient) -> R
+    ) {
         val api = JellyfinSdkSession.createApiOrNull()
         if (api == null) {
             Log.w(TAG, "$onErrorTag: missing SDK session state")
-            callback.onLoadMedia(emptyList())
+            deliver(fallback)
             return
         }
 
         Thread {
-            val mapped = try {
+            val loaded = try {
                 runBlocking { load(api) }
             } catch (err: ApiClientException) {
                 Log.w(TAG, "$onErrorTag: API error: ${err.message}", err)
-                emptyList()
+                fallback
             } catch (err: Exception) {
                 Log.w(TAG, "$onErrorTag: unexpected error: ${err.message}", err)
-                emptyList()
+                fallback
             }
 
             Handler(Looper.getMainLooper()).post {
-                callback.onLoadMedia(mapped)
+                deliver(loaded)
             }
         }.start()
     }

@@ -18,6 +18,8 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.AppBarLayout.OnOffsetChangedListener;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.util.ViewUtil;
+import com.dkanada.gramophone.views.LibraryRecyclerView;
+import com.dkanada.gramophone.views.SectionIndexBar;
 
 public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView.Adapter, L extends RecyclerView.LayoutManager> extends AbsLibraryPagerFragment implements OnOffsetChangedListener {
     private FragmentMainActivityRecyclerViewBinding binding;
@@ -81,8 +83,12 @@ public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView
         binding.recyclerView.setLayoutManager(layoutManager);
     }
 
-    protected RecyclerView getRecyclerView() {
+    protected LibraryRecyclerView getRecyclerView() {
         return binding.recyclerView;
+    }
+
+    protected SectionIndexBar getSectionIndexBar() {
+        return binding.sectionIndexBar;
     }
 
     protected A getAdapter() {

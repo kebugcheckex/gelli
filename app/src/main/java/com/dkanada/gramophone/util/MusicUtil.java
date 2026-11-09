@@ -191,21 +191,11 @@ public class MusicUtil {
         UserLibraryUtil.toggleFavorite(song);
     }
 
+    /** The letter a title files under, with Han characters filed by their Pinyin. Empty for no title. */
     @NonNull
     public static String getSectionName(String musicMediaTitle) {
         if (TextUtils.isEmpty(musicMediaTitle)) return "";
 
-        musicMediaTitle = musicMediaTitle.trim().toLowerCase();
-        if (musicMediaTitle.startsWith("the ")) {
-            musicMediaTitle = musicMediaTitle.substring(4);
-        } else if (musicMediaTitle.startsWith("a ")) {
-            musicMediaTitle = musicMediaTitle.substring(2);
-        }
-
-        if (musicMediaTitle.isEmpty()) {
-            return "";
-        }
-
-        return String.valueOf(musicMediaTitle.charAt(0)).toUpperCase();
+        return AlphabetIndex.sectionOf(musicMediaTitle);
     }
 }
