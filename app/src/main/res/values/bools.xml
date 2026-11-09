@@ -7,7 +7,4 @@
     <!-- a window wider than it is tall gets the full-window landscape player instead of the flat or card one -->
     <bool name="landscape_player">false</bool>
 
-    <!-- the lyrics over the landscape player's cover only have room for the lines around the current one in a window at least 480dp tall -->
-    <bool name="landscape_player_lyrics_neighbors">false</bool>
-
 </resources>

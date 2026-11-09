@@ -98,8 +98,6 @@ public class LandscapePlayerFragment extends AbsPlayerFragment implements Player
         playerAlbumCoverFragment.setCallbacks(this);
         playingQueueListFragment = (PlayingQueueListFragment) getChildFragmentManager().findFragmentById(R.id.landscape_player_queue_fragment);
 
-        // a short window's cover has room for the current line alone, and a taller one for its neighbors too
-        binding.landscapePlayerLyrics.setFocusedLine(true, getResources().getBoolean(R.bool.landscape_player_lyrics_neighbors));
         binding.landscapePlayerLyrics.setTextColor(ICON_COLOR);
         updateLyricsScrim();
         onLyricsStateChanged();

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/lyrics_list"
@@ -9,64 +8,5 @@
         android:fadingEdgeLength="24dp"
         android:overScrollMode="never"
         android:requiresFadingEdge="vertical" />
-
-    <!-- the focused line: the current line as large as fits, between its neighbors when the host has room -->
-    <LinearLayout
-        android:id="@+id/lyrics_focus"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="8dp"
-        android:visibility="gone">
-
-        <!-- one line each, so a neighbor that wraps can't resize the current line -->
-        <com.dkanada.gramophone.views.LyricLineView
-            android:id="@+id/lyrics_focus_previous"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:importantForAccessibility="no"
-            android:lines="1"
-            android:textAppearance="?textAppearanceBodyLarge"
-            android:visibility="gone" />
-
-        <com.dkanada.gramophone.views.LyricLineView
-            android:id="@+id/lyrics_focus_current"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="3"
-            android:textAppearance="?textAppearanceHeadlineSmall"
-            app:autoSizeMaxTextSize="28sp"
-            app:autoSizeMinTextSize="16sp"
-            app:autoSizeStepGranularity="1sp"
-            app:autoSizeTextType="uniform" />
-
-        <com.dkanada.gramophone.views.LyricLineView
-            android:id="@+id/lyrics_focus_next"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:importantForAccessibility="no"
-            android:lines="1"
-            android:textAppearance="?textAppearanceBodyLarge"
-            android:visibility="gone" />
-
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/lyrics_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textAppearance="?textAppearanceBodyLarge"
-        android:visibility="gone" />
 
 </merge>
