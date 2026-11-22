@@ -5,10 +5,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-Set-Location $PSScriptRoot
+$root = Split-Path $PSScriptRoot
 
-if (-not (Test-Path 'store.jks')) {
-    throw "Keystore not found at $PSScriptRoot\store.jks"
+if (-not (Test-Path "$root\store.jks")) {
+    throw "Keystore not found at $root\store.jks"
 }
 
 # The default JDK 27 breaks the build, so use the JDK 21 that Gradle provisioned.
@@ -28,6 +28,7 @@ foreach ($name in 'JAVA_HOME', 'STORE_PASSWORD', 'KEY_ALIAS', 'KEY_PASSWORD') {
     $saved[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
 }
 
+Push-Location $root
 try {
     $env:JAVA_HOME = $jdk
     $env:STORE_PASSWORD = $password
@@ -40,11 +41,12 @@ try {
         throw "Gradle failed with exit code $LASTEXITCODE"
     }
 } finally {
+    Pop-Location
     foreach ($name in $saved.Keys) {
         [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process')
     }
     $password = $null
 }
 
-$apk = Get-ChildItem 'app\build\outputs\apk\release\*.apk' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$apk = Get-ChildItem "$root\app\build\outputs\apk\release\*.apk" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 Write-Host "`nRelease APK: $($apk.FullName)" -ForegroundColor Green

@@ -23,6 +23,11 @@ This is a personal fork of the archived upstream `dkanada/gelli`, developed with
 ./gradlew installDebug
 ```
 
+PowerShell helpers in `scripts/` set the JDK themselves:
+
+- `scripts/release.ps1` prompts for the keystore password and builds the signed release APK.
+- `scripts/start-avd.ps1` boots the `gelli_test_api35` emulator, or reuses it if it's running. `-Install` builds the debug APK, installs it on that emulator only and launches it, so prefer it over `installDebug`, which installs on every connected device. `-Avd <name>` and `-ColdBoot` are also available.
+
 Unit tests live in `app/src/test` and run on the JVM:
 
 ```bash
