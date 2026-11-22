@@ -68,9 +68,19 @@ class AddressesActivity : AbsBaseActivity() {
         binding.add.setOnClickListener { showAddDialog() }
     }
 
+    // a change of order moves the session to another address a moment later
+    @SuppressLint("NotifyDataSetChanged")
+    private val connectionListener = ServerConnection.Listener { adapter.notifyDataSetChanged() }
+
     override fun onStart() {
         super.onStart()
+        ServerConnection.addListener(connectionListener)
         load(probe = true)
+    }
+
+    override fun onStop() {
+        ServerConnection.removeListener(connectionListener)
+        super.onStop()
     }
 
     private val isCurrentAccount get() = PreferenceUtil.getInstance(this).user == accountId

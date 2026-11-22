@@ -270,6 +270,8 @@
     <string name="error_login_credentials">Invalid login credentials.</string>
     <string name="error_empty_server">Please fill in the server address.</string>
     <string name="error_unexpected">An unexpected error occurred.</string>
+    <string name="server_unreachable">Can\'t reach the server. Only saved songs play.</string>
+    <string name="retry">Retry</string>
     <string name="error_empty_username">Please fill in your username.</string>
 
     <string name="addresses_title">Server addresses</string>

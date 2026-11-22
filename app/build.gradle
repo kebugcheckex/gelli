@@ -113,6 +113,8 @@ dependencies {
     testImplementation 'org.json:json:20240303'
     // android.jar only has stubs of android.icu, and icu4j has the same transliteration rules
     testImplementation 'com.ibm.icu:icu4j:76.1'
+    // virtual time for the connection retry schedule
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 

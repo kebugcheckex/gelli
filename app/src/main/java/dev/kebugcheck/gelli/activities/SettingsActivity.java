@@ -25,6 +25,7 @@ import dev.kebugcheck.gelli.service.SaveTrigger;
 import dev.kebugcheck.gelli.service.SaveWorker;
 import dev.kebugcheck.gelli.util.NetworkUtil;
 import dev.kebugcheck.gelli.util.PreferenceUtil;
+import dev.kebugcheck.gelli.util.ServerConnection;
 import dev.kebugcheck.gelli.util.ViewUtil;
 
 public class SettingsActivity extends AbsBaseActivity {
@@ -171,6 +172,8 @@ public class SettingsActivity extends AbsBaseActivity {
                 case PreferenceUtil.OFFLINE_MODE:
                     NetworkUtil.notifyChanged();
                     SaveWorker.restart(requireContext());
+                    // retries pause in offline mode
+                    if (!sharedPreferences.getBoolean(key, false)) ServerConnection.retry();
                     break;
                 case PreferenceUtil.NETWORK_STREAMING:
                     NetworkUtil.notifyChanged();

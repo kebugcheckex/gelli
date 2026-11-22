@@ -27,9 +27,13 @@ object NetworkUtil {
         return isAllowed(policy, connected, unmetered)
     }
 
-    /** Offline mode also stops saving, playback reporting and favorite changes, which don't go through [isAllowed]. */
+    /**
+     * Offline mode also stops saving, playback reporting and favorite changes, which don't go through [isAllowed].
+     * The app is also offline while no address of the server answers, without touching the setting.
+     */
     @JvmStatic
-    fun isOffline(context: Context): Boolean = PreferenceUtil.getInstance(context).offlineMode
+    fun isOffline(context: Context): Boolean =
+        PreferenceUtil.getInstance(context).offlineMode || ServerConnection.isUnreachable()
 
     @JvmStatic
     @VisibleForTesting

@@ -2,7 +2,7 @@
 
 ## Status
 
-M1 is done: priority order and the Server addresses screen. M2 to M4 are not started. It builds on multi-address accounts (commit `44c24861`), where an account is keyed by the server id and keeps every address it signed in through.
+M1 (priority order and the Server addresses screen) and M2 (connection state and the unreachable mode) are done. M3 and M4 are not started. The "Today" section below describes the code before M1. It builds on multi-address accounts (commit `44c24861`), where an account is keyed by the server id and keeps every address it signed in through.
 
 ## Today
 
@@ -69,6 +69,13 @@ Changes:
 
 **Tests.** The state transitions with a fake probe and a fake clock: unreachable at start, recovery on a network change, the backoff schedule, and a 401 versus a connection error.
 
+**As built.**
+
+- `ConnectionState` is `Connecting`, `Online(address)`, `Unreachable` or `Rejected` (a 401). `ConnectionLoop` runs one attempt at a time, retries on the backoff while `Unreachable`, and is tested on virtual time (`ConnectionLoopTest`).
+- `ServerConnection.start()` replaces `LoginService`: the first attempt for an account checks the token with `GET /System/Info` and identifies the server, and later attempts only pick the address. `NetworkReceiver` is gone.
+- Network changes run an attempt for every account, including a lost network, so airplane mode leads to `Unreachable` within a second. Retries need the app in the foreground or playing, and pause in offline mode.
+- `AbsMusicContentActivity` follows the state: `Rejected` opens the login screen, `Unreachable` still loads the screen, and coming back `Online` reloads it. `MainActivity` shows the banner with **Retry** above the mini player.
+
 ### M3. Switching addresses mid-session
 
 Make a switch reach everything that already holds a url, so that M4 can switch at any time.
@@ -87,7 +94,7 @@ Add triggers that make `ServerConnection` check the current address:
 
 | Trigger | Where |
 |---|---|
-| Default network changes | The existing callback. Runs the full selection, so it can also move back up the list. Remove the "two or more addresses" condition so the unreachable state also recovers for single-address accounts. |
+| Default network changes | The existing callback. Runs the full selection, so it can also move back up the list. Done in M2. |
 | WebSocket drops | `EventListener`. The server sends keep-alives, so the socket is a heartbeat at no extra cost. Check what the SDK's socket exposes for its connection state. |
 | Playback fails on a connection error | `LocalPlayer.onPlayerError`, when the cause is an `IOException`. |
 | An API call fails on a connection error | A single `ServerConnection.reportFailure(address, error)`, called from the shared SDK call paths. Look for one place to hook it (for example the SDK's HTTP client options) before adding calls at each site. |

@@ -265,6 +265,8 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         } else {
             slidingLayout.setPanelHeight(getCollapsedPanelHeight());
         }
+
+        onContentBottomInsetChanged(getContentBottomInset());
     }
 
     private int getCollapsedPanelHeight() {
@@ -278,6 +280,16 @@ public abstract class AbsMusicPanelActivity extends AbsMusicServiceActivity impl
         miniPlayer.requestLayout();
 
         if (!bottomBarHidden) slidingLayout.setPanelHeight(getCollapsedPanelHeight());
+        onContentBottomInsetChanged(getContentBottomInset());
+    }
+
+    /** How far the navigation bar reaches over the content, which is only when there is no mini player to cover it. */
+    protected int getContentBottomInset() {
+        return bottomBarHidden ? bottomInset : 0;
+    }
+
+    /** Called when {@link #getContentBottomInset()} may have changed, e.g. for content at the bottom of the screen. */
+    protected void onContentBottomInsetChanged(int inset) {
     }
 
     /**

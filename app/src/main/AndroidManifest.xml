@@ -71,7 +71,6 @@
             android:launchMode="singleInstance"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <service android:name=".service.LoginService" />
         <service
             android:name=".service.MusicService"
             android:foregroundServiceType="mediaPlayback" />

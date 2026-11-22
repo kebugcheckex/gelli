@@ -50,6 +50,7 @@ import dev.kebugcheck.gelli.service.playback.Playback;
 import dev.kebugcheck.gelli.service.playback.PlaybackListener;
 import dev.kebugcheck.gelli.service.receivers.MediaButtonIntentReceiver;
 import dev.kebugcheck.gelli.util.PreferenceUtil;
+import dev.kebugcheck.gelli.util.ServerConnection;
 import dev.kebugcheck.gelli.util.Util;
 import dev.kebugcheck.gelli.views.widgets.AppWidgetAlbum;
 import dev.kebugcheck.gelli.views.widgets.AppWidgetCard;
@@ -200,6 +201,7 @@ public class MusicService extends Service implements SharedPreferences.OnSharedP
         @Override
         public void onPlayingChanged(boolean playing) {
             saveTrigger.onPlayingChanged(playing);
+            ServerConnection.setPlaying(playing);
         }
 
         @Override

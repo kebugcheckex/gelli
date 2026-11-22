@@ -29,12 +29,14 @@ import dev.kebugcheck.gelli.fragments.main.LibraryFragment;
 import dev.kebugcheck.gelli.util.MusicUtil;
 import dev.kebugcheck.gelli.util.PreferenceUtil;
 import dev.kebugcheck.gelli.util.QueryUtil;
+import dev.kebugcheck.gelli.util.ServerConnection;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.List;
 
 public class MainActivity extends AbsMusicContentActivity {
     private ActivityMainDrawerLayoutBinding binding;
+    private ActivityMainContentBinding contentBinding;
     private NavigationDrawerHeaderBinding navigationBinding;
     private boolean onLogout;
 
@@ -92,6 +94,19 @@ public class MainActivity extends AbsMusicContentActivity {
     }
 
     @Override
+    protected void onUnreachableChanged(boolean unreachable) {
+        contentBinding.unreachable.setVisibility(unreachable ? View.VISIBLE : View.GONE);
+        contentBinding.retry.setEnabled(true);
+    }
+
+    @Override
+    protected void onContentBottomInsetChanged(int inset) {
+        // the banner is the bottom of the screen when no mini player sits under it
+        View banner = contentBinding.unreachable;
+        banner.setPadding(banner.getPaddingLeft(), banner.getPaddingTop(), banner.getPaddingRight(), inset);
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
 
@@ -132,7 +147,12 @@ public class MainActivity extends AbsMusicContentActivity {
     @Override
     protected View createContentView() {
         binding = ActivityMainDrawerLayoutBinding.inflate(getLayoutInflater());
-        ActivityMainContentBinding contentBinding = ActivityMainContentBinding.inflate(getLayoutInflater());
+        contentBinding = ActivityMainContentBinding.inflate(getLayoutInflater());
+        contentBinding.retry.setOnClickListener(v -> {
+            // the next connection state turns it back on
+            v.setEnabled(false);
+            ServerConnection.retry();
+        });
 
         ViewGroup drawerContent = binding.drawerContentContainer;
         drawerContent.addView(wrapSlidingMusicPanel(contentBinding.getRoot()));

@@ -1,56 +1,36 @@
 package dev.kebugcheck.gelli.activities.base;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
 import dev.kebugcheck.gelli.helper.EventListener;
 import dev.kebugcheck.gelli.interfaces.StateListener;
-import dev.kebugcheck.gelli.service.LoginService;
+import dev.kebugcheck.gelli.util.ConnectionState;
 import dev.kebugcheck.gelli.util.JellyfinSdkSession;
 import dev.kebugcheck.gelli.util.NavigationUtil;
+import dev.kebugcheck.gelli.util.ServerConnection;
 
 public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity implements StateListener {
     private boolean onlineStateDelivered;
+    private boolean unreachable;
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, @NonNull Intent intent) {
-            if (intent.getAction() == null) return;
-
-            switch(intent.getAction()) {
-                case LoginService.STATE_ONLINE:
-                    dispatchOnlineOnce();
-                    break;
-                case LoginService.STATE_OFFLINE:
-                    onlineStateDelivered = false;
-                    EventListener.stop();
-                    NavigationUtil.startLogin(context);
-                    break;
-            }
-        }
-    };
+    private final ServerConnection.Listener connectionListener = this::onConnectionChanged;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final IntentFilter filter = new IntentFilter();
-        filter.addAction(LoginService.STATE_POLLING);
-        filter.addAction(LoginService.STATE_ONLINE);
-        filter.addAction(LoginService.STATE_OFFLINE);
-
-        registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        ServerConnection.addListener(connectionListener);
 
         if (JellyfinSdkSession.getCurrentUserId() == null) {
-            startService(new Intent(this, LoginService.class));
+            ServerConnection.start(this);
         } else {
+            // requests go to the address used last time until one is picked for this network
             dispatchOnlineOnce();
         }
+
+        onConnectionChanged(ServerConnection.getState());
     }
 
     @Override
@@ -58,23 +38,40 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
         super.onResume();
 
         if (JellyfinSdkSession.getCurrentUserId() == null) {
-            startService(new Intent(this, LoginService.class));
+            ServerConnection.start(this);
         }
     }
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(receiver);
+        ServerConnection.removeListener(connectionListener);
 
         super.onDestroy();
     }
 
-    @Override
-    public void onStatePolling() {
+    /** Called with every connection state, e.g. to show that the server can't be reached. */
+    protected void onUnreachableChanged(boolean unreachable) {
     }
 
-    @Override
-    public void onStateOffline() {
+    private void onConnectionChanged(@NonNull ConnectionState state) {
+        if (state == ConnectionState.Rejected.INSTANCE) {
+            onlineStateDelivered = false;
+            EventListener.stop();
+            NavigationUtil.startLogin(this);
+            return;
+        }
+
+        if (state instanceof ConnectionState.Online) {
+            // what loaded while the server was away came back empty
+            if (unreachable) onlineStateDelivered = false;
+            dispatchOnlineOnce();
+        } else if (state == ConnectionState.Unreachable.INSTANCE) {
+            // the screen still opens, so stored songs can be played and settings reached
+            dispatchOnlineOnce();
+        }
+
+        unreachable = state == ConnectionState.Unreachable.INSTANCE;
+        onUnreachableChanged(unreachable);
     }
 
     private void dispatchOnlineOnce() {

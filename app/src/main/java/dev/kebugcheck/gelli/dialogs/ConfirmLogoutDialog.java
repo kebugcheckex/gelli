@@ -13,6 +13,7 @@ import dev.kebugcheck.gelli.helper.MusicPlayerRemote;
 import dev.kebugcheck.gelli.model.User;
 import dev.kebugcheck.gelli.util.NavigationUtil;
 import dev.kebugcheck.gelli.util.PreferenceUtil;
+import dev.kebugcheck.gelli.util.ServerConnection;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class ConfirmLogoutDialog extends DialogFragment {
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.logout, (dialog, which) -> {
                     EventListener.stop();
+                    ServerConnection.stop();
                     MusicPlayerRemote.clearQueue();
 
                     PreferenceUtil.getInstance(requireContext()).setUser(null);
