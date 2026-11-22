@@ -48,5 +48,22 @@ try {
     $password = $null
 }
 
-$apk = Get-ChildItem "$root\app\build\outputs\apk\release\*.apk" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-Write-Host "`nRelease APK: $($apk.FullName)" -ForegroundColor Green
+$versionName = Select-String -Path "$root\app\build.gradle" -Pattern "versionName\s*=\s*'([^']+)'" |
+    Select-Object -First 1 | ForEach-Object { $_.Matches[0].Groups[1].Value }
+if (-not $versionName) {
+    throw 'versionName not found in app/build.gradle'
+}
+
+$commit = git -C $root rev-parse --short HEAD
+if ($LASTEXITCODE -ne 0) {
+    throw 'Could not read the commit hash'
+}
+# Flag builds with uncommitted changes, since the hash alone would not describe them.
+if (git -C $root status --porcelain --untracked-files=no) {
+    $commit += '-dirty'
+}
+
+$apk = "$root\app\build\outputs\apk\release\app-release.apk"
+$target = "$root\app\build\outputs\apk\release\app-release-$versionName-$commit.apk"
+Move-Item -Path $apk -Destination $target -Force
+Write-Host "`nRelease APK: $target" -ForegroundColor Green
