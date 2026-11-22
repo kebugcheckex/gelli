@@ -17,7 +17,7 @@ import com.dkanada.gramophone.model.User;
                 QueueSong.class,
                 User.class
         },
-        version = 11,
+        version = 12,
         exportSchema = false
 )
 public abstract class JellyDatabase extends RoomDatabase {
@@ -26,6 +26,17 @@ public abstract class JellyDatabase extends RoomDatabase {
     public abstract SongDao songDao();
     public abstract QueueSongDao queueSongDao();
     public abstract UserDao userDao();
+
+    // Records the server id, which needs the network, so existing accounts get it when they next connect.
+    // Until then each keeps the one address it was saved with.
+    public static final Migration Migration12 = new Migration(11, 12) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE users ADD COLUMN serverId TEXT");
+            database.execSQL("ALTER TABLE users ADD COLUMN addresses TEXT NOT NULL DEFAULT ''");
+            database.execSQL("UPDATE users SET addresses = COALESCE(server, '')");
+        }
+    };
 
     public static final Migration Migration11 = new Migration(10, 11) {
         @Override

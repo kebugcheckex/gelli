@@ -123,6 +123,33 @@ class JellyfinImageUrlsTest {
         assertTrue(result.contains("/Images/Primary"))
     }
 
+    // --- Cache key does not depend on the server address ---
+
+    // GlideUrl itself needs android to build, so the key it caches under is checked directly
+
+    @Test
+    fun primaryImageKey_isTheSameForEitherIdShape() {
+        assertEquals(
+            JellyfinImageUrls.primaryImageKey("aabbccddeeff00112233445566778899", 800),
+            JellyfinImageUrls.primaryImageKey("aabbccdd-eeff-0011-2233-445566778899", 800)
+        )
+    }
+
+    @Test
+    fun primaryImageKey_leavesOutTheAddress() {
+        val key = JellyfinImageUrls.primaryImageKey("aabbccddeeff00112233445566778899", 800)
+
+        assertEquals("jellyfin/items/aabbccdd-eeff-0011-2233-445566778899/primary?maxHeight=800", key)
+    }
+
+    @Test
+    fun primaryImageKey_keepsSizesApart() {
+        assertTrue(
+            JellyfinImageUrls.primaryImageKey("aabbccddeeff00112233445566778899", 400) !=
+                JellyfinImageUrls.primaryImageKey("aabbccddeeff00112233445566778899", 800)
+        )
+    }
+
     // --- Invalid item ID falls back to path-only ---
 
     @Test

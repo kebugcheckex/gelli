@@ -32,7 +32,8 @@
             android:id="@+id/url"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
+            android:maxLines="2"
+            android:ellipsize="end"
             android:textAppearance="?textAppearanceBodyMedium"
             android:textColor="?android:textColorSecondary"
             tools:text="https://jellyfin.org" />

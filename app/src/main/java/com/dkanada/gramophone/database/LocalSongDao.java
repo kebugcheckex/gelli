@@ -22,6 +22,9 @@ public interface LocalSongDao {
     @Query("SELECT * FROM local_songs WHERE accountId = :accountId AND state IN (:states)")
     List<LocalSong> getSongs(String accountId, List<LocalSong.State> states);
 
+    @Query("SELECT * FROM local_songs WHERE accountId = :accountId")
+    List<LocalSong> getAllSongs(String accountId);
+
     @Query("SELECT * FROM local_songs WHERE accountId = :accountId AND itemId IN (:itemIds)")
     List<LocalSong> getSongsByIds(String accountId, List<String> itemIds);
 
@@ -49,4 +52,7 @@ public interface LocalSongDao {
 
     @Query("DELETE FROM local_songs WHERE accountId = :accountId AND state IN (:states)")
     void deleteSongs(String accountId, List<LocalSong.State> states);
+
+    @Query("DELETE FROM local_songs WHERE accountId = :accountId")
+    void deleteAllSongs(String accountId);
 }

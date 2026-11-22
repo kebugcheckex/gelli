@@ -9,9 +9,13 @@ import com.dkanada.gramophone.App
 import com.dkanada.gramophone.BuildConfig
 import com.dkanada.gramophone.R
 import com.dkanada.gramophone.helper.EventListener
+import com.dkanada.gramophone.model.User
+import com.dkanada.gramophone.util.Accounts
 import com.dkanada.gramophone.util.JellyfinSdkSession
 import com.dkanada.gramophone.util.PreferenceUtil
+import com.dkanada.gramophone.util.ServerConnection
 import kotlinx.coroutines.runBlocking
+import java.io.IOException
 import org.jellyfin.sdk.api.client.exception.ApiClientException
 import org.jellyfin.sdk.api.client.extensions.sessionApi
 import org.jellyfin.sdk.api.client.extensions.systemApi
@@ -39,23 +43,12 @@ class LoginService : Service() {
             return
         }
 
-        JellyfinSdkSession.updateSession(user.server, user.token, user.jellyfinUserId)
+        // the address that worked last time serves until the probe below picks one for this network
+        JellyfinSdkSession.updateSessionFromUser(user)
 
         Thread {
             try {
-                runBlocking {
-                    val api = JellyfinSdkSession.createApiOrNull()
-                        ?: throw IllegalStateException("no SDK session after updateSession")
-                    api.systemApi.getSystemInfo()
-                    api.sessionApi.postFullCapabilities(
-                        data = ClientCapabilitiesDto(
-                            playableMediaTypes = listOf(),
-                            supportedCommands = listOf(),
-                            supportsMediaControl = DEFAULT_CAPABILITIES.supportsMediaControl,
-                            supportsPersistentIdentifier = DEFAULT_CAPABILITIES.supportsPersistentIdentifier,
-                        )
-                    )
-                }
+                runBlocking { connect(user) }
                 EventListener.start()
                 sendStateBroadcast(STATE_ONLINE)
             } catch (err: ApiClientException) {
@@ -66,6 +59,31 @@ class LoginService : Service() {
                 sendStateBroadcast(STATE_OFFLINE)
             }
         }.start()
+    }
+
+    private suspend fun connect(user: User) {
+        val endpoint = ServerConnection.resolve(user) ?: throw IOException("no address of the server answered")
+        JellyfinSdkSession.updateSession(endpoint.address, user.token, user.jellyfinUserId)
+
+        val api = JellyfinSdkSession.createApiOrNull()
+            ?: throw IllegalStateException("no SDK session after updateSession")
+        // checks the token, so an account is only identified with credentials that work
+        api.systemApi.getSystemInfo()
+
+        if (user.serverId == null) {
+            Accounts.identify(user, endpoint.serverId)
+        } else {
+            Accounts.useAddress(user.id, endpoint.address)
+        }
+
+        api.sessionApi.postFullCapabilities(
+            data = ClientCapabilitiesDto(
+                playableMediaTypes = listOf(),
+                supportedCommands = listOf(),
+                supportsMediaControl = DEFAULT_CAPABILITIES.supportsMediaControl,
+                supportsPersistentIdentifier = DEFAULT_CAPABILITIES.supportsPersistentIdentifier,
+            )
+        )
     }
 
     companion object {

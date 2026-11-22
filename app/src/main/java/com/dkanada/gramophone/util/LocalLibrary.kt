@@ -48,6 +48,15 @@ object LocalLibrary {
         return File(context.filesDir, "library")
     }
 
+    /** Every root that may hold stored files, since [getRoot] falls back to internal storage. */
+    fun getRoots(): List<File> {
+        val context = App.getInstance()
+        return listOfNotNull(
+            File(context.filesDir, "library"),
+            context.getExternalFilesDir(null)?.let { File(it, "library") }
+        )
+    }
+
     @JvmStatic
     fun getAudioDir(accountId: String): File = File(getAccountDir(accountId), "audio")
 

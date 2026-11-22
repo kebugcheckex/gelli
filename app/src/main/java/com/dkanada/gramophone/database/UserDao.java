@@ -23,4 +23,11 @@ public interface UserDao {
 
     @Query("SELECT * FROM users WHERE id = :id")
     User getUser(String id);
+
+    @Query("UPDATE users SET server = :server WHERE id = :id")
+    void setServer(String id, String server);
+
+    // accounts saved before the server id was recorded
+    @Query("SELECT * FROM users WHERE serverId IS NULL AND jellyfinUserId = :jellyfinUserId")
+    List<User> getUnidentifiedUsers(String jellyfinUserId);
 }

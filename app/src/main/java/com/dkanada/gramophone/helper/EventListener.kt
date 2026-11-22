@@ -34,6 +34,11 @@ object EventListener {
         Log.i(TAG, "WebSocket subscriptions started")
     }
 
+    /** Reconnects the socket after the server address changed, if it was running. */
+    fun restart() {
+        if (scope != null) start()
+    }
+
     @JvmStatic
     fun stop() {
         scope?.cancel()

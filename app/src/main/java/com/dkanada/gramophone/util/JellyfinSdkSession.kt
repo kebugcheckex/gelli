@@ -42,9 +42,26 @@ object JellyfinSdkSession {
     @JvmStatic
     fun updateSession(baseUrl: String?, accessToken: String?, userId: String?) {
         synchronized(lock) {
-            this.baseUrl = normalizeBaseUrl(baseUrl)
+            this.baseUrl = normalizeAddress(baseUrl)
             this.accessToken = accessToken?.trim()?.takeIf { it.isNotEmpty() }
             this.userId = userId?.trim()?.takeIf { it.isNotEmpty() }
+        }
+    }
+
+    /**
+     * Points the session at another address of the same server, unless the session has moved on to other
+     * credentials meanwhile. Returns whether the address changed.
+     */
+    @JvmStatic
+    fun switchAddress(userId: String?, accessToken: String?, address: String): Boolean {
+        val normalized = normalizeAddress(address) ?: return false
+
+        synchronized(lock) {
+            if (this.userId != userId?.trim() || this.accessToken != accessToken?.trim()) return false
+            if (baseUrl == normalized) return false
+
+            baseUrl = normalized
+            return true
         }
     }
 
@@ -90,12 +107,12 @@ object JellyfinSdkSession {
     }
 
     @JvmStatic
-    fun createApiForServer(serverUrl: String) = normalizeBaseUrl(serverUrl)?.let { normalized ->
+    fun createApiForServer(serverUrl: String) = normalizeAddress(serverUrl)?.let { normalized ->
         val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
         buildJellyfin(context).createApi(baseUrl = normalized)
     }
 
-    internal fun createApiForUser(user: User) = normalizeBaseUrl(user.server)?.let { server ->
+    internal fun createApiForUser(user: User) = normalizeAddress(user.server)?.let { server ->
         val token = user.token?.takeIf { it.isNotBlank() } ?: return@let null
         val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
         buildJellyfin(context).createApi(baseUrl = server, accessToken = token)
@@ -125,7 +142,8 @@ object JellyfinSdkSession {
         return SessionSnapshot(baseUrlSnapshot, accessTokenSnapshot, userIdSnapshot)
     }
 
-    private fun normalizeBaseUrl(raw: String?): String? {
+    @JvmStatic
+    fun normalizeAddress(raw: String?): String? {
         return raw
             ?.trim()
             ?.trimEnd('/')

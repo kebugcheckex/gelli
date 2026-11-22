@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 public final class PreferenceUtil {
     public static final String VERSION = "version";
 
-    public static final String SERVER = "server";
     public static final String USER = "user";
 
     public static final String SHUFFLE = "shuffle";
@@ -542,14 +541,6 @@ public final class PreferenceUtil {
         Set<String> values = codecs.stream().map(Enum::toString).collect(Collectors.toSet());
 
         mPreferences.edit().putStringSet(DIRECT_PLAY_CODECS, values).apply();
-    }
-
-    public String getServer() {
-        return mPreferences.getString(SERVER, "https://jellyfin.org");
-    }
-
-    public void setServer(String server) {
-        mPreferences.edit().putString(SERVER, server).apply();
     }
 
     public String getUser() {

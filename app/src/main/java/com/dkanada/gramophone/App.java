@@ -10,6 +10,7 @@ import com.dkanada.gramophone.model.User;
 import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.dkanada.gramophone.util.NetworkUtil;
 import com.dkanada.gramophone.util.PreferenceUtil;
+import com.dkanada.gramophone.util.ServerConnection;
 import com.dkanada.gramophone.views.shortcuts.DynamicShortcutManager;
 import com.melegy.redscreenofdeath.RedScreenOfDeath;
 
@@ -30,9 +31,9 @@ public class App extends Application {
         database = createDatabase(this);
         JellyfinSdkSession.initialize(this);
         NetworkUtil.init(this);
+        ServerConnection.init(this);
 
         if (database.userDao().getUsers().size() == 0) {
-            PreferenceUtil.getInstance(this).setServer(null);
             PreferenceUtil.getInstance(this).setUser(null);
             JellyfinSdkSession.clearSession();
         } else {
@@ -56,6 +57,7 @@ public class App extends Application {
                 .addMigrations(JellyDatabase.Migration9)
                 .addMigrations(JellyDatabase.Migration10)
                 .addMigrations(JellyDatabase.Migration11)
+                .addMigrations(JellyDatabase.Migration12)
                 .build();
     }
 

@@ -26,6 +26,24 @@ public abstract class SongInventoryDao {
     @Insert
     protected abstract void insertSongs(List<InventorySong> songs);
 
+    @Query("DELETE FROM inventory_songs WHERE accountId = :accountId")
+    protected abstract void deleteSongs(String accountId);
+
+    @Query("DELETE FROM song_inventories WHERE accountId = :accountId")
+    protected abstract void deleteInventory(String accountId);
+
+    /** Hands the inventory of one account to another that has none, and drops it from the first. */
+    @Transaction
+    public void move(String from, String to) {
+        SongInventory inventory = getInventory(from);
+        if (inventory != null && getInventory(to) == null) {
+            replace(new InventorySnapshot(to, new HashSet<>(getSongIds(from)), inventory.checkedAt));
+        }
+
+        deleteSongs(from);
+        deleteInventory(from);
+    }
+
     @Nullable
     @Transaction
     public InventorySnapshot read(String accountId) {

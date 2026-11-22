@@ -7,11 +7,11 @@ import android.os.Looper
 import android.text.TextUtils
 import android.view.View
 import android.widget.Toast
-import com.dkanada.gramophone.App
 import com.dkanada.gramophone.R
 import com.dkanada.gramophone.activities.base.AbsBaseActivity
 import com.dkanada.gramophone.databinding.ActivityLoginBinding
-import com.dkanada.gramophone.mapper.SdkUserMapper
+import com.dkanada.gramophone.mapper.SdkMapperUtil
+import com.dkanada.gramophone.util.Accounts
 import com.dkanada.gramophone.util.JellyfinSdkSession
 import com.dkanada.gramophone.util.PreferenceUtil
 import kotlinx.coroutines.runBlocking
@@ -65,7 +65,8 @@ class LoginActivity : AbsBaseActivity(), View.OnClickListener {
             return
         }
 
-        val api = JellyfinSdkSession.createApiForServer(server) ?: run {
+        val address = JellyfinSdkSession.normalizeAddress(server)
+        val api = address?.let { JellyfinSdkSession.createApiForServer(it) } ?: run {
             Toast.makeText(this, getString(R.string.error_unreachable_server), Toast.LENGTH_SHORT).show()
             return
         }
@@ -75,40 +76,38 @@ class LoginActivity : AbsBaseActivity(), View.OnClickListener {
         Thread {
             val result = runCatching {
                 runBlocking {
+                    val publicInfo by api.systemApi.getPublicSystemInfo()
+                    if (publicInfo.version?.firstOrNull() != '1') throw UnsupportedVersionException()
+                    val serverId = publicInfo.id ?: throw IllegalStateException("missing server id")
+
                     val authResult by api.userApi.authenticateUserByName(
                         AuthenticateUserByName(username = username, pw = password)
                     )
-                    val user = SdkUserMapper.toUserOrNull(authResult, server)
-                        ?: throw IllegalStateException("missing user in auth response")
-                    val publicInfo by api.systemApi.getPublicSystemInfo()
-                    Pair(user, publicInfo.version)
+                    val user = authResult.user ?: throw IllegalStateException("missing user in auth response")
+                    val token = authResult.accessToken ?: throw IllegalStateException("missing token in auth response")
+
+                    // signing in through another address of a saved server adds the address to its account
+                    Accounts.signIn(serverId, SdkMapperUtil.uuidToId(user.id), user.name ?: "", token, address)
                 }
             }
 
             Handler(Looper.getMainLooper()).post {
                 result.fold(
-                    onSuccess = { (user, version) ->
-                        if (version?.firstOrNull() != '1') {
-                            binding.login.isEnabled = true
-                            Toast.makeText(this, getString(R.string.error_version), Toast.LENGTH_SHORT).show()
-                        } else {
-                            App.getDatabase().userDao().insertUser(user)
-                            PreferenceUtil.getInstance(this).setServer(user.server)
-                            PreferenceUtil.getInstance(this).setUser(user.id)
-                            JellyfinSdkSession.updateSession(user.server, user.token, user.jellyfinUserId)
-                            startActivity(
-                                Intent(this, SplashActivity::class.java).apply {
-                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                                }
-                            )
-                        }
+                    onSuccess = { user ->
+                        PreferenceUtil.getInstance(this).setUser(user.id)
+                        JellyfinSdkSession.updateSessionFromUser(user)
+                        startActivity(
+                            Intent(this, SplashActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            }
+                        )
                     },
                     onFailure = { e ->
                         binding.login.isEnabled = true
-                        val msgRes = if (e is InvalidStatusException && e.status == 401) {
-                            R.string.error_login_credentials
-                        } else {
-                            R.string.error_unreachable_server
+                        val msgRes = when {
+                            e is UnsupportedVersionException -> R.string.error_version
+                            e is InvalidStatusException && e.status == 401 -> R.string.error_login_credentials
+                            else -> R.string.error_unreachable_server
                         }
                         Toast.makeText(this, getString(msgRes), Toast.LENGTH_SHORT).show()
                     }
@@ -116,4 +115,6 @@ class LoginActivity : AbsBaseActivity(), View.OnClickListener {
             }
         }.start()
     }
+
+    private class UnsupportedVersionException : Exception("unsupported server version")
 }

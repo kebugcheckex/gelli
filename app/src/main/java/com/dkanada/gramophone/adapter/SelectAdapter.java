@@ -47,7 +47,8 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
         final User user = users.get(position);
 
         holder.name.setText(user.name);
-        holder.url.setText(user.server);
+        // one account per server, with every address it was signed in through
+        holder.url.setText(String.join("\n", user.addresses));
     }
 
     @Override
@@ -77,7 +78,6 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
         public void onSelect(View v) {
             final User user = users.get(getBindingAdapterPosition());
 
-            PreferenceUtil.getInstance(activity).setServer(user.server);
             PreferenceUtil.getInstance(activity).setUser(user.id);
 
             activity.startActivity(new Intent(activity, SplashActivity.class));

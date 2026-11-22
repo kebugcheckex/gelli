@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
@@ -17,7 +18,6 @@ import com.bumptech.glide.signature.ObjectKey;
 import com.dkanada.gramophone.R;
 import com.dkanada.gramophone.glide.palette.BitmapPaletteCrossFadeFactory;
 import com.dkanada.gramophone.glide.palette.BitmapPaletteWrapper;
-import com.dkanada.gramophone.util.JellyfinSdkSession;
 import com.wolt.blurhashkt.BlurHashDecoder;
 
 import static com.bumptech.glide.GenericTransitionOptions.with;
@@ -111,7 +111,7 @@ public class CustomGlideRequest {
         }
     }
 
-    public static String createUrl(String item) {
-        return JellyfinImageUrls.buildPrimaryImageUrl(item);
+    public static GlideUrl createUrl(String item) {
+        return JellyfinImageUrls.primaryImage(item);
     }
 }

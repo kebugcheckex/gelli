@@ -36,7 +36,6 @@ public class ConfirmLogoutDialog extends DialogFragment {
                     EventListener.stop();
                     MusicPlayerRemote.clearQueue();
 
-                    PreferenceUtil.getInstance(requireContext()).setServer(null);
                     PreferenceUtil.getInstance(requireContext()).setUser(null);
                     List<User> users = App.getDatabase().userDao().getUsers();
                     if (users.size() > 0) {

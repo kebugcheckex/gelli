@@ -1,11 +1,32 @@
 package com.dkanada.gramophone.glide
 
+import com.bumptech.glide.load.model.GlideUrl
 import com.dkanada.gramophone.util.JellyfinSdkSession
 import com.dkanada.gramophone.util.QueryUtil
 import org.jellyfin.sdk.api.client.util.UrlBuilder
 import org.jellyfin.sdk.model.api.ImageType
 
 object JellyfinImageUrls {
+
+    /**
+     * The primary image as a Glide model. It is cached by item rather than by url, so a cover fetched through
+     * one address of the server is not fetched again through another. Item ids are GUIDs, so the key can't
+     * mix up the covers of two servers either.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun primaryImage(itemId: String, maxHeight: Int = 800): GlideUrl =
+        CachedGlideUrl(buildPrimaryImageUrl(itemId, maxHeight, JellyfinSdkSession.getBaseUrl()), primaryImageKey(itemId, maxHeight))
+
+    internal fun primaryImageKey(itemId: String, maxHeight: Int): String {
+        val id = QueryUtil.toUuidOrNull(itemId)?.toString() ?: itemId
+        return "jellyfin/items/$id/primary?maxHeight=$maxHeight"
+    }
+
+    /** Fetches the url but caches under the key. */
+    private class CachedGlideUrl(url: String, private val key: String) : GlideUrl(url) {
+        override fun getCacheKey(): String = key
+    }
 
     @JvmStatic
     @JvmOverloads
