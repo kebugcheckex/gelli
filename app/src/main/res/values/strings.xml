@@ -272,4 +272,23 @@
     <string name="error_unexpected">An unexpected error occurred.</string>
     <string name="error_empty_username">Please fill in your username.</string>
 
+    <string name="addresses_title">Server addresses</string>
+    <string name="addresses_summary">The addresses of this server, and the order to try them in</string>
+    <string name="addresses_hint">Tried in order from the top. The first one that answers is used.</string>
+    <string name="manage_addresses">Manage addresses</string>
+    <string name="add_address">Add address</string>
+    <string name="address_hint">Server address</string>
+    <string name="remove_address">Remove address</string>
+    <string name="reorder_address">Drag to reorder</string>
+    <string name="address_checking">Checking…</string>
+    <string name="address_reachable">Reachable</string>
+    <string name="address_unreachable">No answer</string>
+    <string name="address_other_server">A different server answers here</string>
+    <string name="address_in_use">%1$s · in use</string>
+    <string name="address_last_used">%1$s · last used</string>
+    <string name="address_added">Address added.</string>
+    <string name="address_known">This address is already on the list.</string>
+    <string name="address_other_server_add">This address leads to a different server.</string>
+    <string name="address_unidentified">Connect to this server once before adding addresses.</string>
+
 </resources>

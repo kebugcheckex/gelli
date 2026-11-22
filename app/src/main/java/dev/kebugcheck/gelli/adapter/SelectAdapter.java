@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import dev.kebugcheck.gelli.App;
 import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.activities.AddressesActivity;
 import dev.kebugcheck.gelli.activities.SplashActivity;
 import dev.kebugcheck.gelli.model.User;
 import dev.kebugcheck.gelli.util.PreferenceUtil;
@@ -47,7 +48,7 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
         final User user = users.get(position);
 
         holder.name.setText(user.name);
-        // one account per server, with every address it was signed in through
+        // one account per server, with its addresses in the order they are tried
         holder.url.setText(String.join("\n", user.addresses));
     }
 
@@ -60,6 +61,7 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
         TextView name;
         TextView url;
 
+        IconImageView addresses;
         IconImageView delete;
         IconImageView select;
 
@@ -68,9 +70,11 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
 
             name = itemView.findViewById(R.id.name);
             url = itemView.findViewById(R.id.url);
+            addresses = itemView.findViewById(R.id.addresses);
             delete = itemView.findViewById(R.id.delete);
             select = itemView.findViewById(R.id.select);
 
+            addresses.setOnClickListener(this::onAddresses);
             delete.setOnClickListener(this::onDelete);
             select.setOnClickListener(this::onSelect);
         }
@@ -81,6 +85,12 @@ public class SelectAdapter extends RecyclerView.Adapter<SelectAdapter.ViewHolder
             PreferenceUtil.getInstance(activity).setUser(user.id);
 
             activity.startActivity(new Intent(activity, SplashActivity.class));
+        }
+
+        public void onAddresses(View v) {
+            final User user = users.get(getBindingAdapterPosition());
+
+            AddressesActivity.start(activity, user.id);
         }
 
         public void onDelete(View v) {

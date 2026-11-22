@@ -4,6 +4,12 @@
 
     <dev.kebugcheck.gelli.views.settings.JellyPreferenceCategory android:title="@string/pref_header_network">
 
+        <Preference
+            app:iconSpaceReserved="false"
+            android:key="server_addresses"
+            android:title="@string/addresses_title"
+            android:summary="@string/addresses_summary" />
+
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             android:defaultValue="false"

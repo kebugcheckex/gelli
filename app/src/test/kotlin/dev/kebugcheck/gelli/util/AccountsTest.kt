@@ -43,6 +43,26 @@ class AccountsTest {
     }
 
     @Test
+    fun movedAddress_movesDownTheList() {
+        assertEquals(listOf("b", "c", "a"), Accounts.movedAddress(listOf("a", "b", "c"), 0, 2))
+    }
+
+    @Test
+    fun movedAddress_movesUpTheList() {
+        assertEquals(listOf("c", "a", "b"), Accounts.movedAddress(listOf("a", "b", "c"), 2, 0))
+    }
+
+    @Test
+    fun withoutAddress_keepsTheOrderOfTheRest() {
+        assertEquals(listOf("a", "c"), Accounts.withoutAddress(listOf("a", "b", "c"), "b"))
+    }
+
+    @Test
+    fun withoutAddress_neverRemovesTheLastAddress() {
+        assertNull(Accounts.withoutAddress(listOf("a"), "a"))
+    }
+
+    @Test
     fun addressConverter_roundTrips() {
         val addresses = listOf("http://192.168.1.10:8096", "https://music.example.com/jellyfin")
         assertEquals(addresses, AddressConverter.toList(AddressConverter.fromList(addresses)))

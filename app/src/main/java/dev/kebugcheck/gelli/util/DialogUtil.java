@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.WindowManager;
@@ -33,9 +34,19 @@ public final class DialogUtil {
      */
     @NonNull
     public static AlertDialog createNameInputDialog(@NonNull Context context, @StringRes int title, @StringRes int positiveText, @NonNull TextCallback callback) {
+        return createTextInputDialog(context, title, R.string.name, InputType.TYPE_CLASS_TEXT, positiveText, callback);
+    }
+
+    /**
+     * A dialog with a single text field, which works like {@link #createNameInputDialog} with the given hint
+     * and input type.
+     */
+    @NonNull
+    public static AlertDialog createTextInputDialog(@NonNull Context context, @StringRes int title, @StringRes int hint, int inputType, @StringRes int positiveText, @NonNull TextCallback callback) {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
         DialogTextInputBinding binding = DialogTextInputBinding.inflate(LayoutInflater.from(builder.getContext()));
-        binding.inputLayout.setHint(R.string.name);
+        binding.inputLayout.setHint(hint);
+        binding.input.setInputType(inputType);
 
         AlertDialog dialog = builder
             .setTitle(title)

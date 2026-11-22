@@ -98,6 +98,12 @@ public class SettingsActivity extends AbsBaseActivity {
 
         @SuppressWarnings("ConstantConditions")
         private void invalidateSettings() {
+            findPreference("server_addresses").setOnPreferenceClickListener(preference -> {
+                String user = PreferenceUtil.getInstance(requireContext()).getUser();
+                if (user != null) AddressesActivity.start(requireContext(), user);
+                return true;
+            });
+
             findPreference("downloads_storage").setOnPreferenceClickListener(preference -> {
                 startActivity(new Intent(requireContext(), DownloadsActivity.class));
                 return true;

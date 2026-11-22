@@ -14,21 +14,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jellyfin.sdk.api.client.extensions.systemApi
 
 /**
- * Picks which address of an account to talk to. Every address is probed at once and the first to answer
- * as the account's server wins, so a LAN address is used at home and a public one anywhere else. The
- * choice is made again whenever the device moves to another network.
+ * Picks which address of an account to talk to. The account's addresses are in priority order, and the
+ * first one in that order that answers as the account's server is used, so with a LAN address ahead of a
+ * public one the LAN address is used at home and the public one anywhere else. The choice is made again
+ * whenever the device moves to another network, or the addresses of the current account change.
  */
 object ServerConnection {
     private const val TAG = "ServerConnection"
 
-    private const val PROBE_TIMEOUT_MS = 8_000L
+    // how long an address that doesn't answer holds up the ones after it, e.g. a LAN address on mobile data
+    private const val PROBE_TIMEOUT_MS = 3_000L
     // a network that just became the default may not carry traffic right away
     private const val SETTLE_MS = 1_000L
 
@@ -57,16 +60,17 @@ object ServerConnection {
         })
     }
 
-    /** Returns the address of the account that answers first, or null if none does. */
+    /** Returns the first address of the account, in priority order, that answers, or null if none does. */
     suspend fun resolve(user: User): Endpoint? {
         val addresses = user.addresses.ifEmpty { listOfNotNull(user.server) }
         return resolve(addresses, user.serverId, PROBE_TIMEOUT_MS, ::probe)
     }
 
     /**
-     * Probes the addresses at once and returns the first to answer with the server id, or with any id when
-     * it isn't known yet. An address that answers for another server, e.g. a LAN address on a foreign
-     * network, is passed over.
+     * Probes the addresses at once and returns the first in the list to answer with the server id, or with
+     * any id when it isn't known yet. An address wins once every address before it has failed, timed out
+     * or answered for another server, e.g. a LAN address on a foreign network, so the result is the same as
+     * trying them one by one but takes at most one timeout.
      */
     @VisibleForTesting
     internal suspend fun resolve(
@@ -74,26 +78,36 @@ object ServerConnection {
         serverId: String?,
         timeoutMs: Long,
         probe: suspend (String) -> String?
-    ): Endpoint? = withTimeoutOrNull(timeoutMs) {
-        channelFlow {
-            for (address in addresses.distinct()) launch {
-                val id = try {
-                    probe(address)?.let(Accounts::normalizeServerId)
-                } catch (err: CancellationException) {
-                    throw err
-                } catch (err: Exception) {
-                    null
+    ): Endpoint? = coroutineScope {
+        val expected = serverId?.let(Accounts::normalizeServerId)
+        val probes = addresses.distinct().map { address ->
+            async {
+                val id = withTimeoutOrNull(timeoutMs) {
+                    try {
+                        probe(address)?.let(Accounts::normalizeServerId)
+                    } catch (err: CancellationException) {
+                        throw err
+                    } catch (err: Exception) {
+                        null
+                    }
                 }
 
-                if (id != null && (serverId == null || id == Accounts.normalizeServerId(serverId))) {
-                    send(Endpoint(address, id))
-                }
+                if (id != null && (expected == null || id == expected)) Endpoint(address, id) else null
             }
-        }.firstOrNull()
+        }
+
+        for (pending in probes) {
+            val endpoint = pending.await() ?: continue
+            // the addresses after it don't matter any more
+            coroutineContext.cancelChildren()
+            return@coroutineScope endpoint
+        }
+
+        null
     }
 
-    /** Returns the id of the server at the address, without signing in. */
-    private suspend fun probe(address: String): String? {
+    /** Returns the id of the server at the address, without signing in, or null if it doesn't answer. */
+    suspend fun probe(address: String): String? {
         val api = JellyfinSdkSession.createApiForServer(address) ?: return null
 
         return try {
@@ -107,7 +121,13 @@ object ServerConnection {
         }
     }
 
-    /** Moves the session to whichever address answers on the new network. */
+    /** Picks the address again after the addresses of the current account changed. */
+    @JvmStatic
+    fun addressesChanged() {
+        reconnect()
+    }
+
+    /** Moves the session to the first address, in priority order, that answers on the current network. */
     private fun reconnect() = synchronized(this) {
         reconnecting?.cancel()
         reconnecting = scope.launch {
@@ -117,8 +137,8 @@ object ServerConnection {
             if (NetworkUtil.isOffline(context)) return@launch
 
             val user = App.getDatabase().userDao().getUser(PreferenceUtil.getInstance(context).user) ?: return@launch
-            // the login service identifies an account without a server id, and one address leaves no choice
-            if (user.serverId == null || user.addresses.size < 2) return@launch
+            // the login service identifies an account without a server id
+            if (user.serverId == null) return@launch
 
             val endpoint = resolve(user) ?: return@launch
             if (JellyfinSdkSession.switchAddress(user.jellyfinUserId, user.token, endpoint.address)) {

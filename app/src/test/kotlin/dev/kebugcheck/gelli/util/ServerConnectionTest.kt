@@ -19,23 +19,55 @@ class ServerConnectionTest {
         }
 
     @Test
-    fun theFirstAddressToAnswerWins() = runBlocking {
+    fun theFirstAddressInPriorityOrderWins() = runBlocking {
         val endpoint = resolve(serverId,
-            tunnel to { delay(200); serverId },
-            lan to { delay(10); serverId })
+            lan to { delay(10); serverId },
+            tunnel to { delay(10); serverId })
 
         assertEquals(ServerConnection.Endpoint(lan, serverId), endpoint)
     }
 
     @Test
-    fun anUnreachableAddressDoesNotHoldUpAnother() = runBlocking {
+    fun aHigherAddressThatAnswersLaterStillWins() = runBlocking {
+        val endpoint = resolve(serverId,
+            tunnel to { delay(300); serverId },
+            lan to { delay(10); serverId })
+
+        assertEquals(tunnel, endpoint?.address)
+    }
+
+    @Test
+    fun aHigherAddressThatAnswersDoesNotWaitForLowerOnes() = runBlocking {
+        val started = System.nanoTime()
+        val endpoint = resolve(serverId,
+            lan to { delay(10); serverId },
+            tunnel to { delay(10_000); serverId })
+
+        assertEquals(lan, endpoint?.address)
+        assertTrue((System.nanoTime() - started) / 1_000_000 < 1_000)
+    }
+
+    @Test
+    fun anUnreachableAddressHoldsUpLowerOnesOnlyUntilItsTimeout() = runBlocking {
         val started = System.nanoTime()
         val endpoint = resolve(serverId,
             lan to { delay(10_000); serverId },
             tunnel to { delay(10); serverId })
+        val elapsed = (System.nanoTime() - started) / 1_000_000
 
         assertEquals(tunnel, endpoint?.address)
-        assertTrue((System.nanoTime() - started) / 1_000_000 < 1_000)
+        assertTrue(elapsed in 2_000 until 3_000)
+    }
+
+    @Test
+    fun deadAddressesInBetweenAreSkipped() = runBlocking {
+        val third = "https://backup.example.com"
+        val endpoint = resolve(serverId,
+            lan to { throw java.io.IOException("refused") },
+            tunnel to { null },
+            third to { delay(10); serverId })
+
+        assertEquals(third, endpoint?.address)
     }
 
     @Test

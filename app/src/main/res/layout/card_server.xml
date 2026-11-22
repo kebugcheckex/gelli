@@ -16,7 +16,7 @@
         android:paddingEnd="20dp"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/delete"
+        app:layout_constraintEnd_toStartOf="@id/addresses"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -39,6 +39,15 @@
             tools:text="https://jellyfin.org" />
 
     </LinearLayout>
+
+    <dev.kebugcheck.gelli.views.IconImageView
+        android:id="@+id/addresses"
+        android:contentDescription="@string/manage_addresses"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/delete"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_settings_white_24dp"
+        style="@style/OverFlowButton" />
 
     <dev.kebugcheck.gelli.views.IconImageView
         android:id="@+id/delete"
