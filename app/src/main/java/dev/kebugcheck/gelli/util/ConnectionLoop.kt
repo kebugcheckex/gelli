@@ -26,13 +26,14 @@ sealed interface ConnectionState {
  * progress. While no address answers it tries again on a growing interval, as long as [mayRetry] allows,
  * and otherwise waits for [wake].
  *
- * [attempt] gets the state before it, and returns the new one, or null to leave the state as it is, e.g.
- * when no account is signed in. [onResult] hears every state an attempt or [reset] leads to, also when it
+ * [attempt] gets the state before it and whether to pick from every address ([run]) or only to check the
+ * one in use ([check]), and returns the new state, or null to leave the state as it is, e.g. when no account
+ * is signed in. [onResult] hears every state an attempt or [reset] leads to, also when it
  * didn't change.
  */
 internal class ConnectionLoop(
     private val scope: CoroutineScope,
-    private val attempt: suspend (previous: ConnectionState) -> ConnectionState?,
+    private val attempt: suspend (previous: ConnectionState, full: Boolean) -> ConnectionState?,
     private val mayRetry: () -> Boolean,
     private val onResult: (previous: ConnectionState, current: ConnectionState) -> Unit,
 ) {
@@ -44,25 +45,41 @@ internal class ConnectionLoop(
 
     /** Attempts after [delayMs], in place of an attempt or retry already pending. */
     fun run(delayMs: Long = 0) {
-        synchronized(this) {
-            job?.cancel()
-            job = scope.launch {
-                delay(delayMs)
+        synchronized(this) { launch(delayMs, full = true) }
+    }
 
-                var failures = 0
-                while (true) {
-                    val previous = state
-                    val next = attempt(previous) ?: return@launch
-                    // a newer attempt took over while this one ran
-                    ensureActive()
+    /**
+     * Checks the address in use after [delayMs], e.g. after a request to it failed. An attempt already pending
+     * settles the state as well, so it is left to do that, which also turns a burst of failures into one check.
+     * Returns whether this started a check.
+     */
+    fun check(delayMs: Long): Boolean = synchronized(this) {
+        if (job?.isActive == true) return false
+        launch(delayMs, full = false)
+        true
+    }
 
-                    state = next
-                    onResult(previous, next)
-                    if (next != ConnectionState.Unreachable) return@launch
+    private fun launch(delayMs: Long, full: Boolean) {
+        job?.cancel()
+        job = scope.launch {
+            delay(delayMs)
 
-                    delay(RETRY_DELAYS_MS[minOf(failures++, RETRY_DELAYS_MS.lastIndex)])
-                    if (!mayRetry()) return@launch
-                }
+            var failures = 0
+            var pickFromAll = full
+            while (true) {
+                val previous = state
+                val next = attempt(previous, pickFromAll) ?: return@launch
+                // a newer attempt took over while this one ran
+                ensureActive()
+
+                state = next
+                onResult(previous, next)
+                if (next != ConnectionState.Unreachable) return@launch
+
+                // the address in use is gone, so retries look at every address
+                pickFromAll = true
+                delay(RETRY_DELAYS_MS[minOf(failures++, RETRY_DELAYS_MS.lastIndex)])
+                if (!mayRetry()) return@launch
             }
         }
     }

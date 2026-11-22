@@ -24,12 +24,18 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.Interceptor
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.exception.InvalidStatusException
 import org.jellyfin.sdk.api.client.extensions.sessionApi
 import org.jellyfin.sdk.api.client.extensions.systemApi
 import org.jellyfin.sdk.model.api.ClientCapabilitiesDto
+import java.io.IOException
+import java.io.InterruptedIOException
+import java.net.SocketException
+import java.net.UnknownHostException
 import java.util.concurrent.CopyOnWriteArraySet
+import javax.net.ssl.SSLException
 
 /**
  * How the app reaches the server of the current account, as a [ConnectionState] that screens can follow.
@@ -37,7 +43,9 @@ import java.util.concurrent.CopyOnWriteArraySet
  * The account's addresses are in priority order, and the first one in that order that answers as the
  * account's server is used, so with a LAN address ahead of a public one the LAN address is used at home and
  * the public one anywhere else. The choice is made again when the device moves to another network, or the
- * addresses of the current account change. When no address answers the app is [ConnectionState.Unreachable],
+ * addresses of the current account change. When the address in use stops answering, e.g. the LAN address after
+ * Wi-Fi drops, the app falls back to the next address in the list that answers. When no address answers the
+ * app is [ConnectionState.Unreachable],
  * which [NetworkUtil.isOffline] treats like offline mode, and it keeps trying while the app is in the
  * foreground or playing.
  */
@@ -48,6 +56,8 @@ object ServerConnection {
     private const val PROBE_TIMEOUT_MS = 3_000L
     // a network that just became the default may not carry traffic right away
     private const val SETTLE_MS = 1_000L
+    // failures tend to come in bursts, e.g. a page of covers and a query, which one check answers
+    private const val CHECK_DELAY_MS = 500L
     private const val HTTP_UNAUTHORIZED = 401
 
     data class Endpoint(val address: String, val serverId: String)
@@ -175,6 +185,44 @@ object ServerConnection {
         loop.run()
     }
 
+    /**
+     * Reports a request to the url, or to the address in use if null, that failed to connect: refused, timed out,
+     * unknown host or a TLS failure, but not an error status, which means the server is there. The address is
+     * checked, and if it no longer answers the app falls back to the next one in the list.
+     *
+     * Returns whether a connection state follows for this, which isn't the case when the app isn't online, or the
+     * request went to an address the session has moved away from since.
+     */
+    @JvmStatic
+    fun reportFailure(url: String?): Boolean {
+        if (loop.state !is ConnectionState.Online) return false
+        if (url != null && !JellyfinSdkSession.isOnCurrentAddress(url)) return false
+
+        // an attempt under way, the check's own probe among them, settles the state as well
+        if (loop.check(CHECK_DELAY_MS)) Log.i(TAG, "reportFailure: checking ${JellyfinSdkSession.getBaseUrl()}")
+        return true
+    }
+
+    /** Reports the API calls and socket connections that fail to connect, see [reportFailure]. */
+    val failureInterceptor = Interceptor { chain ->
+        try {
+            chain.proceed(chain.request())
+        } catch (err: IOException) {
+            if (isConnectionError(err)) reportFailure(chain.request().url().toString())
+            throw err
+        }
+    }
+
+    /** Whether the request didn't reach the server, rather than failing there. A cancelled call is neither. */
+    @VisibleForTesting
+    internal fun isConnectionError(err: Throwable): Boolean = when (err) {
+        // refused, reset, no route, as well as the unknown host
+        is SocketException, is UnknownHostException, is SSLException -> true
+        // connect, read and call timeouts, while a cancelled call is a plain IOException
+        is InterruptedIOException -> true
+        else -> false
+    }
+
     /** Playback keeps the retries going while the app is in the background. */
     @JvmStatic
     fun setPlaying(playing: Boolean) {
@@ -202,10 +250,17 @@ object ServerConnection {
         mainHandler.post { listeners.forEach { it.onConnectionChanged(current) } }
     }
 
-    private suspend fun attempt(previous: ConnectionState): ConnectionState? {
+    private suspend fun attempt(previous: ConnectionState, full: Boolean): ConnectionState? {
         val context = App.getInstance()
         val user = App.getDatabase().userDao().getUser(PreferenceUtil.getInstance(context).user) ?: return null
-        val endpoint = resolve(user) ?: return ConnectionState.Unreachable
+
+        val endpoint = if (!full && previous is ConnectionState.Online && verified == user.id) {
+            fallback(addressesOf(user), previous.address, user.serverId, PROBE_TIMEOUT_MS, ::probe).also {
+                Log.i(TAG, "check ${previous.address}: ${it?.address?.let { address -> "using $address" } ?: "no address answers"}")
+            }
+        } else {
+            resolve(user)
+        } ?: return ConnectionState.Unreachable
 
         if (verified != user.id) return connect(user, endpoint)
 
@@ -269,10 +324,30 @@ object ServerConnection {
         }
     }
 
+    private fun addressesOf(user: User): List<String> = user.addresses.ifEmpty { listOfNotNull(user.server) }
+
     /** Returns the first address of the account, in priority order, that answers, or null if none does. */
-    suspend fun resolve(user: User): Endpoint? {
-        val addresses = user.addresses.ifEmpty { listOfNotNull(user.server) }
-        return resolve(addresses, user.serverId, PROBE_TIMEOUT_MS, ::probe)
+    suspend fun resolve(user: User): Endpoint? = resolve(addressesOf(user), user.serverId, PROBE_TIMEOUT_MS, ::probe)
+
+    /**
+     * Returns the address in use if it still answers, as one failed request isn't a lost address, and otherwise
+     * the first address after it in the list that answers, or null if none does. The addresses before it are
+     * left alone: on one network the app only moves down the list, rather than back and forth over a flaky LAN.
+     * A change of network looks at the whole list again.
+     */
+    @VisibleForTesting
+    internal suspend fun fallback(
+        addresses: List<String>,
+        current: String,
+        serverId: String?,
+        timeoutMs: Long,
+        probe: suspend (String) -> String?
+    ): Endpoint? {
+        val index = addresses.indexOf(current)
+        // an address removed meanwhile has no place in the list, so every other address is a candidate
+        val after = if (index < 0) addresses else addresses.drop(index + 1)
+        // the current address goes first, so it wins if it answers, at the cost of one timeout at most
+        return resolve(listOf(current) + after, serverId, timeoutMs, probe)
     }
 
     /**

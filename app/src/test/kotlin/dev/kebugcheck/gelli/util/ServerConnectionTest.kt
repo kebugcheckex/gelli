@@ -104,4 +104,57 @@ class ServerConnectionTest {
     fun theTimeoutEndsTheProbe() = runBlocking {
         assertNull(resolve(serverId, lan to { delay(10_000); serverId }))
     }
+
+    private val backup = "https://backup.example.com"
+
+    /** Falls back from [current] over the addresses in order, which answer as [answers] says, or not at all. */
+    private suspend fun fallback(current: String, addresses: List<String>, answers: Map<String, String?>): Pair<String?, List<String>> {
+        val probed = java.util.Collections.synchronizedList(mutableListOf<String>())
+        val endpoint = ServerConnection.fallback(addresses, current, serverId, 2_000) { address ->
+            probed += address
+            answers[address]
+        }
+        return endpoint?.address to probed.sorted()
+    }
+
+    @Test
+    fun aHealthyCurrentAddressStays() = runBlocking {
+        val (address, _) = fallback(lan, listOf(lan, tunnel), mapOf(lan to serverId, tunnel to serverId))
+        assertEquals(lan, address)
+    }
+
+    @Test
+    fun aLostAddressFallsBackToTheNextOneThatAnswers() = runBlocking {
+        val (address, _) = fallback(lan, listOf(lan, tunnel, backup), mapOf(tunnel to null, backup to serverId))
+        assertEquals(backup, address)
+    }
+
+    @Test
+    fun theAddressesBeforeTheCurrentOneAreLeftAlone() = runBlocking {
+        val (address, probed) = fallback(tunnel, listOf(lan, tunnel, backup), mapOf(lan to serverId, backup to serverId))
+        assertEquals(backup, address)
+        assertEquals(listOf(backup, tunnel), probed)
+    }
+
+    @Test
+    fun theLastAddressLostLeavesNone() = runBlocking {
+        val (address, _) = fallback(backup, listOf(lan, tunnel, backup), mapOf(lan to serverId, tunnel to serverId))
+        assertNull(address)
+    }
+
+    @Test
+    fun anAddressRemovedMeanwhileFallsBackOverTheWholeList() = runBlocking {
+        val (address, _) = fallback(backup, listOf(lan, tunnel), mapOf(lan to null, tunnel to serverId))
+        assertEquals(tunnel, address)
+    }
+
+    @Test
+    fun onlyFailuresToConnectCountAsALostAddress() {
+        assertTrue(ServerConnection.isConnectionError(java.net.ConnectException("refused")))
+        assertTrue(ServerConnection.isConnectionError(java.net.UnknownHostException("jellyfin.home.arpa")))
+        assertTrue(ServerConnection.isConnectionError(java.net.SocketTimeoutException("timeout")))
+        assertTrue(ServerConnection.isConnectionError(javax.net.ssl.SSLHandshakeException("bad certificate")))
+        // okhttp reports a cancelled call as a plain IOException
+        assertEquals(false, ServerConnection.isConnectionError(java.io.IOException("Canceled")))
+    }
 }

@@ -12,11 +12,13 @@ import androidx.annotation.Nullable;
 
 import dev.kebugcheck.gelli.R;
 import dev.kebugcheck.gelli.model.Song;
+import dev.kebugcheck.gelli.util.ConnectionState;
 import dev.kebugcheck.gelli.util.JellyfinSdkSession;
 import dev.kebugcheck.gelli.util.LocalLibrary;
 import dev.kebugcheck.gelli.util.MusicUtil;
 import dev.kebugcheck.gelli.util.NetworkUtil;
 import dev.kebugcheck.gelli.util.PreferenceUtil;
+import dev.kebugcheck.gelli.util.ServerConnection;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
@@ -25,6 +27,7 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.datasource.ResolvingDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
@@ -52,6 +55,13 @@ public class LocalPlayer implements Playback {
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    // a stream that failed to connect waits for the connection check, then tries again where it stopped
+    private static final int MAX_CONNECTION_RETRIES = 2;
+    private boolean awaitingConnection;
+    private int connectionRetries;
+
+    private final ServerConnection.Listener connectionListener = this::onConnectionChanged;
+
     @SuppressWarnings("FieldCanBeLocal")
     private final Player.Listener eventListener = new Player.Listener() {
         @Override
@@ -63,6 +73,7 @@ public class LocalPlayer implements Playback {
         @Override
         public void onPlaybackStateChanged(int state) {
             Log.i(TAG, String.format("onPlaybackStateChanged: %d", state));
+            if (state == Player.STATE_READY) connectionRetries = 0;
             if (listener != null) listener.onStateChanged(state);
         }
 
@@ -81,6 +92,7 @@ public class LocalPlayer implements Playback {
         @Override
         public void onMediaItemTransition(MediaItem mediaItem, int reason) {
             Log.i(TAG, String.format("onMediaItemTransition: %s %d", mediaItem, reason));
+            connectionRetries = 0;
             if (listener != null) listener.onTrackChanged(reason);
         }
 
@@ -94,26 +106,74 @@ public class LocalPlayer implements Playback {
             Log.i(TAG, String.format("onPlayerError: %s", error.getMessage()));
 
             MediaItem current = exoPlayer.getCurrentMediaItem();
-            if (listener != null && current != null && !isLocal(current.localConfiguration.uri) && !NetworkUtil.canStream(context)) {
-                // the network went away while streaming, so move on to a stored song instead of stopping
-                int index = exoPlayer.getCurrentMediaItemIndex();
-                listener.onStreamLost();
+            if (listener != null && current != null && !isLocal(current.localConfiguration.uri) && isConnectionError(error)
+                    && NetworkUtil.canStream(context) && connectionRetries < MAX_CONNECTION_RETRIES) {
+                connectionRetries++;
 
-                if (exoPlayer.getCurrentMediaItemIndex() == index) {
-                    // nothing to move on to, so hold the song as a placeholder instead of retrying the stream
-                    exoPlayer.replaceMediaItem(index, PlaceholderMediaSourceFactory.createMediaItem(current.mediaId));
+                if (ServerConnection.reportFailure(failedUrl(error))) {
+                    awaitingConnection = true;
+                } else {
+                    // the stream went to an address the app has moved away from since, so try the one in use
+                    exoPlayer.prepare();
                 }
-
-                exoPlayer.prepare();
                 return;
             }
 
-            exoPlayer.clearMediaItems();
-            exoPlayer.prepare();
-
-            Toast.makeText(context, context.getResources().getString(R.string.unplayable_file), Toast.LENGTH_SHORT).show();
+            onStreamError();
         }
     };
+
+    private void onStreamError() {
+        MediaItem current = exoPlayer.getCurrentMediaItem();
+        if (listener != null && current != null && !isLocal(current.localConfiguration.uri) && !NetworkUtil.canStream(context)) {
+            // the network went away while streaming, so move on to a stored song instead of stopping
+            int index = exoPlayer.getCurrentMediaItemIndex();
+            listener.onStreamLost();
+
+            if (exoPlayer.getCurrentMediaItemIndex() == index) {
+                // nothing to move on to, so hold the song as a placeholder instead of retrying the stream
+                exoPlayer.replaceMediaItem(index, PlaceholderMediaSourceFactory.createMediaItem(current.mediaId));
+            }
+
+            exoPlayer.prepare();
+            return;
+        }
+
+        exoPlayer.clearMediaItems();
+        exoPlayer.prepare();
+
+        Toast.makeText(context, context.getResources().getString(R.string.unplayable_file), Toast.LENGTH_SHORT).show();
+    }
+
+    private void onConnectionChanged(ConnectionState state) {
+        if (!awaitingConnection) return;
+        awaitingConnection = false;
+
+        if (state instanceof ConnectionState.Online) {
+            // the same address if it answers again, otherwise the one the app fell back to
+            Log.i(TAG, "retrying the stream after the connection check");
+            exoPlayer.prepare();
+        } else {
+            onStreamError();
+        }
+    }
+
+    /** Whether the stream didn't reach the server, rather than the server turning it down. */
+    private static boolean isConnectionError(PlaybackException error) {
+        return error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+                || error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT;
+    }
+
+    @Nullable
+    private static String failedUrl(PlaybackException error) {
+        for (Throwable cause = error.getCause(); cause != null; cause = cause.getCause()) {
+            if (cause instanceof HttpDataSource.HttpDataSourceException) {
+                return ((HttpDataSource.HttpDataSourceException) cause).dataSpec.uri.toString();
+            }
+        }
+
+        return null;
+    }
 
     public LocalPlayer(Context context) {
         this.context = context;
@@ -146,6 +206,8 @@ public class LocalPlayer implements Playback {
 
         exoPlayer.addListener(eventListener);
         exoPlayer.prepare();
+
+        ServerConnection.addListener(connectionListener);
     }
 
     // Run a runnable on the main thread. If already on main, run synchronously.
@@ -365,6 +427,7 @@ public class LocalPlayer implements Playback {
 
     @Override
     public void stop() {
+        ServerConnection.removeListener(connectionListener);
         postToMain(exoPlayer::release);
     }
 

@@ -20,14 +20,16 @@ class ConnectionLoopTest {
     private class Harness(scope: CoroutineScope, vararg answers: ConnectionState?) {
         private val queue = answers.toMutableList()
         val attempts = mutableListOf<Long>()
+        val full = mutableListOf<Boolean>()
         val results = mutableListOf<Pair<ConnectionState, ConnectionState>>()
         var retryAllowed = true
         var clock: () -> Long = { 0 }
 
         val loop = ConnectionLoop(
             scope = scope,
-            attempt = {
+            attempt = { _, pickFromAll ->
                 attempts += clock()
+                full += pickFromAll
                 if (queue.size > 1) queue.removeAt(0) else queue.first()
             },
             mayRetry = { retryAllowed },
@@ -156,7 +158,7 @@ class ConnectionLoopTest {
         val results = mutableListOf<ConnectionState>()
         val loop = ConnectionLoop(
             scope = backgroundScope,
-            attempt = {
+            attempt = { _, _ ->
                 // the first attempt hangs on a dead address until the second takes over
                 if (calls++ == 0) delay(10_000)
                 online
@@ -196,5 +198,59 @@ class ConnectionLoopTest {
         assertEquals(listOf(0L), h.attempts)
         assertEquals(ConnectionState.Connecting, h.loop.state)
         assertEquals(ConnectionState.Unreachable to ConnectionState.Connecting, h.results.last())
+    }
+
+    @Test
+    fun aCheckLooksAtTheAddressInUseAfterItsDelay() = runTest {
+        val h = harness(online)
+
+        h.loop.run()
+        runCurrent()
+        h.loop.check(delayMs = 500)
+        settle()
+
+        assertEquals(listOf(0L, 500L), h.attempts)
+        assertEquals(listOf(true, false), h.full)
+    }
+
+    @Test
+    fun aBurstOfChecksLeadsToOne() = runTest {
+        val h = harness(online)
+
+        h.loop.run()
+        runCurrent()
+        val started = List(5) {
+            h.loop.check(delayMs = 500).also { advanceTimeBy(100) }
+        }
+        settle()
+
+        assertEquals(listOf(true, false, false, false, false), started)
+        assertEquals(listOf(0L, 500L), h.attempts)
+    }
+
+    @Test
+    fun aCheckLeavesAPendingAttemptToSettleTheState() = runTest {
+        val h = harness(online)
+
+        h.loop.run(delayMs = 1_000)
+        h.loop.check(delayMs = 500)
+        settle()
+
+        assertEquals(listOf(1_000L), h.attempts)
+        assertEquals(listOf(true), h.full)
+    }
+
+    @Test
+    fun retriesAfterAFailedCheckLookAtEveryAddress() = runTest {
+        val h = harness(online, ConnectionState.Unreachable, ConnectionState.Unreachable, online)
+
+        h.loop.run()
+        runCurrent()
+        h.loop.check(delayMs = 500)
+        settle()
+
+        assertEquals(listOf(0L, 500L, 30_500L, 90_500L), h.attempts)
+        assertEquals(listOf(true, false, true, true), h.full)
+        assertEquals(online, h.loop.state)
     }
 }

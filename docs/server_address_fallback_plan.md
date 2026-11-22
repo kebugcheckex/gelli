@@ -2,7 +2,7 @@
 
 ## Status
 
-M1 (priority order and the Server addresses screen), M2 (connection state and the unreachable mode) and M3 (switching addresses mid-session) are done. M4 is not started. The "Today" section below describes the code before M1. It builds on multi-address accounts (commit `44c24861`), where an account is keyed by the server id and keeps every address it signed in through.
+All four milestones are done: M1 (priority order and the Server addresses screen), M2 (connection state and the unreachable mode), M3 (switching addresses mid-session) and M4 (falling back when the address in use is lost). M4 was verified on the emulator, but not yet on the real phone while moving between networks. The "Today" section below describes the code before M1. It builds on multi-address accounts (commit `44c24861`), where an account is keyed by the server id and keeps every address it signed in through.
 
 ## Today
 
@@ -117,6 +117,17 @@ Each trigger runs the same steps:
 After a fallback caused by a playback error, retry the current song from the same position.
 
 **Tests.** With a fake probe: a lost current address falls back to the next working one, skipping dead ones in between; the last lost address leads to `Unreachable`; a single failed request with a healthy address doesn't switch; repeated failures lead to one check.
+
+**As built.**
+
+- `ServerConnection.reportFailure(url)` is the single entry point. It does nothing unless the app is `Online` and the url is on the address in use, which also drops failures of requests sent before a switch. Otherwise `ConnectionLoop.check` runs a check after 500 ms, unless an attempt is already pending or running, which settles the state as well.
+- A check probes the address in use and the addresses after it together, with the address in use first, so it stays if it answers and otherwise the next one that answers wins, at the cost of one timeout. An address removed meanwhile falls back over the whole list. If none answers the state is `Unreachable`, and the retries from there look at the whole list again.
+- **API calls and the socket.** The SDK is built with one shared `OkHttpFactory` whose client carries `ServerConnection.failureInterceptor`, so every SDK request, probe and socket handshake reports its connection failures without a call at each site. Refused, reset, unknown host, TLS and timeouts count; a cancelled call and any HTTP status don't.
+- **WebSocket.** `EventListener` watches `webSocket.state` and reports a socket that was connected and then drops with an error or starts reconnecting. A socket closed on purpose has no error.
+- **Playback.** On `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED` or `_TIMEOUT` for a stream, `LocalPlayer` reports the failed url and waits for the next connection state: `Online` prepares the player again, which resumes from the same position on whichever address is now in use, and anything else falls through to the existing handling (skip to a saved song, or pause). At most two such retries per song, reset once it plays. ExoPlayer has already retried the load a few times before it reports the error, so a stall is about 3 s.
+- `ServerConnectionTest` covers the fallback and the error classification, and `ConnectionLoopTest` the check: its delay, one check for a burst, deferring to a pending attempt, and full retries after a failed check.
+- On the emulator, with addresses blocked with `iptables`: blocking the LAN address mid-song switched to the domain after the next progress report failed, and the following song streamed from there. Blocking the domain with it first, then skipping, moved to the LAN address and played within about half a second of the error. Blocking the last address showed the banner, and Retry reconnected after unblocking.
+- A failing request only shows up when the call fails, so a connection that hangs takes up to the SDK's 30 s request timeout to report. A dropped Wi-Fi network is noticed sooner, through the network callback from M2.
 
 ## Verifying on a device
 

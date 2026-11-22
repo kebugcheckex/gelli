@@ -4,7 +4,7 @@ Unfinished work, known issues, and ideas. The finished plans (large-screen layou
 
 - `media3_session_migration_plan.md`: moving from `MediaSessionCompat` to a Media3 `MediaSessionService`. Not started.
 - `downloads_storage_design.md`: the rest of the Downloads & storage screen, storage cleanup, and per-artist coverage.
-- `server_address_fallback_plan.md`: a priority order for an account's server addresses, automatic fallback when one is lost, and an unreachable state in place of the jump to the login screen. M1 (priority order and the Server addresses screen), M2 (the unreachable state and banner) and M3 (queued streams follow an address switch) are done.
+- `server_address_fallback_plan.md`: a priority order for an account's server addresses, automatic fallback when one is lost, and an unreachable state in place of the jump to the login screen. M1 (priority order and the Server addresses screen), M2 (the unreachable state and banner), M3 (queued streams follow an address switch) and M4 (falling back when the address in use is lost) are done. What remains is a run on the real phone while moving between networks.
 
 ## Bugs
 

@@ -2,12 +2,15 @@ package dev.kebugcheck.gelli.helper
 
 import android.util.Log
 import dev.kebugcheck.gelli.util.JellyfinSdkSession
+import dev.kebugcheck.gelli.util.ServerConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.launchIn
+import org.jellyfin.sdk.api.sockets.SocketApiState
 import org.jellyfin.sdk.api.sockets.subscribe
 import org.jellyfin.sdk.model.api.PlaystateCommand
 import org.jellyfin.sdk.model.api.PlaystateMessage
@@ -31,6 +34,8 @@ object EventListener {
             .onEach { handlePlaystateMessage(it) }
             .launchIn(newScope)
 
+        watchConnection(api.webSocket.state, api.baseUrl).launchIn(newScope)
+
         Log.i(TAG, "WebSocket subscriptions started")
     }
 
@@ -44,6 +49,29 @@ object EventListener {
         scope?.cancel()
         scope = null
         Log.i(TAG, "WebSocket subscriptions stopped")
+    }
+
+    /**
+     * The server sends keep-alives, so a socket that drops is the first sign of a lost address, even while
+     * nothing else talks to the server.
+     */
+    private fun watchConnection(states: Flow<SocketApiState>, address: String?): Flow<SocketApiState> {
+        var connected = false
+
+        return states.onEach { state ->
+            if (state is SocketApiState.Connected) {
+                connected = true
+                return@onEach
+            }
+
+            // an error-free disconnect is the socket being closed on purpose
+            val dropped = state is SocketApiState.Connecting || (state as? SocketApiState.Disconnected)?.error != null
+            if (connected && dropped) {
+                Log.i(TAG, "WebSocket dropped: $state")
+                ServerConnection.reportFailure(address)
+            }
+            connected = false
+        }
     }
 
     private fun handlePlaystateMessage(message: PlaystateMessage) {

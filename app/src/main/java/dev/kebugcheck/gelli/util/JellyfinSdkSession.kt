@@ -9,6 +9,8 @@ import dev.kebugcheck.gelli.App
 import dev.kebugcheck.gelli.BuildConfig
 import dev.kebugcheck.gelli.R
 import dev.kebugcheck.gelli.model.User
+import okhttp3.OkHttpClient
+import org.jellyfin.sdk.api.okhttp.OkHttpFactory
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.DeviceInfo
@@ -138,7 +140,14 @@ object JellyfinSdkSession {
         buildJellyfin(context).createApi(baseUrl = server, accessToken = token)
     }
 
+    // shared by every api client and socket, so one interceptor sees all their connection failures
+    private val httpFactory by lazy {
+        OkHttpFactory(OkHttpClient.Builder().addInterceptor(ServerConnection.failureInterceptor).build())
+    }
+
     private fun buildJellyfin(context: Context) = createJellyfin {
+        apiClientFactory = httpFactory
+        socketConnectionFactory = httpFactory
         clientInfo = ClientInfo(
             name = context.getString(R.string.app_name),
             version = BuildConfig.VERSION_NAME
@@ -169,6 +178,10 @@ object JellyfinSdkSession {
             ?.trimEnd('/')
             ?.takeIf { it.isNotEmpty() }
     }
+
+    /** Whether the url goes to the address the session uses now. */
+    @JvmStatic
+    fun isOnCurrentAddress(url: String): Boolean = baseUrl?.let { startsWithAddress(url, it) } ?: false
 
     /** Replaces the address the url starts with by [current], if it is one of [addresses]. */
     @VisibleForTesting
