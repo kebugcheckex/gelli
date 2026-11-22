@@ -34,6 +34,9 @@ object JellyfinSdkSession {
     @Volatile
     private var userId: String? = null
 
+    // every address the session pointed at with these credentials, as urls built through one may still be queued
+    private val usedAddresses = LinkedHashSet<String>()
+
     @JvmStatic
     fun initialize(context: Context) {
         appContext = context.applicationContext
@@ -42,9 +45,14 @@ object JellyfinSdkSession {
     @JvmStatic
     fun updateSession(baseUrl: String?, accessToken: String?, userId: String?) {
         synchronized(lock) {
+            val token = accessToken?.trim()?.takeIf { it.isNotEmpty() }
+            val user = userId?.trim()?.takeIf { it.isNotEmpty() }
+            if (token != this.accessToken || user != this.userId) usedAddresses.clear()
+
             this.baseUrl = normalizeAddress(baseUrl)
-            this.accessToken = accessToken?.trim()?.takeIf { it.isNotEmpty() }
-            this.userId = userId?.trim()?.takeIf { it.isNotEmpty() }
+            this.accessToken = token
+            this.userId = user
+            this.baseUrl?.let(usedAddresses::add)
         }
     }
 
@@ -61,6 +69,7 @@ object JellyfinSdkSession {
             if (baseUrl == normalized) return false
 
             baseUrl = normalized
+            usedAddresses.add(normalized)
             return true
         }
     }
@@ -80,7 +89,18 @@ object JellyfinSdkSession {
             baseUrl = null
             accessToken = null
             userId = null
+            usedAddresses.clear()
         }
+    }
+
+    /**
+     * Points a url built through an earlier address of the session at the current one, e.g. a song queued
+     * before the device moved to another network. Any other url comes back as it is.
+     */
+    @JvmStatic
+    fun toCurrentAddress(url: String): String {
+        val (current, used) = synchronized(lock) { (baseUrl ?: return url) to usedAddresses.toList() }
+        return rewriteAddress(url, used, current)
     }
 
     @JvmStatic
@@ -149,6 +169,21 @@ object JellyfinSdkSession {
             ?.trimEnd('/')
             ?.takeIf { it.isNotEmpty() }
     }
+
+    /** Replaces the address the url starts with by [current], if it is one of [addresses]. */
+    @VisibleForTesting
+    internal fun rewriteAddress(url: String, addresses: Collection<String>, current: String): String {
+        // the longest match wins, so https://host/jellyfin isn't taken for https://host
+        val prefix = (addresses + current).filter { startsWithAddress(url, it) }.maxByOrNull { it.length }
+        if (prefix == null || prefix == current) return url
+
+        return current + url.substring(prefix.length)
+    }
+
+    // the address has to end where the url's path, query or fragment begins, so http://host doesn't match http://host.example
+    private fun startsWithAddress(url: String, address: String): Boolean =
+        url.startsWith(address, ignoreCase = true) &&
+            (url.length == address.length || url[address.length] in "/?#")
 
     @SuppressLint("HardwareIds")
     private fun resolveDeviceId(context: Context): String {

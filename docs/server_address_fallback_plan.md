@@ -2,7 +2,7 @@
 
 ## Status
 
-M1 (priority order and the Server addresses screen) and M2 (connection state and the unreachable mode) are done. M3 and M4 are not started. The "Today" section below describes the code before M1. It builds on multi-address accounts (commit `44c24861`), where an account is keyed by the server id and keeps every address it signed in through.
+M1 (priority order and the Server addresses screen), M2 (connection state and the unreachable mode) and M3 (switching addresses mid-session) are done. M4 is not started. The "Today" section below describes the code before M1. It builds on multi-address accounts (commit `44c24861`), where an account is keyed by the server id and keeps every address it signed in through.
 
 ## Today
 
@@ -87,6 +87,13 @@ Make a switch reach everything that already holds a url, so that M4 can switch a
 - **Playback reporting.** Check that `PlaybackReporter` builds its API client per call (it does today, through `createApiOrNull()`), so reports go to the current address.
 
 **Tests.** Unit test the url rewriting: every saved address maps to the current one, urls for other hosts are untouched, and the query string (including the `ApiKey`) is kept.
+
+**As built.**
+
+- `JellyfinSdkSession` remembers every address it pointed at with the current credentials, and `toCurrentAddress(url)` moves a url on one of them to the current address. The longest matching address wins, and a match has to end at a path, query or fragment boundary. Other credentials start the list over, since their urls carry another token.
+- `LocalPlayer` opens every stream through a `ResolvingDataSource` that applies it, which covers HLS segments too, as they resolve against the playlist url.
+- Saves needed no change: `SaveWorker` builds its urls from the session each time it opens one, so a retry already goes to the current address. Covers, playback reporting and the socket were already fine as described above.
+- `JellyfinSdkSessionTest` covers the rewrite. On the emulator, a song queued through the LAN address played through the public one after the order was changed mid-song.
 
 ### M4. Noticing a lost address and falling back
 

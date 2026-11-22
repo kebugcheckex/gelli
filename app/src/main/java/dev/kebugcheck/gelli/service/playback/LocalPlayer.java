@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 
 import dev.kebugcheck.gelli.R;
 import dev.kebugcheck.gelli.model.Song;
+import dev.kebugcheck.gelli.util.JellyfinSdkSession;
 import dev.kebugcheck.gelli.util.LocalLibrary;
 import dev.kebugcheck.gelli.util.MusicUtil;
 import dev.kebugcheck.gelli.util.NetworkUtil;
@@ -22,6 +23,9 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DefaultDataSource;
+import androidx.media3.datasource.ResolvingDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.extractor.DefaultExtractorsFactory;
@@ -122,8 +126,21 @@ public class LocalPlayer implements Playback {
         // transcoded songs are saved as adts or mp3 without an index, which can only seek by assuming a constant bitrate
         DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true);
 
+        // a stream keeps the address it was queued with, so each request it makes, down to every hls segment,
+        // goes to whichever address of the server is in use when it opens
+        DataSource.Factory dataSourceFactory = new ResolvingDataSource.Factory(new DefaultDataSource.Factory(context), dataSpec -> {
+            String url = dataSpec.uri.toString();
+            String current = JellyfinSdkSession.toCurrentAddress(url);
+            if (current.equals(url)) return dataSpec;
+
+            Uri uri = Uri.parse(current);
+            // hosts only, as the urls carry the token
+            Log.d(TAG, String.format("stream moved from %s to %s", dataSpec.uri.getHost(), uri.getHost()));
+            return dataSpec.withUri(uri);
+        });
+
         exoPlayer = new ExoPlayer.Builder(context)
-            .setMediaSourceFactory(new PlaceholderMediaSourceFactory(new DefaultMediaSourceFactory(context, extractorsFactory)))
+            .setMediaSourceFactory(new PlaceholderMediaSourceFactory(new DefaultMediaSourceFactory(dataSourceFactory, extractorsFactory)))
             .setAudioAttributes(audioAttributes, true)
             .build();
 
