@@ -26,7 +26,7 @@ This is a personal fork of the archived upstream `dkanada/gelli`, developed with
 PowerShell helpers in `scripts/` set the JDK themselves:
 
 - `scripts/release.ps1` prompts for the keystore password and builds the signed release APK.
-- `scripts/start-avd.ps1` boots the `gelli_test_api35` emulator, or reuses it if it's running. `-Create` builds the AVD first if it's missing (API 35 AOSP image, Pixel 6 profile, plus the `$ConfigOverrides` at the top of the script), so the AVD definition lives there rather than in committed AVD files. `-Install` builds the debug APK, installs it on that emulator only and launches it, so prefer it over `installDebug`, which installs on every connected device. `-Avd <name>` and `-ColdBoot` are also available. Requires PowerShell 7.
+- `scripts/start-avd.ps1` boots the `gelli_test_api35` emulator, or reuses it if it's running. `-Create` builds the AVD first if it's missing (API 35 AOSP image, Pixel 6 profile, plus the `$ConfigOverrides` at the top of the script), so the AVD definition lives there rather than in committed AVD files. `-Install` builds the debug APK, installs it on that emulator only and launches it, so prefer it over `installDebug`, which installs on every connected device. `-Restart` stops the AVD first, including a frozen one, which otherwise makes the script stop with an error. `-Avd <name>` and `-ColdBoot` are also available. Requires PowerShell 7.
 
 Unit tests live in `app/src/test` and run on the JVM:
 

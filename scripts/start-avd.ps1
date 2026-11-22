@@ -5,11 +5,13 @@
 #             missing, creates a Pixel 6 AVD with avdmanager and applies $ConfigOverrides.
 #   -Install  Builds the debug APK, installs it on that emulator only (never on a connected
 #             phone) and launches the app.
+#   -Restart  Stops the AVD if it's running, including when it's frozen, and boots it again.
 #   -ColdBoot Boots without loading the quick-boot snapshot.
 param(
     [string]$Avd = 'gelli_test_api35',
     [switch]$Create,
     [switch]$Install,
+    [switch]$Restart,
     [switch]$ColdBoot,
     [int]$TimeoutSeconds = 240
 )
@@ -65,13 +67,57 @@ function Find-SdkTool([string]$Sdk, [string]$Name) {
     return $tool
 }
 
+# Runs adb and returns its output, or $null if it doesn't finish in time. A frozen emulator
+# never answers `emu` or `shell` commands, so every probe needs a timeout.
+function Invoke-Adb([string[]]$Arguments, [int]$Timeout = 10) {
+    $info = [Diagnostics.ProcessStartInfo]::new($adb)
+    foreach ($argument in $Arguments) { $info.ArgumentList.Add($argument) }
+    $info.UseShellExecute = $false
+    $info.CreateNoWindow = $true
+    $info.RedirectStandardOutput = $true
+    $info.RedirectStandardError = $true
+
+    $process = [Diagnostics.Process]::Start($info)
+    $stdout = $process.StandardOutput.ReadToEndAsync()
+    $null = $process.StandardError.ReadToEndAsync()
+    if (-not $process.WaitForExit($Timeout * 1000)) {
+        try { $process.Kill($true) } catch { }
+        return $null
+    }
+    if ($stdout.Wait(5000)) { return $stdout.Result }
+    return ''
+}
+
 function Get-EmulatorSerial([string]$Name) {
-    $serials = & $adb devices | Select-String '^(emulator-\d+)\s+device$' | ForEach-Object { $_.Matches[0].Groups[1].Value }
+    $devices = Invoke-Adb @('devices') 15
+    $serials = $devices -split '\r?\n' | Select-String '^(emulator-\d+)\s+device$' | ForEach-Object { $_.Matches[0].Groups[1].Value }
     foreach ($serial in $serials) {
-        $avdName = (& $adb -s $serial emu avd name 2>$null | Select-Object -First 1)
+        $avdName = (Invoke-Adb @('-s', $serial, 'emu', 'avd', 'name') 5) -split '\r?\n' | Select-Object -First 1
         if ($avdName -and $avdName.Trim() -eq $Name) { return $serial }
     }
     return $null
+}
+
+# The emulator launcher and its qemu child, found by command line so this works even when the
+# emulator doesn't respond to adb.
+function Get-AvdProcess([string]$Name) {
+    $pattern = "-avd\s+`"?$([regex]::Escape($Name))`"?(\s|$)"
+    Get-Process -Name 'emulator', 'qemu-system-*' -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -match $pattern }
+}
+
+function Stop-Avd([string]$Name, [string]$Serial) {
+    Write-Host "Stopping $Name..."
+    if ($Serial) { $null = Invoke-Adb @('-s', $Serial, 'emu', 'kill') 10 }
+
+    $deadline = (Get-Date).AddSeconds(20)
+    while ((Get-AvdProcess $Name) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 1 }
+
+    $remaining = @(Get-AvdProcess $Name)
+    if ($remaining) {
+        $remaining | Stop-Process -Force -Confirm:$false -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+    }
 }
 
 function Set-AvdConfig([string]$Path, [System.Collections.IDictionary]$Settings) {
@@ -122,16 +168,29 @@ $emulator = "$sdk/emulator/emulator$exe"
 $adb = "$sdk/platform-tools/adb$exe"
 
 # Restore the caller's environment afterwards, since running a script with `.\` shares it.
-$savedEnv = @{}
-$savedEnv['ANDROID_AVD_HOME'] = $env:ANDROID_AVD_HOME
-$savedEnv['JAVA_HOME'] = $env:JAVA_HOME
+$savedEnv = @{
+    ANDROID_AVD_HOME = $env:ANDROID_AVD_HOME
+    JAVA_HOME        = $env:JAVA_HOME
+}
 
 try {
     $avdHome = Get-EnvSetting 'ANDROID_AVD_HOME'
     if ($avdHome) { $env:ANDROID_AVD_HOME = $avdHome }
 
-    & $adb start-server | Out-Null
+    Write-Host "Looking for a running $Avd..."
+    if ($null -eq (Invoke-Adb @('start-server') 30)) {
+        throw "The adb server didn't start within 30 seconds. Try 'adb kill-server' and run this again."
+    }
+
     $serial = Get-EmulatorSerial $Avd
+    $running = @(Get-AvdProcess $Avd)
+
+    if ($Restart -and ($serial -or $running)) {
+        Stop-Avd $Avd $serial
+        $serial = $null
+    } elseif (-not $serial -and $running) {
+        throw "$Avd is running (PID $($running.Id -join ', ')) but doesn't respond to adb. It may still be starting, or it may be frozen. Run this again with -Restart to stop it and boot it again."
+    }
 
     if ($serial) {
         Write-Host "$Avd is already running as $serial"
@@ -151,18 +210,19 @@ try {
 
         # Start-Process detaches the emulator so it keeps running after this script exits.
         $process = Start-Process -FilePath $emulator -ArgumentList $arguments -PassThru
+        $exitHint = "If $Avd is already running in another window, close it or run this again with -Restart."
 
         Write-Host "Booting $Avd..."
         $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
         while (-not $serial) {
-            if ($process.HasExited) { throw "Emulator exited with code $($process.ExitCode)" }
+            if ($process.HasExited) { throw "Emulator exited with code $($process.ExitCode). $exitHint" }
             if ((Get-Date) -gt $deadline) { throw "Timed out waiting for $Avd to connect to adb" }
             Start-Sleep -Seconds 2
             $serial = Get-EmulatorSerial $Avd
         }
 
-        while ((& $adb -s $serial shell getprop sys.boot_completed 2>$null) -ne '1') {
-            if ($process.HasExited) { throw "Emulator exited with code $($process.ExitCode)" }
+        while ((Invoke-Adb @('-s', $serial, 'shell', 'getprop', 'sys.boot_completed') 10) -notmatch '^\s*1\s*$') {
+            if ($process.HasExited) { throw "Emulator exited with code $($process.ExitCode). $exitHint" }
             if ((Get-Date) -gt $deadline) { throw "Timed out waiting for $Avd to finish booting" }
             Start-Sleep -Seconds 2
         }
@@ -187,7 +247,8 @@ try {
         & $adb -s $serial install -r $apk
         if ($LASTEXITCODE -ne 0) { throw "adb install failed with exit code $LASTEXITCODE" }
 
-        & $adb -s $serial shell am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p $package | Out-Null
+        $null = Invoke-Adb @('-s', $serial, 'shell', 'am', 'start', '-a', 'android.intent.action.MAIN',
+            '-c', 'android.intent.category.LAUNCHER', '-p', $package) 30
         Write-Host "Installed and launched $package on $serial" -ForegroundColor Green
     }
 } finally {
