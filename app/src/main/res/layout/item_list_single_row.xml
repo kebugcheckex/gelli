@@ -7,7 +7,7 @@
     android:foreground="@drawable/selectable_item_activated"
     tools:ignore="UnusedAttribute">
 
-    <com.dkanada.gramophone.views.IconImageView
+    <dev.kebugcheck.gelli.views.IconImageView
         android:id="@+id/drag_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
@@ -61,7 +61,7 @@
             android:singleLine="true"
             android:textAppearance="?textAppearanceBodyLarge" />
 
-        <com.dkanada.gramophone.views.IconImageView
+        <dev.kebugcheck.gelli.views.IconImageView
             android:id="@+id/menu"
             style="@style/OverFlowButton"
             android:layout_gravity="center_vertical"

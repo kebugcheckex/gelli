@@ -122,12 +122,12 @@ the cover palette, and it is inflated with ThemeOverlay.Gelli.LandscapePlayer.
 
                 <fragment
                     android:id="@+id/player_album_cover_fragment"
-                    class="com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment"
+                    class="dev.kebugcheck.gelli.fragments.player.PlayerAlbumCoverFragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
                 <!-- the lyrics sit on a translucent scrim, so the cover stays in view behind them -->
-                <com.dkanada.gramophone.views.LyricsView
+                <dev.kebugcheck.gelli.views.LyricsView
                     android:id="@+id/landscape_player_lyrics"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -326,7 +326,7 @@ the cover palette, and it is inflated with ThemeOverlay.Gelli.LandscapePlayer.
                 <!-- a fragment tag has no container for the list to take the dark overlay from -->
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/landscape_player_queue_fragment"
-                    android:name="com.dkanada.gramophone.fragments.player.PlayingQueueListFragment"
+                    android:name="dev.kebugcheck.gelli.fragments.player.PlayingQueueListFragment"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_marginStart="-16dp"

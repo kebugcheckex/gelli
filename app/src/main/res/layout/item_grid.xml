@@ -9,7 +9,7 @@
     android:orientation="vertical"
     android:padding="8dp">
 
-    <com.dkanada.gramophone.views.WidthFitSquareLayout
+    <dev.kebugcheck.gelli.views.WidthFitSquareLayout
         android:id="@+id/image_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -23,7 +23,7 @@
             app:srcCompat="@drawable/album_art_placeholder"
             tools:ignore="ContentDescription" />
 
-    </com.dkanada.gramophone.views.WidthFitSquareLayout>
+    </dev.kebugcheck.gelli.views.WidthFitSquareLayout>
 
     <TextView
         android:id="@+id/title"

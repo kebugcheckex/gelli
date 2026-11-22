@@ -1,0 +1,466 @@
+package dev.kebugcheck.gelli.fragments.player.flat;
+
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.ImageView;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+import androidx.lifecycle.Lifecycle;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import dev.kebugcheck.gelli.databinding.FragmentFlatPlayerBinding;
+import dev.kebugcheck.gelli.util.ThemeUtil;
+import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
+import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
+import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager;
+import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.adapter.base.MediaEntryViewHolder;
+import dev.kebugcheck.gelli.adapter.song.PlayingQueueAdapter;
+import dev.kebugcheck.gelli.dialogs.SongShareDialog;
+import dev.kebugcheck.gelli.helper.LyricsController;
+import dev.kebugcheck.gelli.helper.MusicPlayerRemote;
+import dev.kebugcheck.gelli.helper.menu.SongMenuHelper;
+import dev.kebugcheck.gelli.model.Song;
+import dev.kebugcheck.gelli.activities.base.AbsMusicPanelActivity;
+import dev.kebugcheck.gelli.fragments.player.AbsPlayerFragment;
+import dev.kebugcheck.gelli.fragments.player.PlayerAlbumCoverFragment;
+import dev.kebugcheck.gelli.util.ImageUtil;
+import dev.kebugcheck.gelli.util.MusicUtil;
+import dev.kebugcheck.gelli.util.PreferenceUtil;
+import dev.kebugcheck.gelli.util.ViewUtil;
+import dev.kebugcheck.gelli.views.WidthFitSquareLayout;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
+public class FlatPlayerFragment extends AbsPlayerFragment implements PlayerAlbumCoverFragment.Callbacks, SlidingUpPanelLayout.PanelSlideListener {
+
+    private FragmentFlatPlayerBinding binding;
+
+    private int lastColor;
+
+    private FlatPlayerPlaybackControlsFragment playbackControlsFragment;
+    private PlayerAlbumCoverFragment playerAlbumCoverFragment;
+
+    private LinearLayoutManager layoutManager;
+
+    private PlayingQueueAdapter playingQueueAdapter;
+
+    private RecyclerView.Adapter wrappedAdapter;
+    private RecyclerViewDragDropManager recyclerViewDragDropManager;
+
+    private Impl impl;
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        binding = FragmentFlatPlayerBinding.inflate(inflater);
+        impl = new PortraitImpl(this, binding);
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        impl.init();
+
+        setUpPlayerToolbar();
+        setUpSubFragments();
+        onLyricsStateChanged();
+
+        setUpRecyclerView();
+
+        if (binding.playerSlidingLayout != null) {
+            binding.playerSlidingLayout.addPanelSlideListener(this);
+            binding.playerSlidingLayout.setAntiDragView(view.findViewById(R.id.draggable_area));
+        }
+
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                impl.setUpPanelAndAlbumCoverHeight();
+            }
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (binding.playerSlidingLayout != null) {
+            binding.playerSlidingLayout.removePanelSlideListener(this);
+        }
+
+        if (recyclerViewDragDropManager != null) {
+            recyclerViewDragDropManager.release();
+            recyclerViewDragDropManager = null;
+        }
+
+        binding.playerRecyclerView.setItemAnimator(null);
+        binding.playerRecyclerView.setAdapter(null);
+
+        if (wrappedAdapter != null) {
+            WrapperAdapterUtils.releaseAll(wrappedAdapter);
+            wrappedAdapter = null;
+        }
+
+        playingQueueAdapter = null;
+        layoutManager = null;
+
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onPause() {
+        if (recyclerViewDragDropManager != null) {
+            recyclerViewDragDropManager.cancelDrag();
+        }
+
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkToggleToolbar(binding.toolbarContainer);
+        // the opacity may have changed in the settings, and color changes skip the animation while paused
+        binding.playerLyrics.setBackgroundColor(lyricsScrim(lastColor));
+    }
+
+    @Override
+    public void onServiceConnected() {
+        super.onServiceConnected();
+        if (MusicPlayerRemote.getCurrentSong() == null) return;
+
+        updateQueue();
+        updateCurrentSong();
+        updateIsFavorite();
+    }
+
+    @Override
+    public void onPlayMetadataChanged() {
+        super.onPlayMetadataChanged();
+        if (MusicPlayerRemote.getCurrentSong() == null) return;
+
+        updateCurrentSong();
+        updateIsFavorite();
+        updateQueuePosition();
+    }
+
+    @Override
+    public void onQueueChanged() {
+        super.onQueueChanged();
+        updateQueue();
+    }
+
+    @Override
+    public void onLyricsStateChanged() {
+        boolean enabled = lyricsController.isEnabled();
+        boolean show = lyricsController.getState() == LyricsController.State.READY;
+
+        binding.playerLyrics.setLyrics(lyricsController.getLyrics());
+        // the lyrics sit on a translucent scrim, so the cover stays in view behind them
+        binding.playerLyrics.setVisibility(show ? View.VISIBLE : View.GONE);
+
+        // tapping the cover can hide the toolbar, and it holds the way out of the lyrics
+        if (show) showToolbar(binding.toolbarContainer);
+
+        binding.playerToolbar.getMenu().findItem(R.id.action_lyrics)
+            .setIcon(enabled ? R.drawable.ic_lyrics_white_24dp : R.drawable.ic_lyrics_border_white_24dp)
+            .setTitle(enabled ? R.string.action_hide_lyrics : R.string.action_show_lyrics);
+    }
+
+    @Override
+    public void onLyricsPositionChanged(int line, float fill) {
+        binding.playerLyrics.setPosition(line, fill);
+    }
+
+    private void updateQueue() {
+        playingQueueAdapter.swapDataSet(MusicPlayerRemote.getPlayingQueue(), MusicPlayerRemote.getPosition());
+        binding.playerQueueSubHeader.setText(getUpNextAndQueueTime());
+        if (binding.playerSlidingLayout == null || binding.playerSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+            resetToCurrentPosition();
+        }
+    }
+
+    private void updateQueuePosition() {
+        playingQueueAdapter.setCurrent(MusicPlayerRemote.getPosition());
+        binding.playerQueueSubHeader.setText(getUpNextAndQueueTime());
+        if (binding.playerSlidingLayout == null || binding.playerSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+            resetToCurrentPosition();
+        }
+    }
+
+    private void updateCurrentSong() {
+        impl.updateCurrentSong(MusicPlayerRemote.getCurrentSong());
+    }
+
+    private void setUpSubFragments() {
+        playbackControlsFragment = (FlatPlayerPlaybackControlsFragment) getChildFragmentManager().findFragmentById(R.id.playback_controls_fragment);
+        playerAlbumCoverFragment = (PlayerAlbumCoverFragment) getChildFragmentManager().findFragmentById(R.id.player_album_cover_fragment);
+
+        playerAlbumCoverFragment.setCallbacks(this);
+    }
+
+    private void setUpPlayerToolbar() {
+        binding.playerToolbar.inflateMenu(R.menu.menu_player);
+        binding.playerToolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
+        binding.playerToolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
+        binding.playerToolbar.setOnMenuItemClickListener(this);
+    }
+
+    private void setUpRecyclerView() {
+        recyclerViewDragDropManager = new RecyclerViewDragDropManager();
+        final GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
+
+        playingQueueAdapter = new PlayingQueueAdapter(
+                ((AppCompatActivity) getActivity()),
+                MusicPlayerRemote.getPlayingQueue(),
+                MusicPlayerRemote.getPosition(),
+                R.layout.item_list);
+        wrappedAdapter = recyclerViewDragDropManager.createWrappedAdapter(playingQueueAdapter);
+
+        layoutManager = new LinearLayoutManager(getActivity());
+
+        binding.playerRecyclerView.setLayoutManager(layoutManager);
+        binding.playerRecyclerView.setAdapter(wrappedAdapter);
+        binding.playerRecyclerView.setItemAnimator(animator);
+
+        recyclerViewDragDropManager.attachRecyclerView(binding.playerRecyclerView);
+
+        layoutManager.scrollToPositionWithOffset(MusicPlayerRemote.getPosition() + 1, 0);
+    }
+
+    private void updateIsFavorite() {
+        boolean favorite = MusicPlayerRemote.getCurrentSong().favorite;
+        int res = favorite ? R.drawable.ic_favorite_white_24dp : R.drawable.ic_favorite_border_white_24dp;
+        int color = ContextCompat.getColor(requireContext(), android.R.color.white);
+        Drawable drawable = ImageUtil.getTintedVectorDrawable(requireActivity(), res, color);
+
+        binding.playerToolbar.getMenu().findItem(R.id.action_toggle_favorite)
+            .setIcon(drawable)
+            .setTitle(favorite ? getString(R.string.action_remove_from_favorites) : getString(R.string.action_add_to_favorites));
+    }
+
+    @Override
+    @ColorInt
+    public int getPaletteColor() {
+        return lastColor;
+    }
+
+    private void animateColorChange(final int newColor) {
+        impl.animateColorChange(newColor);
+        lastColor = newColor;
+    }
+
+    @Override
+    protected void toggleFavorite(Song song) {
+        super.toggleFavorite(song);
+        if (song.id.equals(MusicPlayerRemote.getCurrentSong().id)) {
+            if (song.favorite) {
+                playerAlbumCoverFragment.showHeartAnimation();
+            }
+
+            updateIsFavorite();
+        }
+    }
+
+    @Override
+    public void onShow() {
+        lyricsController.setPlayerVisible(true);
+        playbackControlsFragment.show();
+    }
+
+    @Override
+    public void onHide() {
+        lyricsController.setPlayerVisible(false);
+        playbackControlsFragment.hide();
+        onBackPressed();
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        boolean wasExpanded = false;
+        if (binding.playerSlidingLayout != null) {
+            wasExpanded = binding.playerSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED;
+            binding.playerSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        }
+
+        return wasExpanded;
+    }
+
+    @Override
+    public void onColorChanged(int color) {
+        animateColorChange(color);
+        binding.playerLyrics.setTextColor(ThemeUtil.getPrimaryTextColor(requireContext(), ThemeUtil.prefersDarkContent(color)));
+        playbackControlsFragment.setPaletteColor(color);
+        playbackControlsFragment.updateBufferingIndicatorColor(color);
+        getCallbacks().onPaletteColorChanged();
+    }
+
+    @Override
+    public void onFavoriteToggled() {
+        toggleFavorite(MusicPlayerRemote.getCurrentSong());
+    }
+
+    @Override
+    public void onToolbarToggled() {
+        toggleToolbar(binding.toolbarContainer);
+    }
+
+    @Override
+    public void onPanelSlide(View view, float slide) {
+    }
+
+    @Override
+    public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+        switch (newState) {
+            case COLLAPSED:
+                resetToCurrentPosition();
+                break;
+            case ANCHORED:
+                // this fixes a bug where the panel would get stuck for some reason
+                binding.playerSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                break;
+        }
+    }
+
+    // the palette color comes from the cover, so the text color picked for it still reads over the blend
+    @ColorInt
+    private int lyricsScrim(@ColorInt int color) {
+        int opacity = PreferenceUtil.getInstance(requireContext()).getLyricsOpacity();
+        return ColorUtils.setAlphaComponent(color, Math.round(opacity * 255 / 100f));
+    }
+
+    private void resetToCurrentPosition() {
+        binding.playerRecyclerView.stopScroll();
+        layoutManager.scrollToPositionWithOffset(MusicPlayerRemote.getPosition() + 1, 0);
+    }
+
+    interface Impl {
+        void init();
+
+        void updateCurrentSong(Song song);
+
+        void animateColorChange(final int newColor);
+
+        void setUpPanelAndAlbumCoverHeight();
+    }
+
+    private static abstract class BaseImpl implements Impl {
+        protected FlatPlayerFragment fragment;
+        protected FragmentFlatPlayerBinding binding;
+
+        public BaseImpl(FlatPlayerFragment fragment, FragmentFlatPlayerBinding binding) {
+            this.fragment = fragment;
+            this.binding = binding;
+        }
+
+        public AnimatorSet createDefaultColorChangeAnimatorSet(int newColor) {
+            Animator backgroundAnimator = ViewUtil.createBackgroundColorTransition(fragment.playbackControlsFragment.getView(), fragment.lastColor, newColor);
+            Animator statusBarAnimator = ViewUtil.createBackgroundColorTransition(binding.playerStatusBar, fragment.lastColor, newColor);
+            Animator lyricsAnimator = ViewUtil.createBackgroundColorTransition(binding.playerLyrics, fragment.lyricsScrim(fragment.lastColor), fragment.lyricsScrim(newColor));
+
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(backgroundAnimator, statusBarAnimator, lyricsAnimator);
+
+            animatorSet.setDuration(ViewUtil.PHONOGRAPH_ANIM_TIME);
+            return animatorSet;
+        }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private static class PortraitImpl extends BaseImpl {
+        MediaEntryViewHolder currentSongViewHolder;
+        Song currentSong;
+
+        public PortraitImpl(FlatPlayerFragment fragment, FragmentFlatPlayerBinding binding) {
+            super(fragment, binding);
+        }
+
+        @Override
+        public void init() {
+            currentSongViewHolder = new MediaEntryViewHolder(fragment.getView().findViewById(R.id.current_song));
+
+            currentSongViewHolder.separator.setVisibility(View.VISIBLE);
+            currentSongViewHolder.shortSeparator.setVisibility(View.GONE);
+            currentSongViewHolder.image.setScaleType(ImageView.ScaleType.CENTER);
+            currentSongViewHolder.image.setColorFilter(ThemeUtil.getColorResource(fragment.getActivity(), R.attr.colorOnSurfaceVariant), PorterDuff.Mode.SRC_IN);
+            currentSongViewHolder.image.setImageResource(R.drawable.ic_volume_up_white_24dp);
+            currentSongViewHolder.itemView.setOnClickListener(v -> {
+                if (binding.playerSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+                    binding.playerSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+                } else if (binding.playerSlidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+                    binding.playerSlidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                }
+            });
+
+            currentSongViewHolder.menu.setOnClickListener(new SongMenuHelper.OnClickSongMenu((AppCompatActivity) fragment.getActivity()) {
+                @Override
+                public Song getSong() {
+                    return currentSong;
+                }
+
+                public int getMenuRes() {
+                    return R.menu.menu_item_queue_song;
+                }
+
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    if (item.getItemId() == R.id.action_remove_from_queue) {
+                        MusicPlayerRemote.removeFromQueue(MusicPlayerRemote.getPosition());
+                        return true;
+                    } else if (item.getItemId() == R.id.action_share) {
+                        SongShareDialog.create(getSong()).show(fragment.getParentFragmentManager(), SongShareDialog.TAG);
+                        return true;
+                    }
+
+                    return super.onMenuItemClick(item);
+                }
+            });
+        }
+
+        @Override
+        public void setUpPanelAndAlbumCoverHeight() {
+            final WidthFitSquareLayout albumCoverContainer = fragment.getView().findViewById(R.id.album_cover_container);
+
+            final int availablePanelHeight = binding.playerSlidingLayout.getHeight() - fragment.getView().findViewById(R.id.player_content).getHeight();
+            final int minPanelHeight = (int) ViewUtil.convertDpToPixel(8 + 72 + 24, fragment.getResources()) + fragment.getResources().getDimensionPixelSize(R.dimen.progress_container_height) + fragment.getResources().getDimensionPixelSize(R.dimen.media_controller_container_height);
+
+            if (availablePanelHeight < minPanelHeight) {
+                albumCoverContainer.getLayoutParams().height = albumCoverContainer.getHeight() - (minPanelHeight - availablePanelHeight);
+                albumCoverContainer.forceSquare(false);
+            }
+
+            binding.playerSlidingLayout.setPanelHeight(Math.max(minPanelHeight, availablePanelHeight));
+            ((AbsMusicPanelActivity) fragment.getActivity()).setAntiDragView(binding.playerSlidingLayout.findViewById(R.id.player_panel));
+        }
+
+        @Override
+        public void updateCurrentSong(Song song) {
+            currentSong = song;
+            currentSongViewHolder.title.setText(song.title);
+            currentSongViewHolder.text.setText(MusicUtil.buildInfoString(song.artistName, song.albumName));
+        }
+
+        @Override
+        public void animateColorChange(int newColor) {
+            if (!fragment.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) return;
+            if (currentAnimatorSet!=null) currentAnimatorSet.cancel();
+            currentAnimatorSet = createDefaultColorChangeAnimatorSet(newColor);
+            currentAnimatorSet.start();
+        }
+    }
+}

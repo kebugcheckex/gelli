@@ -1,0 +1,299 @@
+package dev.kebugcheck.gelli.adapter.song;
+
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.adapter.base.AbsMultiSelectAdapter;
+import dev.kebugcheck.gelli.adapter.base.MediaEntryViewHolder;
+import dev.kebugcheck.gelli.glide.CustomGlideRequest;
+import dev.kebugcheck.gelli.helper.MusicPlayerRemote;
+import dev.kebugcheck.gelli.helper.menu.SongMenuHelper;
+import dev.kebugcheck.gelli.helper.menu.SongsMenuHelper;
+import dev.kebugcheck.gelli.model.Album;
+import dev.kebugcheck.gelli.model.Song;
+import dev.kebugcheck.gelli.util.LocalLibrary;
+import dev.kebugcheck.gelli.util.MusicUtil;
+import dev.kebugcheck.gelli.util.NavigationUtil;
+import dev.kebugcheck.gelli.util.NetworkUtil;
+import dev.kebugcheck.gelli.util.PreferenceUtil;
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
+
+import java.util.List;
+
+public class SongAdapter extends AbsMultiSelectAdapter<SongAdapter.ViewHolder, Song> implements FastScrollRecyclerView.SectionedAdapter {
+    protected final AppCompatActivity activity;
+    protected List<Song> dataSet;
+
+    protected int itemLayoutRes;
+
+    protected boolean showSectionName;
+
+    // badges follow the local library and the network while the list is on screen
+    private final LocalLibrary.Listener libraryListener = this::notifyDataSetChanged;
+    private final NetworkUtil.Listener networkListener = this::notifyDataSetChanged;
+
+    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes) {
+        this(activity, dataSet, itemLayoutRes, true);
+    }
+
+    public SongAdapter(AppCompatActivity activity, List<Song> dataSet, @LayoutRes int itemLayoutRes, boolean showSectionName) {
+        super(activity, R.menu.menu_select_media);
+
+        this.activity = activity;
+        this.dataSet = dataSet;
+        this.itemLayoutRes = itemLayoutRes;
+        this.showSectionName = showSectionName;
+
+        setHasStableIds(true);
+    }
+
+    public void swapDataSet(List<Song> dataSet) {
+        this.dataSet = dataSet;
+        notifyDataSetChanged();
+    }
+
+    public List<Song> getDataSet() {
+        return dataSet;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        LocalLibrary.addListener(libraryListener);
+        NetworkUtil.addListener(networkListener);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        LocalLibrary.removeListener(libraryListener);
+        NetworkUtil.removeListener(networkListener);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return dataSet.get(position).hashCode();
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(itemLayoutRes, parent, false);
+
+        return createViewHolder(view);
+    }
+
+    protected ViewHolder createViewHolder(View view) {
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+        final Song song = dataSet.get(position);
+        boolean isChecked = isChecked(song);
+        holder.itemView.setActivated(isChecked);
+
+        if (holder.getBindingAdapterPosition() == getItemCount() - 1) {
+            if (holder.shortSeparator != null) {
+                holder.shortSeparator.setVisibility(View.GONE);
+            }
+        } else {
+            if (holder.shortSeparator != null) {
+                holder.shortSeparator.setVisibility(View.VISIBLE);
+            }
+        }
+
+        if (holder.title != null) {
+            holder.title.setText(getSongTitle(song));
+        }
+
+        if (holder.text != null) {
+            holder.text.setText(getSongText(song));
+        }
+
+        LocalLibrary.Availability availability = LocalLibrary.getAvailability(song);
+        boolean canStream = NetworkUtil.canStream(activity);
+        if (holder.cached != null) {
+            if (availability == LocalLibrary.Availability.STORED) {
+                holder.cached.setImageResource(R.drawable.ic_download_24dp);
+                holder.cached.setVisibility(View.VISIBLE);
+            } else if (availability == LocalLibrary.Availability.MISSING) {
+                holder.cached.setImageResource(R.drawable.ic_error_outline_white_24dp);
+                holder.cached.setVisibility(View.VISIBLE);
+            } else if (!canStream) {
+                holder.cached.setImageResource(R.drawable.ic_cloud_off_24dp);
+                holder.cached.setVisibility(View.VISIBLE);
+            } else {
+                holder.cached.setVisibility(View.GONE);
+            }
+        }
+
+        // missing songs, and songs that can't be streamed right now, are skipped by playback
+        boolean playable = availability == LocalLibrary.Availability.STORED || (availability == LocalLibrary.Availability.NONE && canStream);
+        setAlpha(holder, playable ? 1f : 0.5f);
+
+        loadAlbumCover(song, holder);
+    }
+
+    protected void setAlpha(ViewHolder holder, float alpha) {
+        if (holder.image != null) {
+            holder.image.setAlpha(alpha);
+        }
+
+        if (holder.title != null) {
+            holder.title.setAlpha(alpha);
+        }
+
+        if (holder.text != null) {
+            holder.text.setAlpha(alpha);
+        }
+
+        if (holder.imageText != null) {
+            holder.imageText.setAlpha(alpha);
+        }
+    }
+
+    protected void loadAlbumCover(Song song, final ViewHolder holder) {
+        if (holder.image == null) return;
+
+        CustomGlideRequest.Builder
+                .from(activity, song.primary, song.blurHash)
+                .build()
+                .into(holder.image);
+    }
+
+    protected String getSongTitle(Song song) {
+        return song.title;
+    }
+
+    protected String getSongText(Song song) {
+        return MusicUtil.buildInfoString(song.artistName, song.albumName);
+    }
+
+    @Override
+    public int getItemCount() {
+        return dataSet.size();
+    }
+
+    @Override
+    protected Song getIdentifier(int position) {
+        return dataSet.get(position);
+    }
+
+    @Override
+    protected String getName(Song song) {
+        return song.title;
+    }
+
+    @Override
+    protected void onMultipleItemAction(@NonNull MenuItem menuItem, @NonNull List<Song> selection) {
+        SongsMenuHelper.handleMenuClick(activity, selection, menuItem.getItemId());
+    }
+
+    @NonNull
+    @Override
+    public String getSectionName(int position) {
+        if (!showSectionName) {
+            return "";
+        }
+
+        @Nullable String sectionName = null;
+        switch (PreferenceUtil.getInstance(activity).getSongSortMethod()) {
+            case NAME:
+                sectionName = dataSet.get(position).title;
+                break;
+            case ALBUM:
+                sectionName = dataSet.get(position).albumName;
+                break;
+            case ARTIST:
+                sectionName = dataSet.get(position).artistName;
+                break;
+            case YEAR:
+                return MusicUtil.getYearString(dataSet.get(position).year);
+            case ADDED:
+                return "";
+            case RANDOM:
+                return activity.getResources().getString(R.string.random);
+        }
+
+        return MusicUtil.getSectionName(sectionName);
+    }
+
+    public class ViewHolder extends MediaEntryViewHolder {
+        protected int DEFAULT_MENU_RES = SongMenuHelper.MENU_RES;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            setImageTransitionName(activity.getString(R.string.transition_album_image));
+
+            if (menu == null) {
+                return;
+            }
+
+            menu.setOnClickListener(new SongMenuHelper.OnClickSongMenu(activity) {
+                @Override
+                public Song getSong() {
+                    return ViewHolder.this.getSong();
+                }
+
+                @Override
+                public int getMenuRes() {
+                    return getSongMenuRes();
+                }
+
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    return onSongMenuItemClick(item) || super.onMenuItemClick(item);
+                }
+            });
+        }
+
+        protected Song getSong() {
+            return dataSet.get(getBindingAdapterPosition());
+        }
+
+        protected int getSongMenuRes() {
+            return DEFAULT_MENU_RES;
+        }
+
+        protected boolean onSongMenuItemClick(MenuItem item) {
+            if (image != null && image.getVisibility() == View.VISIBLE) {
+                if (item.getItemId() == R.id.action_go_to_album) {
+                    Pair<View, String> transition = Pair.create(
+                            image,
+                            activity.getResources().getString(R.string.transition_album_image)
+                    );
+                    NavigationUtil.startAlbum(activity, new Album(getSong()), transition);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (isActive()) {
+                toggleChecked(getBindingAdapterPosition());
+            } else {
+                MusicPlayerRemote.openQueue(dataSet, getBindingAdapterPosition(), true);
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View view) {
+            return toggleChecked(getBindingAdapterPosition());
+        }
+    }
+}

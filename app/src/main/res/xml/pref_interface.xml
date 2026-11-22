@@ -1,7 +1,7 @@
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_colors">
+    <dev.kebugcheck.gelli.views.settings.JellyPreferenceCategory android:title="@string/pref_header_colors">
 
         <ListPreference
             app:iconSpaceReserved="false"
@@ -27,11 +27,11 @@
             android:summary="@string/pref_summary_colored_shortcuts"
             android:title="@string/pref_title_colored_shortcuts" />
 
-    </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
+    </dev.kebugcheck.gelli.views.settings.JellyPreferenceCategory>
 
-    <com.dkanada.gramophone.views.settings.JellyPreferenceCategory android:title="@string/pref_header_lyrics">
+    <dev.kebugcheck.gelli.views.settings.JellyPreferenceCategory android:title="@string/pref_header_lyrics">
 
-        <com.dkanada.gramophone.views.settings.SliderPreference
+        <dev.kebugcheck.gelli.views.settings.SliderPreference
             app:iconSpaceReserved="false"
             android:defaultValue="80"
             android:key="lyrics_opacity"
@@ -41,6 +41,6 @@
             android:valueFrom="50"
             android:valueTo="100" />
 
-    </com.dkanada.gramophone.views.settings.JellyPreferenceCategory>
+    </dev.kebugcheck.gelli.views.settings.JellyPreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

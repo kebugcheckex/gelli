@@ -1,0 +1,936 @@
+package dev.kebugcheck.gelli.service;
+
+import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.appwidget.AppWidgetManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.os.Binder;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.PowerManager;
+import android.os.Process;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
+import dev.kebugcheck.gelli.App;
+import dev.kebugcheck.gelli.BuildConfig;
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.glide.CustomGlideRequest;
+import dev.kebugcheck.gelli.model.Playlist;
+import dev.kebugcheck.gelli.model.Song;
+import dev.kebugcheck.gelli.util.LocalLibrary;
+import dev.kebugcheck.gelli.util.NetworkUtil;
+import dev.kebugcheck.gelli.service.notifications.PlayingNotification;
+import dev.kebugcheck.gelli.service.notifications.PlayingNotificationMarshmallow;
+import dev.kebugcheck.gelli.service.notifications.PlayingNotificationNougat;
+import dev.kebugcheck.gelli.service.playback.LocalPlayer;
+import dev.kebugcheck.gelli.service.playback.Playback;
+import dev.kebugcheck.gelli.service.playback.PlaybackListener;
+import dev.kebugcheck.gelli.service.receivers.MediaButtonIntentReceiver;
+import dev.kebugcheck.gelli.util.PreferenceUtil;
+import dev.kebugcheck.gelli.util.Util;
+import dev.kebugcheck.gelli.views.widgets.AppWidgetAlbum;
+import dev.kebugcheck.gelli.views.widgets.AppWidgetCard;
+import dev.kebugcheck.gelli.views.widgets.AppWidgetClassic;
+import androidx.media3.common.Player;
+
+import dev.kebugcheck.gelli.util.PlaybackReporter;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_AUTO;
+import static androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED;
+import static androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT;
+import static androidx.media3.common.Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM;
+
+public class MusicService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
+    public static final String PACKAGE_NAME = BuildConfig.APPLICATION_ID;
+
+    public static final String ACTION_TOGGLE = PACKAGE_NAME + ".toggle";
+    public static final String ACTION_PLAY = PACKAGE_NAME + ".play";
+    public static final String ACTION_PLAY_PLAYLIST = PACKAGE_NAME + ".play.playlist";
+    public static final String ACTION_PAUSE = PACKAGE_NAME + ".pause";
+    public static final String ACTION_STOP = PACKAGE_NAME + ".stop";
+    public static final String ACTION_SKIP = PACKAGE_NAME + ".skip";
+    public static final String ACTION_REWIND = PACKAGE_NAME + ".rewind";
+    public static final String ACTION_QUIT = PACKAGE_NAME + ".quit";
+    public static final String ACTION_PENDING_QUIT = PACKAGE_NAME + ".quit.pending";
+
+    public static final String INTENT_EXTRA_PLAYLIST = PACKAGE_NAME + ".extra.playlist";
+    public static final String INTENT_EXTRA_SHUFFLE = PACKAGE_NAME + ".extra.shuffle";
+    public static final String INTENT_EXTRA_WIDGET_UPDATE = PACKAGE_NAME + ".extra.widget.update";
+    public static final String INTENT_EXTRA_WIDGET_NAME = PACKAGE_NAME + ".extra.widget.name";
+
+    public static final String STATE_CHANGED = PACKAGE_NAME + ".state.changed";
+    public static final String META_CHANGED = PACKAGE_NAME + ".meta.changed";
+    public static final String QUEUE_CHANGED = PACKAGE_NAME + ".queue.changed";
+
+    public static final String REPEAT_MODE_CHANGED = PACKAGE_NAME + ".repeat.changed";
+    public static final String SHUFFLE_MODE_CHANGED = PACKAGE_NAME + ".shuffle.changed";
+
+    public static final int TRACK_STARTED = 9;
+    public static final int TRACK_CHANGED = 1;
+    public static final int TRACK_ENDED = 2;
+
+    public static final int SAVE_QUEUE = 0;
+    public static final int LOAD_QUEUE = 9;
+
+    private final IBinder musicBinder = new MusicBinder();
+
+    public boolean pendingQuit = false;
+
+    private final AppWidgetAlbum appWidgetAlbum = AppWidgetAlbum.getInstance();
+    private final AppWidgetCard appWidgetCard = AppWidgetCard.getInstance();
+    private final AppWidgetClassic appWidgetClassic = AppWidgetClassic.getInstance();
+
+    private Playback playback;
+    private SaveTrigger saveTrigger;
+
+    public QueueManager queueManager;
+
+    private boolean queuesRestored;
+
+    private PlayingNotification playingNotification;
+    private MediaSessionCompat mediaSession;
+    private PowerManager.WakeLock wakeLock;
+
+    private Handler uiThreadHandler;
+    private ThrottledSeekHandler throttledSeekHandler;
+    private QueueHandler queueHandler;
+    private ProgressHandler progressHandler;
+
+    private HandlerThread progressHandlerThread;
+    private HandlerThread queueHandlerThread;
+
+    public final QueueManager.QueueCallbacks queueCallbacks = new QueueManager.QueueCallbacks() {
+        @Override
+        public void onQueueChanged() {
+            // playback resolves the songs off the main thread while the queue may keep changing
+            playback.setQueue(new ArrayList<>(queueManager.getPlayingQueue()), queueManager.getPosition(), queueManager.getRestoredProgress(), queueManager.isResetCurrentSong());
+            saveState();
+            notifyChange(QUEUE_CHANGED);
+        }
+
+        @Override
+        public void onRepeatModeChanged() {
+            playback.setRepeatMode(queueManager.getRepeatMode());
+            notifyChange(REPEAT_MODE_CHANGED);
+        }
+
+        @Override
+        public void onShuffleModeChanged() {
+            notifyChange(SHUFFLE_MODE_CHANGED);
+        }
+    };
+
+    // queued songs switch to their stored file once saved, and back to streaming once removed
+    private final LocalLibrary.Listener libraryListener = this::refreshQueue;
+
+    // and to a placeholder while they can't be streamed, so playback never waits on a stream that will fail.
+    // A song streaming when that happens is left for the next stored one, e.g. when offline mode is turned on.
+    private final NetworkUtil.Listener networkListener = () -> {
+        refreshQueue();
+
+        Song song = queueManager.getCurrentSong();
+        if (song != null && playback.isPlaying() && !LocalLibrary.isPlayable(song) && skipUnplayable()) {
+            progressHandler.sendEmptyMessage(TRACK_CHANGED);
+        }
+    };
+
+    private final PlaybackListener playbackCallbacks = new PlaybackListener() {
+        @Override
+        public void onStateChanged(int state) {
+            notifyChange(STATE_CHANGED);
+
+            if (state == Player.STATE_ENDED) {
+                // clearing the queue also ends playback, which is not a completion
+                if (!queueManager.getPlayingQueue().isEmpty()) saveTrigger.onCompleted();
+
+                playingNotification.stop();
+                releaseWakeLock();
+            }
+        }
+
+        @Override
+        public void onReadyChanged(boolean ready, int reason) {
+            notifyChange(STATE_CHANGED);
+
+            if (ready) {
+                progressHandler.sendEmptyMessage(TRACK_STARTED);
+            } else if (reason == PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM) {
+                if (pendingQuit) {
+                    pendingQuit = false;
+                    clearSleepTimer();
+                    quit();
+                    return;
+                }
+                progressHandler.sendEmptyMessage(TRACK_ENDED);
+            }
+        }
+
+        @Override
+        public void onPlayingChanged(boolean playing) {
+            saveTrigger.onPlayingChanged(playing);
+        }
+
+        @Override
+        public void onTrackChanged(int reason) {
+            acquireWakeLock(30000);
+
+            boolean auto = reason == MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == MEDIA_ITEM_TRANSITION_REASON_REPEAT;
+            if (auto) {
+                saveTrigger.onCompleted();
+
+                if (pendingQuit) {
+                    pendingQuit = false;
+                    clearSleepTimer();
+                    quit();
+                    return;
+                }
+                queueManager.setNextPosition();
+            }
+
+            // the queue position is updated by now, so this is the song that just started
+            Song song = queueManager.getCurrentSong();
+
+            // a song that can't play right now is skipped while playing, the jump reports the song it lands on
+            boolean skipped = song != null && playback.isReady() && !LocalLibrary.isPlayable(song) && skipUnplayable();
+
+            if (auto || reason == MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
+                progressHandler.sendEmptyMessage(TRACK_CHANGED);
+            }
+
+            if (skipped) return;
+
+            saveTrigger.onTrackChanged(song);
+            if (song != null) LocalLibrary.restoreMissing(song);
+
+            // files deleted outside the app don't notify the library, so check the queue on every track
+            refreshQueue();
+
+            notifyChange(STATE_CHANGED);
+            notifyChange(META_CHANGED);
+        }
+
+        @Override
+        public void onStreamLost() {
+            if (skipUnplayable()) progressHandler.sendEmptyMessage(TRACK_CHANGED);
+        }
+    };
+
+    private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, @NonNull Intent intent) {
+            if (intent.getAction().equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
+                pause();
+            }
+        }
+    };
+
+    private final BroadcastReceiver widgetIntentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            final String command = intent.getStringExtra(INTENT_EXTRA_WIDGET_NAME);
+            final int[] ids = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+
+            switch (command) {
+                case AppWidgetClassic.NAME:
+                    appWidgetClassic.notifyChange(MusicService.this, META_CHANGED, ids);
+                    break;
+                case AppWidgetAlbum.NAME:
+                    appWidgetAlbum.notifyChange(MusicService.this, META_CHANGED, ids);
+                    break;
+                case AppWidgetCard.NAME:
+                    appWidgetCard.notifyChange(MusicService.this, META_CHANGED, ids);
+                    break;
+            }
+        }
+    };
+
+    private static final long MEDIA_SESSION_ACTIONS = PlaybackStateCompat.ACTION_PLAY
+            | PlaybackStateCompat.ACTION_PAUSE
+            | PlaybackStateCompat.ACTION_PLAY_PAUSE
+            | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+            | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+            | PlaybackStateCompat.ACTION_STOP
+            | PlaybackStateCompat.ACTION_SEEK_TO;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        final PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+        wakeLock.setReferenceCounted(false);
+
+        saveTrigger = new SaveTrigger(this);
+
+        playback = new LocalPlayer(this);
+        playback.setListener(playbackCallbacks);
+        playback.setVolume(PreferenceUtil.getInstance(this).getGainOffset());
+
+        queueManager = new QueueManager(this, queueCallbacks);
+        LocalLibrary.addListener(libraryListener);
+        NetworkUtil.addListener(networkListener);
+
+        progressHandlerThread = new HandlerThread(ProgressHandler.class.getName());
+        progressHandlerThread.start();
+        progressHandler = new ProgressHandler(this, progressHandlerThread.getLooper());
+
+        queueHandlerThread = new HandlerThread(QueueHandler.class.getName(), Process.THREAD_PRIORITY_BACKGROUND);
+        queueHandlerThread.start();
+        queueHandler = new QueueHandler(this, queueHandlerThread.getLooper());
+
+        throttledSeekHandler = new ThrottledSeekHandler(new Handler());
+        uiThreadHandler = new Handler();
+
+        registerReceiver(widgetIntentReceiver, new IntentFilter(INTENT_EXTRA_WIDGET_UPDATE), Context.RECEIVER_NOT_EXPORTED);
+        registerReceiver(becomingNoisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), Context.RECEIVER_NOT_EXPORTED);
+
+        PreferenceUtil.getInstance(this).registerOnSharedPreferenceChangedListener(this);
+
+        initNotification();
+        initMediaSession();
+        restoreState();
+
+        mediaSession.setActive(true);
+    }
+
+    private void initMediaSession() {
+        ComponentName mediaButtonReceiverComponentName = new ComponentName(getApplicationContext(), MediaButtonIntentReceiver.class);
+
+        Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        mediaButtonIntent.setComponent(mediaButtonReceiverComponentName);
+
+        PendingIntent mediaButtonReceiverPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, mediaButtonIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        mediaSession = new MediaSessionCompat(this, getResources().getString(R.string.app_name), mediaButtonReceiverComponentName, mediaButtonReceiverPendingIntent);
+        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+            @Override
+            public void onPlay() {
+                play();
+            }
+
+            @Override
+            public void onPause() {
+                pause();
+            }
+
+            @Override
+            public void onSkipToNext() {
+                playNextSong();
+            }
+
+            @Override
+            public void onSkipToPrevious() {
+                back();
+            }
+
+            @Override
+            public void onStop() {
+                quit();
+            }
+
+            @Override
+            public void onSeekTo(long pos) {
+                seek((int) pos);
+            }
+
+            @Override
+            public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
+                return MediaButtonIntentReceiver.handleIntent(MusicService.this, mediaButtonEvent);
+            }
+        });
+
+        mediaSession.setMediaButtonReceiver(mediaButtonReceiverPendingIntent);
+    }
+
+    @Override
+    public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        if (intent != null) {
+            if (intent.getAction() != null) {
+                String action = intent.getAction();
+                switch (action) {
+                    case ACTION_TOGGLE:
+                        if (isPlaying()) {
+                            pause();
+                        } else {
+                            play();
+                        }
+                        break;
+                    case ACTION_PAUSE:
+                        pause();
+                        break;
+                    case ACTION_PLAY:
+                        play();
+                        break;
+                    case ACTION_PLAY_PLAYLIST:
+                        Playlist playlist = intent.getParcelableExtra(INTENT_EXTRA_PLAYLIST);
+                        int shuffleMode = intent.getIntExtra(INTENT_EXTRA_SHUFFLE, queueManager.getShuffleMode());
+                        if (playlist != null) {
+                            List<Song> playlistSongs = new ArrayList<>();
+                            if (!playlistSongs.isEmpty()) {
+                                if (shuffleMode == QueueManager.SHUFFLE_MODE_SHUFFLE) {
+                                    int startPosition = new Random().nextInt(playlistSongs.size());
+                                    openQueue(playlistSongs, startPosition, true);
+                                    queueManager.setShuffleMode(shuffleMode);
+                                } else {
+                                    openQueue(playlistSongs, 0, true);
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(), R.string.playlist_is_empty, Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            Toast.makeText(getApplicationContext(), R.string.playlist_is_empty, Toast.LENGTH_LONG).show();
+                        }
+                        break;
+                    case ACTION_REWIND:
+                        back();
+                        break;
+                    case ACTION_SKIP:
+                        playNextSong();
+                        break;
+                    case ACTION_STOP:
+                    case ACTION_QUIT:
+                        pendingQuit = false;
+                        clearSleepTimer();
+                        quit();
+                        break;
+                    case ACTION_PENDING_QUIT:
+                        pendingQuit = true;
+                        clearSleepTimer();
+                        break;
+                }
+            }
+        }
+
+        return START_NOT_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        unregisterReceiver(widgetIntentReceiver);
+        unregisterReceiver(becomingNoisyReceiver);
+
+        progressHandler.sendEmptyMessage(TRACK_ENDED);
+        mediaSession.setActive(false);
+        quit();
+        releaseResources();
+        PreferenceUtil.getInstance(this).unregisterOnSharedPreferenceChangedListener(this);
+        wakeLock.release();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return musicBinder;
+    }
+
+    private static final class QueueHandler extends Handler {
+        @NonNull
+        private final WeakReference<MusicService> mService;
+
+        public QueueHandler(final MusicService service, @NonNull final Looper looper) {
+            super(looper);
+            mService = new WeakReference<>(service);
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            final MusicService service = mService.get();
+            switch (msg.what) {
+                case LOAD_QUEUE:
+                    service.restoreQueuesAndPositionIfNecessary();
+                    break;
+                case SAVE_QUEUE:
+                    service.queueManager.saveQueue();
+                    break;
+            }
+        }
+    }
+
+    public void saveState() {
+        queueHandler.removeMessages(SAVE_QUEUE);
+        queueHandler.sendEmptyMessage(SAVE_QUEUE);
+
+        PreferenceUtil.getInstance(this).setProgress(getSongProgressMillis());
+    }
+
+    private void restoreState() {
+        queueHandler.removeMessages(LOAD_QUEUE);
+        queueHandler.sendEmptyMessage(LOAD_QUEUE);
+    }
+
+    private synchronized void restoreQueuesAndPositionIfNecessary() {
+        if (!queuesRestored && queueManager.getPlayingQueue().isEmpty()) {
+            queueManager.restoreQueue();
+        }
+
+        queuesRestored = true;
+    }
+
+    private void quit() {
+        pause();
+        playingNotification.stop();
+
+        stopSelf();
+    }
+
+    private void clearSleepTimer() {
+        PreferenceUtil.getInstance(this).setNextSleepTimerElapsedRealtime(-1);
+    }
+
+    private void releaseResources() {
+        progressHandler.removeCallbacksAndMessages(null);
+        progressHandlerThread.quitSafely();
+
+        queueHandler.removeCallbacksAndMessages(null);
+        queueHandlerThread.quitSafely();
+
+        LocalLibrary.removeListener(libraryListener);
+        NetworkUtil.removeListener(networkListener);
+        saveTrigger.release();
+        playback.stop();
+        mediaSession.release();
+    }
+
+    private void refreshQueue() {
+        playback.refreshQueue(new ArrayList<>(queueManager.getPlayingQueue()));
+    }
+
+    public boolean isPlaying() {
+        return playback != null && playback.isPlaying();
+    }
+
+    public boolean isLoading() {
+        return playback != null && playback.isLoading();
+    }
+
+    public void playPreviousSong() {
+        if (!NetworkUtil.canStream(this)) {
+            int position = queueManager.getPosition();
+            int target = findPlayable(position, -1);
+            if (target >= 0) {
+                showSkipped(Math.floorMod(position - target, queueManager.getPlayingQueue().size()) - 1);
+                jumpTo(target);
+            } else {
+                // there is no stored song before this one to go back to
+                seek(0);
+            }
+            return;
+        }
+
+        queueManager.setPreviousPosition();
+        playback.previous();
+    }
+
+    public void playNextSong() {
+        if (!NetworkUtil.canStream(this)) {
+            int position = queueManager.getPosition();
+            int target = findPlayable(position, 1);
+            if (target >= 0) {
+                showSkipped(Math.floorMod(target - position, queueManager.getPlayingQueue().size()) - 1);
+                jumpTo(target);
+                return;
+            }
+            // with nothing stored ahead, landing on the next song pauses with a message
+        }
+
+        queueManager.setNextPosition();
+        playback.next();
+    }
+
+    // Moves from the current song, which can't play right now, to the next one that can. Pauses if none is
+    // left and returns whether it moved.
+    private boolean skipUnplayable() {
+        int position = queueManager.getPosition();
+        int target = findPlayable(position, 1);
+        if (target < 0) {
+            pause();
+            Toast.makeText(getApplicationContext(), R.string.no_stored_songs_left, Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        showSkipped(Math.floorMod(target - position, queueManager.getPlayingQueue().size()));
+        jumpTo(target);
+        return true;
+    }
+
+    // the nearest position from `from` in the direction of `step` with a song that can play right now, or -1
+    private int findPlayable(int from, int step) {
+        List<Song> queue = queueManager.getPlayingQueue();
+        boolean canStream = NetworkUtil.canStream(this);
+        boolean wrap = queueManager.getRepeatMode() == QueueManager.REPEAT_MODE_ALL;
+
+        return QueueManager.findPlayable(queue.size(), from, step, wrap, position -> canStream || LocalLibrary.isAvailable(queue.get(position)));
+    }
+
+    private void jumpTo(int position) {
+        queueManager.setPosition(position);
+        playback.playSongAt(position);
+    }
+
+    private void showSkipped(int count) {
+        if (count <= 0) return;
+
+        String message = getResources().getQuantityString(R.plurals.skipped_x_songs_not_stored, count, count);
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    public void initNotification() {
+        if (!PreferenceUtil.getInstance(this).getClassicNotification()) {
+            playingNotification = new PlayingNotificationNougat();
+        } else {
+            playingNotification = new PlayingNotificationMarshmallow();
+        }
+
+        playingNotification.init(this);
+    }
+
+    public void updateNotification() {
+        if (playingNotification != null && queueManager.getCurrentSong() != null) {
+            playingNotification.update();
+        }
+    }
+
+    private void updateMediaSessionState() {
+        final int state;
+        if (playback.isEnded()) {
+            // playWhenReady stays true after the last track ends, so isPlaying() alone would report PLAYING
+            state = PlaybackStateCompat.STATE_STOPPED;
+        } else if (!isPlaying()) {
+            state = PlaybackStateCompat.STATE_PAUSED;
+        } else if (isLoading()) {
+            state = PlaybackStateCompat.STATE_BUFFERING;
+        } else {
+            state = PlaybackStateCompat.STATE_PLAYING;
+        }
+
+        // speed must be 0 whenever the position is not advancing, controllers extrapolate position from it
+        final float speed = state == PlaybackStateCompat.STATE_PLAYING ? 1 : 0;
+
+        mediaSession.setPlaybackState(
+            new PlaybackStateCompat.Builder()
+                .setActions(MEDIA_SESSION_ACTIONS)
+                .setState(state, getSongProgressMillis(), speed)
+                .build());
+    }
+
+    @SuppressLint("CheckResult")
+    private void updateMediaSessionMetadata() {
+        final Song song = queueManager.getCurrentSong();
+
+        if (song == null) {
+            mediaSession.setMetadata(null);
+            return;
+        }
+
+        final MediaMetadataCompat.Builder metaData = new MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artistName)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, song.artistName)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.albumName)
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration)
+            .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, queueManager.getPosition() + 1)
+            .putLong(MediaMetadataCompat.METADATA_KEY_YEAR, song.year)
+            .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, null);
+
+        metaData.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, queueManager.getPlayingQueue().size());
+
+        // the lock screen art is optional on Android 10, gone on 11, and the media controls show it from 12
+        if (
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ||
+                (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q && PreferenceUtil.getInstance(this).getShowAlbumCover())
+        ) {
+            final Point screenSize = Util.getScreenSize(MusicService.this);
+            final RequestBuilder<Bitmap> request = CustomGlideRequest.Builder
+                .from(MusicService.this, song.primary, song.blurHash)
+                .bitmap().build();
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    request.into(new CustomTarget<Bitmap>(screenSize.x, screenSize.y) {
+                        @Override
+                        public void onLoadFailed(Drawable drawable) {
+                            super.onLoadFailed(drawable);
+                            mediaSession.setMetadata(metaData.build());
+                        }
+
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, Transition<? super Bitmap> glideAnimation) {
+                            Bitmap.Config config = resource.getConfig();
+                            Bitmap copy = resource.copy(config, false);
+
+                            metaData.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, copy);
+                            mediaSession.setMetadata(metaData.build());
+                        }
+
+                        @Override
+                        public void onLoadCleared(Drawable drawable) {
+                            super.onLoadFailed(drawable);
+                            mediaSession.setMetadata(metaData.build());
+                        }
+                    });
+                }
+            });
+        } else {
+            mediaSession.setMetadata(metaData.build());
+        }
+    }
+
+    public void runOnUiThread(Runnable runnable) {
+        uiThreadHandler.post(runnable);
+    }
+
+    public void openQueue(@Nullable final List<Song> playingQueue, final int startPosition, final boolean startPlaying) {
+        if (playingQueue != null && !playingQueue.isEmpty() && startPosition >= 0 && startPosition < playingQueue.size()) {
+            queueManager.setPlayingQueueAndPosition(playingQueue, startPosition);
+            if (startPlaying) play();
+        }
+    }
+
+    public void playSongAt(final int position) {
+        queueManager.setPosition(position);
+        playback.playSongAt(position);
+        play();
+    }
+
+    public void pause() {
+        if (playback.isPlaying()) {
+            playback.pause();
+        }
+    }
+
+    public void play() {
+        if (!playback.isPlaying()) {
+            playback.start();
+        }
+    }
+
+    public void back() {
+        if (getSongProgressMillis() > 5000) {
+            seek(0);
+        } else {
+            playPreviousSong();
+        }
+    }
+
+    public int getSongProgressMillis() {
+        return playback.getProgress();
+    }
+
+    public int getSongDurationMillis() {
+        return playback.getDuration();
+    }
+
+    public synchronized int seek(int millis) {
+        playback.setProgress(millis);
+        throttledSeekHandler.notifySeek();
+        return millis;
+    }
+
+    private void notifyChange(@NonNull final String what) {
+        handleChangeInternal(what);
+        sendChangeInternal(what);
+    }
+
+    private void sendChangeInternal(final String what) {
+        // setPackage required so RECEIVER_NOT_EXPORTED receivers (targetSdk 34+) match the implicit intent.
+        Intent intent = new Intent(what);
+        intent.setPackage(getPackageName());
+        sendBroadcast(intent);
+
+        appWidgetAlbum.notifyChange(this, what, null);
+        appWidgetClassic.notifyChange(this, what, null);
+        appWidgetCard.notifyChange(this, what, null);
+    }
+
+    private void handleChangeInternal(@NonNull final String what) {
+        switch (what) {
+            case STATE_CHANGED:
+                if (!isPlaying()) {
+                    PreferenceUtil.getInstance(this).setProgress(getSongProgressMillis());
+                }
+
+                updateNotification();
+                updateMediaSessionState();
+                break;
+            case META_CHANGED:
+                updateNotification();
+                updateMediaSessionMetadata();
+                updateMediaSessionState();
+                PreferenceUtil.getInstance(this).setPosition(queueManager.getPosition());
+                PreferenceUtil.getInstance(this).setProgress(getSongProgressMillis());
+                break;
+            case QUEUE_CHANGED:
+                updateMediaSessionMetadata();
+                break;
+        }
+    }
+
+    public MediaSessionCompat getMediaSession() {
+        return mediaSession;
+    }
+
+    public void releaseWakeLock() {
+        if (wakeLock.isHeld()) {
+            wakeLock.release();
+        }
+    }
+
+    public void acquireWakeLock(long milli) {
+        wakeLock.acquire(milli);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        switch (key) {
+            case PreferenceUtil.SHOW_ALBUM_COVER:
+                updateMediaSessionMetadata();
+                break;
+            case PreferenceUtil.COLORED_NOTIFICATION:
+                updateNotification();
+                break;
+            case PreferenceUtil.CLASSIC_NOTIFICATION:
+                initNotification();
+                updateNotification();
+                break;
+            case PreferenceUtil.GAIN_OFFSET:
+                playback.setVolume(PreferenceUtil.getInstance(this).getGainOffset());
+                break;
+            case PreferenceUtil.LIBRARY_SAVE_TRIGGER:
+            case PreferenceUtil.LIBRARY_SAVE_TRIGGER_SECONDS:
+                saveTrigger.onSettingsChanged();
+                break;
+        }
+    }
+
+    public class MusicBinder extends Binder {
+        @NonNull
+        public MusicService getService() {
+            return MusicService.this;
+        }
+    }
+
+    private class ThrottledSeekHandler implements Runnable {
+        // milliseconds to throttle before calling run to aggregate events
+        private static final long THROTTLE = 500;
+        private final Handler mHandler;
+
+        public ThrottledSeekHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        public void notifySeek() {
+            mHandler.removeCallbacks(this);
+            mHandler.postDelayed(this, THROTTLE);
+        }
+
+        @Override
+        public void run() {
+            notifyChange(STATE_CHANGED);
+        }
+    }
+
+    private static final class ProgressHandler extends Handler {
+        private final WeakReference<MusicService> mService;
+
+        private ScheduledExecutorService executorService;
+        private Future<?> task;
+
+        public ProgressHandler(MusicService service, Looper looper) {
+            super(looper);
+
+            mService = new WeakReference<>(service);
+        }
+
+        @Override
+        public void handleMessage(@NonNull final Message msg) {
+            Song song = mService.get().queueManager.getCurrentSong();
+            if (song == null) return;
+
+            switch (msg.what) {
+                case TRACK_STARTED:
+                    onStart();
+                case TRACK_CHANGED:
+                    onNext();
+                    break;
+                case TRACK_ENDED:
+                    onStop();
+            }
+        }
+
+        public void onStart() {
+            if (executorService != null) executorService.shutdownNow();
+
+            executorService = Executors.newScheduledThreadPool(1);
+            task = executorService.scheduleAtFixedRate(this::onProgress, 10, 10, TimeUnit.SECONDS);
+        }
+
+        public void onNext() {
+            Song current = mService.get().queueManager.getCurrentSong();
+            PlaybackReporter.reportStart(current, mService.get().playback.getVolume());
+        }
+
+        public void onProgress() {
+            Song current = mService.get().queueManager.getCurrentSong();
+
+            if (current == null) {
+                return;
+            }
+
+            long progress = mService.get().getSongProgressMillis();
+            double duration = mService.get().getSongDurationMillis();
+            if (progress / duration > 0.9) {
+                PlaybackReporter.markPlayed(current);
+            }
+
+            PlaybackReporter.reportProgress(
+                    current,
+                    progress,
+                    mService.get().playback.getVolume(),
+                    !mService.get().playback.isPlaying()
+            );
+        }
+
+        public void onStop() {
+            long progress = mService.get().getSongProgressMillis();
+            Song current = mService.get().queueManager.getCurrentSong();
+            if (current != null) {
+                PlaybackReporter.reportStop(current, progress);
+            }
+
+            if (task != null) task.cancel(true);
+            if (executorService != null) executorService.shutdownNow();
+        }
+    }
+}

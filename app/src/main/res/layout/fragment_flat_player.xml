@@ -9,12 +9,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <com.dkanada.gramophone.views.StatusBarView
+        <dev.kebugcheck.gelli.views.StatusBarView
             android:id="@+id/player_status_bar"
             android:layout_width="match_parent"
             android:layout_height="@dimen/status_bar_padding" />
 
-        <com.dkanada.gramophone.views.StatusBarView
+        <dev.kebugcheck.gelli.views.StatusBarView
             android:layout_width="match_parent"
             android:layout_height="@dimen/status_bar_padding"
             android:background="@color/overlay_light" />
@@ -41,25 +41,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <com.dkanada.gramophone.views.WidthFitSquareLayout
+                <dev.kebugcheck.gelli.views.WidthFitSquareLayout
                     android:id="@+id/album_cover_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <fragment
                         android:id="@+id/player_album_cover_fragment"
-                        class="com.dkanada.gramophone.fragments.player.PlayerAlbumCoverFragment"
+                        class="dev.kebugcheck.gelli.fragments.player.PlayerAlbumCoverFragment"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
 
-                    <com.dkanada.gramophone.views.LyricsView
+                    <dev.kebugcheck.gelli.views.LyricsView
                         android:id="@+id/player_lyrics"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:paddingTop="@dimen/toolbar_height"
                         android:visibility="gone" />
 
-                </com.dkanada.gramophone.views.WidthFitSquareLayout>
+                </dev.kebugcheck.gelli.views.WidthFitSquareLayout>
 
             </FrameLayout>
 
@@ -86,7 +86,7 @@
 
             <fragment
                 android:id="@+id/playback_controls_fragment"
-                class="com.dkanada.gramophone.fragments.player.flat.FlatPlayerPlaybackControlsFragment"
+                class="dev.kebugcheck.gelli.fragments.player.flat.FlatPlayerPlaybackControlsFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 

@@ -64,7 +64,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    namespace = 'com.dkanada.gramophone'
+    namespace = 'dev.kebugcheck.gelli'
 }
 
 kotlin {

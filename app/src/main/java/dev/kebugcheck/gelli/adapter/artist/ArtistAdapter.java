@@ -1,0 +1,165 @@
+package dev.kebugcheck.gelli.adapter.artist;
+
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.core.util.Pair;
+import androidx.appcompat.app.AppCompatActivity;
+
+import dev.kebugcheck.gelli.util.QueryUtil;
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.adapter.base.AbsMultiSelectAdapter;
+import dev.kebugcheck.gelli.adapter.base.MediaEntryViewHolder;
+import dev.kebugcheck.gelli.glide.CustomGlideRequest;
+import dev.kebugcheck.gelli.helper.menu.SongsMenuHelper;
+import dev.kebugcheck.gelli.model.Artist;
+import dev.kebugcheck.gelli.util.MusicUtil;
+import dev.kebugcheck.gelli.util.NavigationUtil;
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ArtistAdapter extends AbsMultiSelectAdapter<ArtistAdapter.ViewHolder, Artist> implements FastScrollRecyclerView.SectionedAdapter {
+    protected final AppCompatActivity activity;
+    protected List<Artist> dataSet;
+
+    protected int itemLayoutRes;
+
+    private final boolean albumArtists;
+
+    public ArtistAdapter(@NonNull AppCompatActivity activity, List<Artist> dataSet, @LayoutRes int itemLayoutRes, boolean albumArtists) {
+        super(activity, R.menu.menu_select_media);
+        this.activity = activity;
+        this.dataSet = dataSet;
+        this.itemLayoutRes = itemLayoutRes;
+        this.albumArtists = albumArtists;
+        setHasStableIds(true);
+    }
+
+    public void swapDataSet(List<Artist> dataSet) {
+        this.dataSet = dataSet;
+        notifyDataSetChanged();
+    }
+
+    public List<Artist> getDataSet() {
+        return dataSet;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return dataSet.get(position).hashCode();
+    }
+
+    @Override
+    @NonNull
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(activity).inflate(itemLayoutRes, parent, false);
+
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+        final Artist artist = dataSet.get(position);
+
+        boolean isChecked = isChecked(artist);
+        holder.itemView.setActivated(isChecked);
+
+        if (holder.getBindingAdapterPosition() == getItemCount() - 1) {
+            if (holder.shortSeparator != null) {
+                holder.shortSeparator.setVisibility(View.GONE);
+            }
+        } else {
+            if (holder.shortSeparator != null) {
+                holder.shortSeparator.setVisibility(View.VISIBLE);
+            }
+        }
+
+        if (holder.title != null) {
+            holder.title.setText(artist.name);
+        }
+
+        if (holder.text != null) {
+            holder.text.setText(MusicUtil.getArtistInfoString(activity, artist));
+        }
+
+        holder.itemView.setActivated(isChecked(artist));
+        loadArtistImage(artist, holder);
+    }
+
+    protected void loadArtistImage(Artist artist, final ViewHolder holder) {
+        if (holder.image == null) return;
+
+        CustomGlideRequest.Builder
+                .from(activity, artist.primary, artist.blurHash)
+                .build()
+                .into(holder.image);
+    }
+
+    @Override
+    public int getItemCount() {
+        return dataSet.size();
+    }
+
+    @Override
+    protected Artist getIdentifier(int position) {
+        return dataSet.get(position);
+    }
+
+    @Override
+    protected String getName(Artist artist) {
+        return artist.name;
+    }
+
+    @Override
+    protected void onMultipleItemAction(@NonNull MenuItem menuItem, @NonNull List<Artist> selection) {
+        List<String> ids = new ArrayList<>();
+        for (Artist artist : selection) {
+            ids.add(artist.id);
+        }
+
+        QueryUtil.getSongsByArtistIds(ids, media -> {
+            SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
+        }, albumArtists);
+    }
+
+    @NonNull
+    @Override
+    public String getSectionName(int position) {
+        return MusicUtil.getSectionName(dataSet.get(position).name);
+    }
+
+    public class ViewHolder extends MediaEntryViewHolder {
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            setImageTransitionName(activity.getString(R.string.transition_artist_image));
+            if (menu != null) {
+                menu.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (isActive()) {
+                toggleChecked(getBindingAdapterPosition());
+            } else {
+                Pair<View, String> transition = Pair.create(
+                        image,
+                        activity.getResources().getString(R.string.transition_artist_image)
+                );
+                NavigationUtil.startArtist(activity, dataSet.get(getBindingAdapterPosition()), transition, albumArtists);
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View view) {
+            toggleChecked(getBindingAdapterPosition());
+            return true;
+        }
+    }
+}

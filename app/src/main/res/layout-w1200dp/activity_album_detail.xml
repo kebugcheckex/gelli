@@ -30,7 +30,7 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <com.dkanada.gramophone.views.WidthFitSquareLayout
+                <dev.kebugcheck.gelli.views.WidthFitSquareLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp">
@@ -45,7 +45,7 @@
                         app:shapeAppearanceOverlay="@style/ShapeAppearance.Gelli.Cover"
                         tools:ignore="ContentDescription" />
 
-                </com.dkanada.gramophone.views.WidthFitSquareLayout>
+                </dev.kebugcheck.gelli.views.WidthFitSquareLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"

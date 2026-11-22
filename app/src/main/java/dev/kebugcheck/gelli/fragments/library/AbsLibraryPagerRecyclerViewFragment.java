@@ -1,0 +1,147 @@
+package dev.kebugcheck.gelli.fragments.library;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+
+import dev.kebugcheck.gelli.App;
+import dev.kebugcheck.gelli.databinding.FragmentMainActivityRecyclerViewBinding;
+import dev.kebugcheck.gelli.util.PreferenceUtil;
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.AppBarLayout.OnOffsetChangedListener;
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.util.ViewUtil;
+import dev.kebugcheck.gelli.views.LibraryRecyclerView;
+import dev.kebugcheck.gelli.views.SectionIndexBar;
+
+public abstract class AbsLibraryPagerRecyclerViewFragment<A extends RecyclerView.Adapter, L extends RecyclerView.LayoutManager> extends AbsLibraryPagerFragment implements OnOffsetChangedListener {
+    private FragmentMainActivityRecyclerViewBinding binding;
+
+    private A adapter;
+    private L layoutManager;
+
+    public int size;
+    public boolean loading;
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        binding = FragmentMainActivityRecyclerViewBinding.inflate(getLayoutInflater(), container, false);
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        getLibraryFragment().addOnAppBarOffsetChangedListener(this);
+
+        initAdapter();
+        initLayoutManager();
+        initRecyclerView();
+        loadItems(0);
+    }
+
+    private void initAdapter() {
+        adapter = createAdapter();
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                checkIsEmpty();
+            }
+        });
+    }
+
+    private void initLayoutManager() {
+        layoutManager = createLayoutManager();
+    }
+
+    private void initRecyclerView() {
+        ViewUtil.setUpFastScrollRecyclerViewColor(requireActivity(), binding.recyclerView);
+
+        binding.recyclerView.setLayoutManager(layoutManager);
+        binding.recyclerView.setAdapter(adapter);
+    }
+
+    protected void invalidateAdapter() {
+        initAdapter();
+        binding.recyclerView.setAdapter(adapter);
+        loadItems(0);
+    }
+
+    protected void invalidateLayoutManager() {
+        initLayoutManager();
+        binding.recyclerView.setLayoutManager(layoutManager);
+    }
+
+    protected LibraryRecyclerView getRecyclerView() {
+        return binding.recyclerView;
+    }
+
+    protected SectionIndexBar getSectionIndexBar() {
+        return binding.sectionIndexBar;
+    }
+
+    protected A getAdapter() {
+        return adapter;
+    }
+
+    protected L getLayoutManager() {
+        return layoutManager;
+    }
+
+    @StringRes
+    protected int getEmptyMessage() {
+        return R.string.empty;
+    }
+
+    @NonNull
+    protected abstract A createAdapter();
+
+    @NonNull
+    protected abstract L createLayoutManager();
+
+    protected abstract void loadItems(int index);
+
+    @Override
+    public void onOffsetChanged(AppBarLayout appBarLayout, int i) {
+        binding.container.setPadding(binding.container.getPaddingLeft(), binding.container.getPaddingTop(), binding.container.getPaddingRight(), getLibraryFragment().getTotalAppBarScrollingRange() + i);
+
+        int last = 0;
+        if (!loading && getLayoutManager() instanceof GridLayoutManager) {
+            GridLayoutManager layoutManager = (GridLayoutManager) getLayoutManager();
+            last = layoutManager.findLastVisibleItemPosition();
+        } else if (!loading && getLayoutManager() instanceof LinearLayoutManager) {
+            LinearLayoutManager layoutManager = (LinearLayoutManager) getLayoutManager();
+            last = layoutManager.findLastVisibleItemPosition();
+        }
+
+        int page = PreferenceUtil.getInstance(App.getInstance()).getPageSize();
+        int total = getAdapter().getItemCount();
+        if (last > total - page / 2 && total < size) {
+            loading = true;
+            loadItems(getAdapter().getItemCount());
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        getLibraryFragment().removeOnAppBarOffsetChangedListener(this);
+    }
+
+    private void checkIsEmpty() {
+        binding.empty.setText(getEmptyMessage());
+        binding.empty.setVisibility(adapter == null || adapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+    }
+}

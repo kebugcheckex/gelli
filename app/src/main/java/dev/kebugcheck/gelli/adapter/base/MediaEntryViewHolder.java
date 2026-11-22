@@ -1,0 +1,72 @@
+package dev.kebugcheck.gelli.adapter.base;
+
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
+
+import dev.kebugcheck.gelli.R;
+
+public class MediaEntryViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+    @Nullable
+    public ImageView image;
+
+    @Nullable
+    public TextView imageText;
+
+    @Nullable
+    public TextView title;
+
+    @Nullable
+    public TextView text;
+
+    @Nullable
+    public View menu;
+
+    @Nullable
+    public ImageView cached;
+
+    @Nullable
+    public View separator;
+
+    @Nullable
+    public View shortSeparator;
+
+    @Nullable
+    public View dragView;
+
+    public MediaEntryViewHolder(View itemView) {
+        super(itemView);
+
+        image = itemView.findViewById(R.id.image);
+        imageText = itemView.findViewById(R.id.image_text);
+        title = itemView.findViewById(R.id.title);
+        text = itemView.findViewById(R.id.text);
+        menu = itemView.findViewById(R.id.menu);
+        cached = itemView.findViewById(R.id.cached);
+        separator = itemView.findViewById(R.id.separator);
+        shortSeparator = itemView.findViewById(R.id.short_separator);
+        dragView = itemView.findViewById(R.id.drag_view);
+
+        itemView.setOnClickListener(this);
+        itemView.setOnLongClickListener(this);
+    }
+
+    protected void setImageTransitionName(@NonNull String transitionName) {
+        if (image != null) {
+            image.setTransitionName(transitionName);
+        }
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        return false;
+    }
+
+    @Override
+    public void onClick(View v) {
+    }
+}

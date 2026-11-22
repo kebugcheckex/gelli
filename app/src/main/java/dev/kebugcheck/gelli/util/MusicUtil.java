@@ -1,0 +1,201 @@
+package dev.kebugcheck.gelli.util;
+
+import android.content.Context;
+import android.content.Intent;
+import android.text.TextUtils;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import dev.kebugcheck.gelli.App;
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.model.Album;
+import dev.kebugcheck.gelli.model.Artist;
+import dev.kebugcheck.gelli.model.Codec;
+import dev.kebugcheck.gelli.model.Genre;
+import dev.kebugcheck.gelli.model.Song;
+
+
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class MusicUtil {
+    public static String getTranscodeUri(Song song) {
+        PreferenceUtil preferenceUtil = PreferenceUtil.getInstance(App.getInstance());
+
+        StringBuilder builder = new StringBuilder(256);
+
+        builder.append(JellyfinSdkSession.getBaseUrl());
+        builder.append("/Audio/");
+        builder.append(song.id);
+        builder.append("/universal");
+        builder.append("?UserId=").append(JellyfinSdkSession.getCurrentUserId());
+        builder.append("&PlaySessionId=").append(song.id.hashCode());
+        builder.append("&DeviceId=").append(JellyfinSdkSession.getDeviceId());
+
+        // web client maximum is 12444445 and 320kbps is 320000
+        builder.append("&MaxStreamingBitrate=").append(preferenceUtil.getMaximumBitrate());
+
+        List<Codec> codecs = preferenceUtil.getDirectPlayCodecs();
+        Stream<String> values = codecs.stream().map(codec -> codec.value);
+
+        if (codecs.size() != 0) {
+            builder.append("&Container=").append(values.collect(Collectors.joining(",")));
+        }
+
+        builder.append("&TranscodingContainer=ts");
+        builder.append("&TranscodingProtocol=hls");
+
+        // preferred codec when transcoding
+        // ToDo: Think about removing this. The server doesn't seem to respect it anyways
+        builder.append("&AudioCodec=").append(preferenceUtil.getTranscodeCodec());
+        builder.append("&ApiKey=").append(JellyfinSdkSession.getAccessToken());
+
+        Log.i(MusicUtil.class.getName(), "playing audio item: " + song.id);
+        return builder.toString();
+    }
+
+    /**
+     * A progressive transcode for saving to the local library. No direct play containers are offered,
+     * so the server always transcodes into the requested container instead of sending the original.
+     */
+    public static String getSaveUri(String itemId, String container, int bitRate) {
+        StringBuilder builder = new StringBuilder(256);
+
+        builder.append(JellyfinSdkSession.getBaseUrl());
+        builder.append("/Audio/");
+        builder.append(itemId);
+        builder.append("/universal");
+        builder.append("?UserId=").append(JellyfinSdkSession.getCurrentUserId());
+        builder.append("&DeviceId=").append(JellyfinSdkSession.getDeviceId());
+        builder.append("&MaxStreamingBitrate=").append(bitRate);
+
+        builder.append("&TranscodingContainer=").append(container);
+        builder.append("&TranscodingProtocol=http");
+        builder.append("&AudioCodec=").append(container);
+
+        // a constant bitrate keeps seeking accurate in containers without an index
+        builder.append("&EnableAudioVbrEncoding=false");
+        builder.append("&ApiKey=").append(JellyfinSdkSession.getAccessToken());
+
+        return builder.toString();
+    }
+
+    public static String getDownloadUri(String itemId) {
+        StringBuilder builder = new StringBuilder(256);
+
+        builder.append(JellyfinSdkSession.getBaseUrl());
+        builder.append("/Items/");
+        builder.append(itemId);
+        builder.append("/Download");
+
+        builder.append("?ApiKey=").append(JellyfinSdkSession.getAccessToken());
+
+        return builder.toString();
+    }
+
+    @NonNull
+    public static Intent createShareSongFileIntent(@NonNull final Song song, Context context) {
+        try {
+            return new Intent();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            Toast.makeText(context, R.string.error_share_file, Toast.LENGTH_SHORT).show();
+            return new Intent();
+        }
+    }
+
+    @NonNull
+    public static String getArtistInfoString(@NonNull final Context context, @NonNull final Artist artist) {
+        return artist.genres.size() != 0 ? artist.genres.get(0).name : "";
+    }
+
+    @NonNull
+    public static String getAlbumInfoString(@NonNull final Context context, @NonNull final Album album) {
+        return album.artistName;
+    }
+
+    @NonNull
+    public static String getGenreInfoString(@NonNull final Context context, @NonNull final Genre genre) {
+        int songCount = genre.songCount;
+        return MusicUtil.getSongCountString(context, songCount);
+    }
+
+    @NonNull
+    public static String getPlaylistInfoString(@NonNull final Context context, @NonNull List<Song> songs) {
+        final long duration = getTotalDuration(context, songs);
+
+        return MusicUtil.buildInfoString(
+            MusicUtil.getSongCountString(context, songs.size()),
+            MusicUtil.getReadableDurationString(duration)
+        );
+    }
+
+    @NonNull
+    public static String getSongCountString(@NonNull final Context context, int songCount) {
+        final String songString = songCount == 1 ? context.getResources().getString(R.string.song) : context.getResources().getString(R.string.songs);
+        return songCount + " " + songString;
+    }
+
+    @NonNull
+    public static String getAlbumCountString(@NonNull final Context context, int albumCount) {
+        final String albumString = albumCount == 1 ? context.getResources().getString(R.string.album) : context.getResources().getString(R.string.albums);
+        return albumCount + " " + albumString;
+    }
+
+    @NonNull
+    public static String getYearString(int year) {
+        return year > 0 ? String.valueOf(year) : "-";
+    }
+
+    public static long getTotalDuration(@NonNull final Context context, @NonNull List<Song> songs) {
+        long duration = 0;
+        for (int i = 0; i < songs.size(); i++) {
+            duration += songs.get(i).duration;
+        }
+
+        return duration;
+    }
+
+    public static String getReadableDurationString(long songDurationMillis) {
+        long minutes = (songDurationMillis / 1000) / 60;
+        long seconds = (songDurationMillis / 1000) % 60;
+
+        if (minutes < 60) {
+            return String.format(Locale.getDefault(), "%01d:%02d", minutes, seconds);
+        } else {
+            long hours = minutes / 60;
+            minutes = minutes % 60;
+            return String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds);
+        }
+    }
+
+    @NonNull
+    public static String buildInfoString(@Nullable final String one, @Nullable final String two) {
+        if (TextUtils.isEmpty(one)) {
+            return TextUtils.isEmpty(two) ? "" : two;
+        }
+
+        if (TextUtils.isEmpty(two)) {
+            return TextUtils.isEmpty(one) ? "" : one;
+        }
+
+        return one + "  •  " + two;
+    }
+
+    public static void toggleFavorite(Song song) {
+        UserLibraryUtil.toggleFavorite(song);
+    }
+
+    /** The letter a title files under, with Han characters filed by their Pinyin. Empty for no title. */
+    @NonNull
+    public static String getSectionName(String musicMediaTitle) {
+        if (TextUtils.isEmpty(musicMediaTitle)) return "";
+
+        return AlphabetIndex.sectionOf(musicMediaTitle);
+    }
+}

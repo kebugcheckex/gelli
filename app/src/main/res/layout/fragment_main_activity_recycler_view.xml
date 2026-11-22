@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.dkanada.gramophone.views.LibraryRecyclerView
+    <dev.kebugcheck.gelli.views.LibraryRecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:scrollbars="none" />
 
-    <com.dkanada.gramophone.views.SectionIndexBar
+    <dev.kebugcheck.gelli.views.SectionIndexBar
         android:id="@+id/section_index_bar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -8,7 +8,7 @@
     android:background="?attr/colorSurface"
     android:orientation="vertical">
 
-    <com.dkanada.gramophone.views.StatusBarView
+    <dev.kebugcheck.gelli.views.StatusBarView
         android:layout_width="match_parent"
         android:layout_height="@dimen/status_bar_padding" />
 
@@ -60,7 +60,7 @@
 
     <fragment
         android:id="@+id/queue_sheet_list_fragment"
-        class="com.dkanada.gramophone.fragments.player.PlayingQueueListFragment"
+        class="dev.kebugcheck.gelli.fragments.player.PlayingQueueListFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />

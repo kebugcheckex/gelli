@@ -1,0 +1,165 @@
+package dev.kebugcheck.gelli.util
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
+import android.provider.Settings
+import androidx.annotation.VisibleForTesting
+import dev.kebugcheck.gelli.App
+import dev.kebugcheck.gelli.BuildConfig
+import dev.kebugcheck.gelli.R
+import dev.kebugcheck.gelli.model.User
+import org.jellyfin.sdk.createJellyfin
+import org.jellyfin.sdk.model.ClientInfo
+import org.jellyfin.sdk.model.DeviceInfo
+
+object JellyfinSdkSession {
+    private data class SessionSnapshot(
+        val baseUrl: String,
+        val accessToken: String,
+        val userId: String
+    )
+
+    private val lock = Any()
+
+    @Volatile
+    private var appContext: Context? = null
+
+    @Volatile
+    private var baseUrl: String? = null
+
+    @Volatile
+    private var accessToken: String? = null
+
+    @Volatile
+    private var userId: String? = null
+
+    @JvmStatic
+    fun initialize(context: Context) {
+        appContext = context.applicationContext
+    }
+
+    @JvmStatic
+    fun updateSession(baseUrl: String?, accessToken: String?, userId: String?) {
+        synchronized(lock) {
+            this.baseUrl = normalizeAddress(baseUrl)
+            this.accessToken = accessToken?.trim()?.takeIf { it.isNotEmpty() }
+            this.userId = userId?.trim()?.takeIf { it.isNotEmpty() }
+        }
+    }
+
+    /**
+     * Points the session at another address of the same server, unless the session has moved on to other
+     * credentials meanwhile. Returns whether the address changed.
+     */
+    @JvmStatic
+    fun switchAddress(userId: String?, accessToken: String?, address: String): Boolean {
+        val normalized = normalizeAddress(address) ?: return false
+
+        synchronized(lock) {
+            if (this.userId != userId?.trim() || this.accessToken != accessToken?.trim()) return false
+            if (baseUrl == normalized) return false
+
+            baseUrl = normalized
+            return true
+        }
+    }
+
+    @JvmStatic
+    fun updateSessionFromUser(user: User?) {
+        if (user == null) {
+            clearSession()
+            return
+        }
+        updateSession(user.server, user.token, user.jellyfinUserId)
+    }
+
+    @JvmStatic
+    fun clearSession() {
+        synchronized(lock) {
+            baseUrl = null
+            accessToken = null
+            userId = null
+        }
+    }
+
+    @JvmStatic
+    fun getCurrentUserId(): String? = userId
+
+    @JvmStatic
+    fun getBaseUrl(): String? = baseUrl
+
+    @JvmStatic
+    fun getAccessToken(): String? = accessToken
+
+    @JvmStatic
+    fun getDeviceId(): String {
+        val context = appContext ?: return "gelli-device"
+        return resolveDeviceId(context)
+    }
+
+    fun createApiOrNull() = snapshotOrNull()?.let { snapshot ->
+        val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
+        buildJellyfin(context).createApi(
+            baseUrl = snapshot.baseUrl,
+            accessToken = snapshot.accessToken
+        )
+    }
+
+    @JvmStatic
+    fun createApiForServer(serverUrl: String) = normalizeAddress(serverUrl)?.let { normalized ->
+        val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
+        buildJellyfin(context).createApi(baseUrl = normalized)
+    }
+
+    internal fun createApiForUser(user: User) = normalizeAddress(user.server)?.let { server ->
+        val token = user.token?.takeIf { it.isNotBlank() } ?: return@let null
+        val context = appContext ?: App.getInstance()?.applicationContext ?: return@let null
+        buildJellyfin(context).createApi(baseUrl = server, accessToken = token)
+    }
+
+    private fun buildJellyfin(context: Context) = createJellyfin {
+        clientInfo = ClientInfo(
+            name = context.getString(R.string.app_name),
+            version = BuildConfig.VERSION_NAME
+        )
+        deviceInfo = DeviceInfo(
+            id = resolveDeviceId(context),
+            name = Build.MODEL
+        )
+        this.context = context
+    }
+
+    private fun snapshotOrNull(): SessionSnapshot? {
+        val baseUrlSnapshot = baseUrl
+        val accessTokenSnapshot = accessToken
+        val userIdSnapshot = userId
+
+        if (baseUrlSnapshot.isNullOrBlank() || accessTokenSnapshot.isNullOrBlank() || userIdSnapshot.isNullOrBlank()) {
+            return null
+        }
+
+        return SessionSnapshot(baseUrlSnapshot, accessTokenSnapshot, userIdSnapshot)
+    }
+
+    @JvmStatic
+    fun normalizeAddress(raw: String?): String? {
+        return raw
+            ?.trim()
+            ?.trimEnd('/')
+            ?.takeIf { it.isNotEmpty() }
+    }
+
+    @SuppressLint("HardwareIds")
+    private fun resolveDeviceId(context: Context): String {
+        return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+            ?.takeIf { it.isNotBlank() }
+            ?: "gelli-device"
+    }
+
+    @VisibleForTesting
+    internal fun resetForTest() {
+        appContext = null
+        clearSession()
+    }
+}

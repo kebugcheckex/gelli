@@ -33,7 +33,7 @@ Unit tests live in `app/src/test` and run on the JVM:
 
 ## Architecture Overview
 
-Gelli is an Android music player app (Java + Kotlin, minSdk 29) that streams from a Jellyfin server. The package root is `com.dkanada.gramophone`.
+Gelli is an Android music player app (Java + Kotlin, minSdk 29) that streams from a Jellyfin server. The package root is `dev.kebugcheck.gelli`.
 
 ### Global State — `App.java`
 

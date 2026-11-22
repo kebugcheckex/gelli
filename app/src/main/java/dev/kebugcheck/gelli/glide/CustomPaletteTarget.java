@@ -1,0 +1,36 @@
+package dev.kebugcheck.gelli.glide;
+
+import android.graphics.drawable.Drawable;
+import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+
+import com.bumptech.glide.request.transition.Transition;
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.glide.palette.BitmapPaletteTarget;
+import dev.kebugcheck.gelli.glide.palette.BitmapPaletteWrapper;
+import dev.kebugcheck.gelli.util.ThemeUtil;
+
+public abstract class CustomPaletteTarget extends BitmapPaletteTarget {
+    public CustomPaletteTarget(ImageView view) {
+        super(view);
+    }
+
+    @Override
+    public void onLoadFailed(Drawable errorDrawable) {
+        super.onLoadFailed(errorDrawable);
+        onColorReady(getFallbackColor());
+    }
+
+    @Override
+    public void onResourceReady(@NonNull BitmapPaletteWrapper resource, Transition<? super BitmapPaletteWrapper> glideAnimation) {
+        super.onResourceReady(resource, glideAnimation);
+        onColorReady(ThemeUtil.getColor(resource.getPalette(), getFallbackColor()));
+    }
+
+    private int getFallbackColor() {
+        return ThemeUtil.getColorResource(getView().getContext(), R.attr.colorSurfaceContainerHighest);
+    }
+
+    public abstract void onColorReady(int color);
+}

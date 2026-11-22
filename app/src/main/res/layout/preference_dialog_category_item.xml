@@ -39,7 +39,7 @@
         android:textAppearance="?textAppearanceBodyLarge"
         tools:text="Item" />
 
-    <com.dkanada.gramophone.views.IconImageView
+    <dev.kebugcheck.gelli.views.IconImageView
         android:id="@+id/drag_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

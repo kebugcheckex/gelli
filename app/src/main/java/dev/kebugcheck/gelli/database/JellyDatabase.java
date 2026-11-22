@@ -1,0 +1,229 @@
+package dev.kebugcheck.gelli.database;
+
+import androidx.annotation.NonNull;
+import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
+import dev.kebugcheck.gelli.model.Song;
+import dev.kebugcheck.gelli.model.User;
+
+@androidx.room.Database(
+        entities = {
+                LocalSong.class,
+                SongInventory.class,
+                InventorySong.class,
+                Song.class,
+                QueueSong.class,
+                User.class
+        },
+        version = 12,
+        exportSchema = false
+)
+public abstract class JellyDatabase extends RoomDatabase {
+    public abstract LocalSongDao localSongDao();
+    public abstract SongInventoryDao songInventoryDao();
+    public abstract SongDao songDao();
+    public abstract QueueSongDao queueSongDao();
+    public abstract UserDao userDao();
+
+    // Records the server id, which needs the network, so existing accounts get it when they next connect.
+    // Until then each keeps the one address it was saved with.
+    public static final Migration Migration12 = new Migration(11, 12) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE users ADD COLUMN serverId TEXT");
+            database.execSQL("ALTER TABLE users ADD COLUMN addresses TEXT NOT NULL DEFAULT ''");
+            database.execSQL("UPDATE users SET addresses = COALESCE(server, '')");
+        }
+    };
+
+    public static final Migration Migration11 = new Migration(10, 11) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE song_inventories (accountId TEXT NOT NULL,"
+                    + "checkedAt INTEGER NOT NULL, PRIMARY KEY (accountId))");
+            database.execSQL("CREATE TABLE inventory_songs (accountId TEXT NOT NULL,"
+                    + "itemId TEXT NOT NULL, PRIMARY KEY (accountId, itemId),"
+                    + "FOREIGN KEY (accountId) REFERENCES song_inventories(accountId)"
+                    + " ON UPDATE NO ACTION ON DELETE CASCADE)");
+        }
+    };
+
+    public static final Migration Migration2 = new Migration(1, 2) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE servers (id TEXT NOT NULL PRIMARY KEY, name TEXT,"
+                    + "url TEXT, user TEXT, token TEXT)");
+        }
+    };
+
+    public static final Migration Migration3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE servers");
+
+            database.execSQL("CREATE TABLE servers (id TEXT NOT NULL PRIMARY KEY,"
+                    + "name TEXT, url TEXT)");
+            database.execSQL("CREATE TABLE users (id TEXT NOT NULL PRIMARY KEY,"
+                    + "serverId TEXT, name TEXT, token TEXT)");
+        }
+    };
+
+    public static final Migration Migration4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE servers");
+            database.execSQL("DROP TABLE users");
+
+            database.execSQL("CREATE TABLE users (id TEXT NOT NULL PRIMARY KEY,"
+                    + "name TEXT, server TEXT, token TEXT)");
+        }
+    };
+
+    public static final Migration Migration5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE songs ADD COLUMN cache INTEGER NOT NULL DEFAULT 1");
+
+            database.execSQL("CREATE TABLE cache (id TEXT NOT NULL PRIMARY KEY,"
+                    + "cache INTEGER NOT NULL DEFAULT 1)");
+        }
+    };
+
+    public static final Migration Migration6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE queueSongs");
+
+            database.execSQL("CREATE TABLE queueSongs ('index' INTEGER NOT NULL,"
+                + "queue INTEGER NOT NULL, songId TEXT,"
+                + "PRIMARY KEY ('index', queue),"
+                + "FOREIGN KEY (songId) REFERENCES songs(id) ON DELETE CASCADE)");
+        }
+    };
+
+    // Adds jellyfinUserId column and changes id PK to server+jellyfinUserId composite
+    // so accounts with the same username on different servers don't collide.
+    public static final Migration Migration8 = new Migration(7, 8) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE users RENAME TO users_old");
+            database.execSQL("CREATE TABLE users (id TEXT NOT NULL PRIMARY KEY,"
+                    + "name TEXT, server TEXT, token TEXT, jellyfinUserId TEXT)");
+            database.execSQL("INSERT INTO users SELECT"
+                    + " (COALESCE(server, '') || id) AS id,"
+                    + " name, server, token, id AS jellyfinUserId"
+                    + " FROM users_old");
+            database.execSQL("DROP TABLE users_old");
+        }
+    };
+
+    public static final Migration Migration7 = new Migration(6, 7) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DELETE FROM queueSongs");
+            database.execSQL("DROP TABLE songs");
+
+            database.execSQL("CREATE TABLE songs (id TEXT NOT NULL PRIMARY KEY,"
+                    + "title TEXT,"
+                    + "trackNumber INTEGER NOT NULL,"
+                    + "discNumber INTEGER NOT NULL,"
+                    + "year INTEGER NOT NULL,"
+                    + "duration INTEGER NOT NULL,"
+                    + "albumId TEXT,"
+                    + "albumName TEXT,"
+                    + "artistId TEXT,"
+                    + "artistName TEXT,"
+                    + "'primary' TEXT,"
+                    + "blurHash TEXT,"
+                    + "favorite INTEGER NOT NULL,"
+                    + "path TEXT,"
+                    + "size INTEGER NOT NULL,"
+                    + "container TEXT,"
+                    + "codec TEXT,"
+                    + "supportsTranscoding INTEGER NOT NULL,"
+                    + "sampleRate INTEGER NOT NULL,"
+                    + "bitRate INTEGER NOT NULL,"
+                    + "bitDepth INTEGER NOT NULL,"
+                    + "channels INTEGER NOT NULL,"
+                    + "cache INTEGER NOT NULL DEFAULT 1)");
+        }
+    };
+
+    // Adds the local library table.
+    public static final Migration Migration9 = new Migration(8, 9) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE local_songs (accountId TEXT NOT NULL,"
+                    + "itemId TEXT NOT NULL,"
+                    + "title TEXT,"
+                    + "trackNumber INTEGER NOT NULL,"
+                    + "discNumber INTEGER NOT NULL,"
+                    + "year INTEGER NOT NULL,"
+                    + "duration INTEGER NOT NULL,"
+                    + "albumId TEXT,"
+                    + "albumName TEXT,"
+                    + "artistId TEXT,"
+                    + "artistName TEXT,"
+                    + "imageTag TEXT,"
+                    + "blurHash TEXT,"
+                    + "favorite INTEGER NOT NULL,"
+                    + "state TEXT NOT NULL,"
+                    + "source TEXT NOT NULL,"
+                    + "variant TEXT,"
+                    + "filePath TEXT,"
+                    + "fileSize INTEGER NOT NULL,"
+                    + "container TEXT,"
+                    + "codec TEXT,"
+                    + "bitRate INTEGER NOT NULL,"
+                    + "serverDateModified INTEGER NOT NULL,"
+                    + "addedAt INTEGER NOT NULL,"
+                    + "lastPlayedAt INTEGER NOT NULL,"
+                    + "failureCount INTEGER NOT NULL,"
+                    + "lastError TEXT,"
+                    + "PRIMARY KEY (accountId, itemId))");
+        }
+    };
+
+    // Drops the legacy download state: the cache table and the cache column of songs. The songs table
+    // only backs the persisted queue, so both are rebuilt empty instead of copied.
+    public static final Migration Migration10 = new Migration(9, 10) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE IF EXISTS cache");
+            database.execSQL("DROP TABLE queueSongs");
+            database.execSQL("DROP TABLE songs");
+
+            database.execSQL("CREATE TABLE songs (id TEXT NOT NULL,"
+                    + "title TEXT,"
+                    + "trackNumber INTEGER NOT NULL,"
+                    + "discNumber INTEGER NOT NULL,"
+                    + "year INTEGER NOT NULL,"
+                    + "duration INTEGER NOT NULL,"
+                    + "albumId TEXT,"
+                    + "albumName TEXT,"
+                    + "artistId TEXT,"
+                    + "artistName TEXT,"
+                    + "'primary' TEXT,"
+                    + "blurHash TEXT,"
+                    + "favorite INTEGER NOT NULL,"
+                    + "path TEXT,"
+                    + "size INTEGER NOT NULL,"
+                    + "container TEXT,"
+                    + "codec TEXT,"
+                    + "supportsTranscoding INTEGER NOT NULL,"
+                    + "sampleRate INTEGER NOT NULL,"
+                    + "bitRate INTEGER NOT NULL,"
+                    + "bitDepth INTEGER NOT NULL,"
+                    + "channels INTEGER NOT NULL,"
+                    + "PRIMARY KEY (id))");
+
+            database.execSQL("CREATE TABLE queueSongs ('index' INTEGER NOT NULL,"
+                    + "queue INTEGER NOT NULL, songId TEXT,"
+                    + "PRIMARY KEY ('index', queue),"
+                    + "FOREIGN KEY (songId) REFERENCES songs(id) ON UPDATE NO ACTION ON DELETE CASCADE)");
+            database.execSQL("CREATE INDEX index_queueSongs_songId ON queueSongs (songId)");
+        }
+    };
+}

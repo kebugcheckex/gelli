@@ -1,0 +1,193 @@
+package dev.kebugcheck.gelli.adapter.album;
+
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
+import androidx.appcompat.app.AppCompatActivity;
+
+import dev.kebugcheck.gelli.util.QueryUtil;
+import dev.kebugcheck.gelli.R;
+import dev.kebugcheck.gelli.adapter.base.AbsMultiSelectAdapter;
+import dev.kebugcheck.gelli.adapter.base.MediaEntryViewHolder;
+import dev.kebugcheck.gelli.glide.CustomGlideRequest;
+import dev.kebugcheck.gelli.helper.menu.SongsMenuHelper;
+import dev.kebugcheck.gelli.model.Album;
+import dev.kebugcheck.gelli.util.MusicUtil;
+import dev.kebugcheck.gelli.util.NavigationUtil;
+import dev.kebugcheck.gelli.util.PreferenceUtil;
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AlbumAdapter extends AbsMultiSelectAdapter<AlbumAdapter.ViewHolder, Album> implements FastScrollRecyclerView.SectionedAdapter {
+    protected final AppCompatActivity activity;
+    protected List<Album> dataSet;
+
+    protected int itemLayoutRes;
+
+    public AlbumAdapter(@NonNull AppCompatActivity activity, List<Album> dataSet, @LayoutRes int itemLayoutRes) {
+        super(activity, R.menu.menu_select_media);
+
+        this.activity = activity;
+        this.dataSet = dataSet;
+        this.itemLayoutRes = itemLayoutRes;
+
+        setHasStableIds(true);
+    }
+
+    public void swapDataSet(List<Album> dataSet) {
+        this.dataSet = dataSet;
+        notifyDataSetChanged();
+    }
+
+    public List<Album> getDataSet() {
+        return dataSet;
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(activity).inflate(itemLayoutRes, parent, false);
+
+        return createViewHolder(view, viewType);
+    }
+
+    protected ViewHolder createViewHolder(View view, int viewType) {
+        return new ViewHolder(view);
+    }
+
+    protected String getAlbumTitle(Album album) {
+        return album.title;
+    }
+
+    protected String getAlbumText(Album album) {
+        return MusicUtil.getAlbumInfoString(activity, album);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+        final Album album = dataSet.get(position);
+        final boolean isChecked = isChecked(album);
+        holder.itemView.setActivated(isChecked);
+
+        if (holder.getBindingAdapterPosition() == getItemCount() - 1) {
+            if (holder.shortSeparator != null) {
+                holder.shortSeparator.setVisibility(View.GONE);
+            }
+        } else {
+            if (holder.shortSeparator != null) {
+                holder.shortSeparator.setVisibility(View.VISIBLE);
+            }
+        }
+
+        if (holder.title != null) {
+            holder.title.setText(getAlbumTitle(album));
+        }
+
+        if (holder.text != null) {
+            holder.text.setText(getAlbumText(album));
+        }
+
+        loadAlbumCover(album, holder);
+    }
+
+    protected void loadAlbumCover(Album album, final ViewHolder holder) {
+        if (holder.image == null) return;
+
+        CustomGlideRequest.Builder
+                .from(activity, album.primary, album.blurHash)
+                .build()
+                .into(holder.image);
+    }
+
+    @Override
+    public int getItemCount() {
+        return dataSet.size();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return dataSet.get(position).hashCode();
+    }
+
+    @Override
+    protected Album getIdentifier(int position) {
+        return dataSet.get(position);
+    }
+
+    @Override
+    protected String getName(Album album) {
+        return album.title;
+    }
+
+    @Override
+    protected void onMultipleItemAction(@NonNull MenuItem menuItem, @NonNull List<Album> selection) {
+        List<String> ids = new ArrayList<>();
+        for (Album album : selection) {
+            ids.add(album.id);
+        }
+
+        QueryUtil.getSongsByParents(ids, media -> {
+            SongsMenuHelper.handleMenuClick(activity, media, menuItem.getItemId());
+        });
+    }
+
+    @NonNull
+    @Override
+    public String getSectionName(int position) {
+        @Nullable String sectionName = null;
+        switch (PreferenceUtil.getInstance(activity).getAlbumSortMethod()) {
+            case NAME:
+                sectionName = dataSet.get(position).title;
+                break;
+            case ARTIST:
+                sectionName = dataSet.get(position).artistName;
+                break;
+            case YEAR:
+                return MusicUtil.getYearString(dataSet.get(position).year);
+            case ADDED:
+                return "";
+            case RANDOM:
+                return activity.getResources().getString(R.string.random);
+        }
+
+        return MusicUtil.getSectionName(sectionName);
+    }
+
+    public class ViewHolder extends MediaEntryViewHolder {
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            setImageTransitionName(activity.getString(R.string.transition_album_image));
+            if (menu != null) {
+                menu.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (isActive()) {
+                toggleChecked(getBindingAdapterPosition());
+            } else {
+                Pair<View, String> transition = Pair.create(
+                        image,
+                        activity.getResources().getString(R.string.transition_album_image)
+                );
+                NavigationUtil.startAlbum(activity, dataSet.get(getBindingAdapterPosition()), transition);
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View view) {
+            toggleChecked(getBindingAdapterPosition());
+            return true;
+        }
+    }
+}
