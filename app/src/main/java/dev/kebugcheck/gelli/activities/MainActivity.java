@@ -89,6 +89,8 @@ public class MainActivity extends AbsMusicContentActivity {
             menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_settings_white_24dp);
             menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_about, menu.size(), R.string.action_about);
             menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_info_outline_white_24dp);
+            menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_switch_account, menu.size(), R.string.switch_account);
+            menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_person_white_24dp);
             menu.add(R.id.navigation_drawer_menu_category_other, R.id.nav_logout, menu.size(), R.string.logout);
             menu.getItem(menu.size() - 1).setIcon(R.drawable.ic_exit_to_app_white_48dp);
 
