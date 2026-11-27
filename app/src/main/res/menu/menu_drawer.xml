@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group
+        android:id="@+id/navigation_drawer_menu_category_server"
+        android:checkableBehavior="none">
+
+        <item
+            android:id="@+id/nav_server"
+            android:icon="@drawable/ic_cloud_queue_24dp"
+            android:title="@string/server_connecting"
+            app:actionLayout="@layout/navigation_server_latency" />
+
+    </group>
 
     <group
         android:id="@+id/navigation_drawer_menu_category_sections"

@@ -49,8 +49,8 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
         super.onDestroy();
     }
 
-    /** Called with every connection state, e.g. to show that the server can't be reached. */
-    protected void onUnreachableChanged(boolean unreachable) {
+    /** Called with every connection state but Rejected, e.g. to show that the server can't be reached. */
+    protected void onConnectionStateChanged(@NonNull ConnectionState state) {
     }
 
     private void onConnectionChanged(@NonNull ConnectionState state) {
@@ -71,7 +71,7 @@ public abstract class AbsMusicContentActivity extends AbsMusicPanelActivity impl
         }
 
         unreachable = state == ConnectionState.Unreachable.INSTANCE;
-        onUnreachableChanged(unreachable);
+        onConnectionStateChanged(state);
     }
 
     private void dispatchOnlineOnce() {

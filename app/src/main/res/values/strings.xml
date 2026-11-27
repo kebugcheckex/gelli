@@ -291,6 +291,9 @@
     <string name="address_added">Address added.</string>
     <string name="address_known">This address is already on the list.</string>
     <string name="address_other_server_add">This address leads to a different server.</string>
+    <string name="server_connecting">Connecting…</string>
+    <string name="server_no_address">No address answers</string>
+    <string name="latency_ms">%1$d ms</string>
     <string name="address_unidentified">Connect to this server once before adding addresses.</string>
 
 </resources>

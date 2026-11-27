@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,6 +28,7 @@ import dev.kebugcheck.gelli.helper.MusicPlayerRemote;
 import dev.kebugcheck.gelli.model.Song;
 import dev.kebugcheck.gelli.fragments.main.LibraryFragment;
 import dev.kebugcheck.gelli.util.MusicUtil;
+import dev.kebugcheck.gelli.util.ConnectionState;
 import dev.kebugcheck.gelli.util.PreferenceUtil;
 import dev.kebugcheck.gelli.util.QueryUtil;
 import dev.kebugcheck.gelli.util.ServerConnection;
@@ -64,6 +66,10 @@ public class MainActivity extends AbsMusicContentActivity {
             libraries = media;
             menu.clear();
 
+            menu.add(R.id.navigation_drawer_menu_category_server, R.id.nav_server, menu.size(), R.string.server_connecting);
+            menu.getItem(menu.size() - 1).setActionView(R.layout.navigation_server_latency);
+            updateServerItem();
+
             // the last library may belong to another account, so fall back to the first
             int selected = 0;
             String lastLibrary = PreferenceUtil.getInstance(this).getLastLibrary();
@@ -94,9 +100,39 @@ public class MainActivity extends AbsMusicContentActivity {
     }
 
     @Override
-    protected void onUnreachableChanged(boolean unreachable) {
+    protected void onConnectionStateChanged(@NonNull ConnectionState state) {
+        boolean unreachable = state == ConnectionState.Unreachable.INSTANCE;
         contentBinding.unreachable.setVisibility(unreachable ? View.VISIBLE : View.GONE);
         contentBinding.retry.setEnabled(true);
+        updateServerItem();
+    }
+
+    /** Shows the address in use at the top of the drawer, with how long its last probe took. */
+    private void updateServerItem() {
+        MenuItem item = binding.navigationView.getMenu().findItem(R.id.nav_server);
+        if (item == null) return;
+
+        ConnectionState state = ServerConnection.getState();
+        Long latency = null;
+        if (state instanceof ConnectionState.Online) {
+            String address = ((ConnectionState.Online) state).getAddress();
+            item.setTitle(displayAddress(address));
+            latency = ServerConnection.getLatency(address);
+        } else if (state == ConnectionState.Unreachable.INSTANCE) {
+            item.setTitle(R.string.server_no_address);
+        } else {
+            item.setTitle(R.string.server_connecting);
+        }
+
+        item.setIcon(state == ConnectionState.Unreachable.INSTANCE ? R.drawable.ic_cloud_off_24dp : R.drawable.ic_cloud_queue_24dp);
+        if (item.getActionView() instanceof TextView) {
+            ((TextView) item.getActionView()).setText(latency == null ? null : getString(R.string.latency_ms, latency));
+        }
+    }
+
+    /** The address without its scheme, which the host and port tell apart well enough in a narrow drawer. */
+    private static String displayAddress(String address) {
+        return address.replaceFirst("^https?://", "").replaceFirst("/+$", "");
     }
 
     @Override
@@ -157,13 +193,24 @@ public class MainActivity extends AbsMusicContentActivity {
         ViewGroup drawerContent = binding.drawerContentContainer;
         drawerContent.addView(wrapSlidingMusicPanel(contentBinding.getRoot()));
 
+        binding.drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+                // the latency from when the address was picked may be hours old
+                ServerConnection.refreshLatency(MainActivity.this::updateServerItem);
+            }
+        });
+
         return binding.getRoot();
     }
 
     private void setUpNavigationView() {
         binding.navigationView.setNavigationItemSelectedListener(menuItem -> {
             binding.drawerLayout.closeDrawers();
-            if (menuItem.getItemId() == R.id.nav_settings) {
+            if (menuItem.getItemId() == R.id.nav_server) {
+                String user = PreferenceUtil.getInstance(this).getUser();
+                if (user != null) new Handler().postDelayed(() -> AddressesActivity.start(MainActivity.this, user), 200);
+            } else if (menuItem.getItemId() == R.id.nav_settings) {
                 new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, SettingsActivity.class)), 200);
             } else if (menuItem.getItemId() == R.id.nav_about) {
                 new Handler().postDelayed(() -> startActivity(new Intent(MainActivity.this, AboutActivity.class)), 200);

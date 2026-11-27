@@ -23,6 +23,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.Interceptor
 import org.jellyfin.sdk.api.client.ApiClient
@@ -34,7 +35,9 @@ import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.SocketException
 import java.net.UnknownHostException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLException
 
 /**
@@ -69,9 +72,13 @@ object ServerConnection {
 
     private val listeners = CopyOnWriteArraySet<Listener>()
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** How long the last probe of each address took to answer, in milliseconds. */
+    private val latencies = ConcurrentHashMap<String, Long>()
 
     private val loop = ConnectionLoop(
-        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+        scope = scope,
         attempt = ::attempt,
         mayRetry = ::mayRetry,
         onResult = ::onResult,
@@ -135,6 +142,23 @@ object ServerConnection {
     /** Whether no address of the server answered on the last attempt. */
     @JvmStatic
     fun isUnreachable(): Boolean = loop.state == ConnectionState.Unreachable
+
+    /** How long the last probe of the address took to answer, in milliseconds, or null if the last one failed or none ran. */
+    @JvmStatic
+    fun getLatency(address: String): Long? = latencies[address]
+
+    /**
+     * Probes the address in use again, so [getLatency] tells how it answers now rather than when it was picked,
+     * then runs [onDone] on the main thread. Does nothing while the app isn't online.
+     */
+    @JvmStatic
+    fun refreshLatency(onDone: Runnable) {
+        val state = loop.state as? ConnectionState.Online ?: return
+        scope.launch {
+            probe(state.address)
+            mainHandler.post(onDone)
+        }
+    }
 
     @JvmStatic
     fun addListener(listener: Listener) {
@@ -390,17 +414,24 @@ object ServerConnection {
         null
     }
 
-    /** Returns the id of the server at the address, without signing in, or null if it doesn't answer. */
+    /**
+     * Returns the id of the server at the address, without signing in, or null if it doesn't answer. How long it
+     * took to answer is kept for [getLatency].
+     */
     suspend fun probe(address: String): String? {
         val api = JellyfinSdkSession.createApiForServer(address) ?: return null
 
         return try {
+            val start = System.nanoTime()
             val info by api.systemApi.getPublicSystemInfo()
+            latencies[address] = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)
             info.id
         } catch (err: CancellationException) {
+            // a probe cut short by a faster address says nothing about this one
             throw err
         } catch (err: Exception) {
             Log.i(TAG, "probe $address: ${err.message}")
+            latencies.remove(address)
             null
         }
     }
